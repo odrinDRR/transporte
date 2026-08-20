@@ -1,0 +1,84 @@
+<div class="d-flex min-vh-100">
+  
+  <!-- Barra Lateral (Sidebar) -->
+  <aside class="d-none d-md-flex flex-column p-3 bg-custom-sidebar border-end border-custom" style="width: 280px;">
+    <div class="d-flex align-items-center gap-2 pb-3 mb-3 border-bottom border-custom">
+      <div class="bg-white p-1 rounded">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Pequiven_logo.svg/512px-Pequiven_logo.svg.png" width="36" alt="Logo">
+      </div>
+      <div>
+        <h6 class="text-white fw-bold mb-0" style="font-size: 0.85rem;">GERENCIA LOGÍSTICA</h6>
+        <small class="text-primary fw-bold text-uppercase" style="font-size: 0.68rem;">ROL: {{ (flotaService.rolActual$ | async) }}</small>
+      </div>
+    </div>
+
+    <!-- Menú Dinámico según Rol (RBAC) -->
+    <ul class="nav nav-pills flex-column gap-2 mb-auto">
+      <ng-container *ngIf="(flotaService.rolActual$ | async) !== 'CONDUCTOR'">
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
+            <i class="bi bi-truck"></i> Flota y Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'conductores'" (click)="cambiarModulo('conductores')" href="javascript:void(0)">
+            <i class="bi bi-person-badge"></i> Conductores
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'mantenimiento'" (click)="cambiarModulo('mantenimiento')" href="javascript:void(0)">
+            <i class="bi bi-wrench"></i> Mantenimiento
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'documentos'" (click)="cambiarModulo('documentos')" href="javascript:void(0)">
+            <i class="bi bi-file-earmark-text"></i> Documentos / Seguros
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'combustible'" (click)="cambiarModulo('combustible')" href="javascript:void(0)">
+            <i class="bi bi-fuel-pump"></i> Combustible
+          </a>
+        </li>
+      </ng-container>
+
+      <li class="nav-item">
+        <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'inspeccion'" (click)="cambiarModulo('inspeccion')" href="javascript:void(0)">
+          <i class="bi bi-clipboard-check"></i> Inspección Vehicular
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- Área de Contenido -->
+  <main class="flex-grow-1 p-3 p-md-4">
+    <!-- Header -->
+    <header class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-4 border-bottom border-custom gap-3">
+      <div>
+        <h4 class="text-white fw-bold mb-0 text-uppercase">{{ moduloActivo }}</h4>
+        <small class="text-custom-muted">Sistema Integral de Gestión de Flotas</small>
+      </div>
+
+      <!-- Simulador de Rol -->
+      <div class="input-group input-group-sm w-auto">
+        <span class="input-group-text bg-dark text-white border-custom"><i class="bi bi-shield-lock me-1"></i> Rol</span>
+        <select class="form-select bg-dark text-white border-custom" (change)="alCambiarRol($event)">
+          <option value="ADMIN">1. Admin / Gerente</option>
+          <option value="COORDINADOR">2. Coordinador</option>
+          <option value="EMPLEADO">3. Empleado</option>
+          <option value="CONDUCTOR">4. Conductor</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- Contenido Dinámico -->
+    <div [ngSwitch]="moduloActivo">
+      <app-flota *ngSwitchCase="'flota'"></app-flota>
+      <app-conductores *ngSwitchCase="'conductores'"></app-conductores>
+      <app-mantenimiento *ngSwitchCase="'mantenimiento'"></app-mantenimiento>
+      <app-documentos *ngSwitchCase="'documentos'"></app-documentos>
+      <app-combustible *ngSwitchCase="'combustible'"></app-combustible>
+      <app-inspeccion *ngSwitchCase="'inspeccion'"></app-inspeccion>
+    </div>
+  </main>
+</div>

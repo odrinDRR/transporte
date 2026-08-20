@@ -1,0 +1,94 @@
+<div class="card bg-custom-card border-custom p-4 mx-auto" style="max-width: 750px;">
+  <!-- Stepper de 5 Etapas -->
+  <div class="d-flex justify-content-between mb-4 border-bottom border-custom pb-3">
+    <span class="badge" [ngClass]="etapaActual >= 1 ? 'bg-primary' : 'bg-dark border border-secondary'">1. Datos</span>
+    <span class="badge" [ngClass]="etapaActual >= 2 ? 'bg-primary' : 'bg-dark border border-secondary'">2. Exterior</span>
+    <span class="badge" [ngClass]="etapaActual >= 3 ? 'bg-primary' : 'bg-dark border border-secondary'">3. Interior</span>
+    <span class="badge" [ngClass]="etapaActual >= 4 ? 'bg-primary' : 'bg-dark border border-secondary'">4. Motor</span>
+    <span class="badge" [ngClass]="etapaActual >= 5 ? 'bg-primary' : 'bg-dark border border-secondary'">5. Dictamen</span>
+  </div>
+
+  <div [ngSwitch]="etapaActual">
+    <div *ngSwitchCase="1">
+      <h5 class="text-white mb-3">Etapa 1: Datos Básicos Iniciales</h5>
+      <div class="mb-3">
+        <label class="form-label text-custom-muted">Kilometraje Inicial</label>
+        <input type="number" [(ngModel)]="inspeccion.kilometraje" class="form-control bg-dark text-white border-custom">
+      </div>
+      <div class="mb-3">
+        <label class="form-label text-custom-muted">Fecha de Inspección</label>
+        <input type="date" [(ngModel)]="inspeccion.fecha" class="form-control bg-dark text-white border-custom">
+      </div>
+    </div>
+
+    <div *ngSwitchCase="2">
+      <h5 class="text-white mb-3">Etapa 2: Exterior y Carrocería</h5>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="inspeccion.carroceriaOk" id="c1">
+        <label class="form-check-label text-white" for="c1">Latonería y pintura en buen estado</label>
+      </div>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="inspeccion.lucesOk" id="c2">
+        <label class="form-check-label text-white" for="c2">Luces principales e intermitentes funcionales</label>
+      </div>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="inspeccion.cauchosOk" id="c3">
+        <label class="form-check-label text-white" for="c3">Cauchos y repuesto con presión óptima</label>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="3">
+      <h5 class="text-white mb-3">Etapa 3: Interior y Cabina</h5>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="inspeccion.cinturonesOk" id="c4">
+        <label class="form-check-label text-white" for="c4">Cinturones de seguridad funcionales</label>
+      </div>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="inspeccion.tableroOk" id="c5">
+        <label class="form-check-label text-white" for="c5">Testigos e instrumental de cabina</label>
+      </div>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="inspeccion.extintorVigente" id="c6">
+        <label class="form-check-label text-white" for="c6">Extintor vigente</label>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="4">
+      <h5 class="text-white mb-3">Etapa 4: Motor y Fluidos</h5>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="inspeccion.nivelAceiteOk" id="c7">
+        <label class="form-check-label text-white" for="c7">Nivel de Aceite de Motor</label>
+      </div>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="inspeccion.refrigeranteOk" id="c8">
+        <label class="form-check-label text-white" for="c8">Nivel de Refrigerante</label>
+      </div>
+      <div class="form-check mb-2">
+        <input class="form-check-input" type="checkbox" [(ngModel)]="inspeccion.liquidoFrenosOk" id="c9">
+        <label class="form-check-label text-white" for="c9">Nivel de Líquido de Frenos</label>
+      </div>
+    </div>
+
+    <div *ngSwitchCase="5">
+      <h5 class="text-white mb-3">Etapa 5: Dictamen y Declaración</h5>
+      <div class="mb-3">
+        <label class="form-label text-custom-muted">Dictamen Final</label>
+        <select [(ngModel)]="inspeccion.dictamen" class="form-select bg-dark text-white border-custom">
+          <option value="APTO">🟢 Apto para Circular</option>
+          <option value="OBSERVADO">🟡 Observado con Novedades Menores</option>
+          <option value="NO_APTO">🔴 No Apto (Remitir a Taller)</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label text-custom-muted">Nombre o Ficha del Inspector</label>
+        <input type="text" [(ngModel)]="inspeccion.inspectorFirma" placeholder="Ej: Carlos Mendoza (Ficha 442)" class="form-control bg-dark text-white border-custom">
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-between mt-4 pt-3 border-top border-custom">
+    <button class="btn btn-secondary" [disabled]="etapaActual === 1" (click)="retroceder()">Anterior</button>
+    <button class="btn btn-primary" *ngIf="etapaActual < 5" (click)="avanzar()">Siguiente</button>
+    <button class="btn btn-success" *ngIf="etapaActual === 5" (click)="finalizar()"><i class="bi bi-file-earmark-pdf"></i> Generar PDF e Informe</button>
+  </div>
+</div>

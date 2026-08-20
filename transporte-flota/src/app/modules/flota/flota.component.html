@@ -1,0 +1,100 @@
+<div *ngIf="conductores$ | async as conductores">
+  <!-- KPIs -->
+  <section class="row g-3 mb-4" *ngIf="flotaService.vehiculos$ | async as vehiculos">
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card bg-custom-card border-custom p-3 border-start border-4 border-success">
+        <small class="text-custom-muted fw-bold">OPERATIVOS</small>
+        <h3 class="text-white fw-bold mb-0 mt-1">{{ (vehiculos | filterStatus:'OPERATIVO').length }}</h3>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card bg-custom-card border-custom p-3 border-start border-4 border-warning">
+        <small class="text-custom-muted fw-bold">EN TALLER</small>
+        <h3 class="text-white fw-bold mb-0 mt-1">{{ (vehiculos | filterStatus:'TALLER').length }}</h3>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card bg-custom-card border-custom p-3 border-start border-4 border-danger">
+        <small class="text-custom-muted fw-bold">FUERA DE SERVICIO</small>
+        <h3 class="text-white fw-bold mb-0 mt-1">{{ (vehiculos | filterStatus:'INACTIVO').length }}</h3>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card bg-custom-card border-custom p-3 border-start border-4 border-primary">
+        <small class="text-custom-muted fw-bold">TOTAL FLOTA</small>
+        <h3 class="text-white fw-bold mb-0 mt-1">{{ vehiculos.length }}</h3>
+      </div>
+    </div>
+  </section>
+
+  <!-- Filtros -->
+  <div class="card bg-custom-card border-custom p-3 mb-4">
+    <div class="row g-2 align-items-center justify-content-between">
+      <div class="col-12 col-md-5">
+        <input type="text" class="form-control bg-dark text-white border-custom" placeholder="Buscar por placa o modelo..." (keyup)="aplicarTexto($event)">
+      </div>
+      <div class="col-12 col-md-auto d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary text-white" (click)="aplicarEstado('TODOS')">Todos</button>
+        <button class="btn btn-sm btn-outline-success" (click)="aplicarEstado('OPERATIVO')">Operativos</button>
+        <button class="btn btn-sm btn-outline-warning" (click)="aplicarEstado('TALLER')">Taller</button>
+        <button class="btn btn-sm btn-outline-danger" (click)="aplicarEstado('INACTIVO')">Inactivos</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rejilla de Cards -->
+  <div class="row g-4" *ngIf="vehiculosFiltrados$ | async as vehiculos">
+    <div class="col-12 col-md-6 col-lg-4" *ngFor="let v of vehiculos">
+      <div class="card bg-custom-card border-custom h-100 overflow-hidden shadow-sm">
+        <div class="position-relative" style="height: 180px;">
+          <img [src]="v.fotos[0]" class="w-100 h-100 object-fit-cover" alt="Foto">
+          <span class="position-absolute top-0 start-0 m-2 badge bg-dark border border-secondary">{{ v.placa }}</span>
+          <span class="position-absolute top-0 end-0 m-2 badge" [ngClass]="'badge-' + v.estado.toLowerCase()">{{ v.estado }}</span>
+        </div>
+        <div class="card-body d-flex flex-column">
+          <h5 class="text-white fw-bold mb-1">{{ v.identificador }}</h5>
+          <small class="text-custom-muted mb-3">{{ v.marcaModelo }} • {{ v.anio }}</small>
+
+          <div class="p-2 bg-dark rounded border border-custom mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <small class="text-custom-muted">Conductor:</small>
+              <small class="text-white fw-bold">{{ obtenerNombreConductor(v.conductorId, conductores) }}</small>
+            </div>
+            <div class="d-flex justify-content-between">
+              <small class="text-custom-muted">Kilometraje:</small>
+              <small class="text-white fw-bold">{{ v.kilometraje | number }} Km</small>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-auto">
+            <button class="btn btn-sm btn-outline-primary flex-grow-1" (click)="abrirFicha(v)"><i class="bi bi-qr-code"></i> Ficha y QR</button>
+            <button class="btn btn-sm btn-outline-danger" *ngIf="flotaService.puedeEditarOEliminar()" (click)="eliminar(v.id)"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Ficha Técnica y QR -->
+  <div class="modal d-block bg-dark bg-opacity-75" tabindex="-1" *ngIf="vehiculoSeleccionado">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-custom-card border-custom text-white">
+        <div class="modal-header border-custom">
+          <h5 class="modal-title fw-bold">Ficha Técnica: {{ vehiculoSeleccionado.placa }}</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="cerrarFicha()"></button>
+        </div>
+        <div class="modal-body text-center">
+          <div class="bg-white p-3 rounded d-inline-block mb-3">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}" alt="QR">
+          </div>
+          <p class="text-custom-muted small">Escanee para verificar documentación y VIN</p>
+          <div class="text-start bg-dark p-3 rounded border border-custom small">
+            <div><strong>VIN:</strong> {{ vehiculoSeleccionado.vin }}</div>
+            <div><strong>Último Servicio:</strong> {{ vehiculoSeleccionado.ultimoServicio || 'N/A' }}</div>
+            <div><strong>Póliza RCV:</strong> <span class="text-success fw-bold">Vigente</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
