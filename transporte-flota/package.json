@@ -3,10 +3,10 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "SET NODE_OPTIONS=--openssl-legacy-provider && ng serve",
-    "build": "SET NODE_OPTIONS=--openssl-legacy-provider && ng build",
-    "watch": "SET NODE_OPTIONS=--openssl-legacy-provider && ng build --watch --configuration development",
-    "test": "SET NODE_OPTIONS=--openssl-legacy-provider && ng test"
+    "start": "cross-env NODE_OPTIONS=--openssl-legacy-provider ng serve",
+    "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider ng build",
+    "watch": "cross-env NODE_OPTIONS=--openssl-legacy-provider ng build --watch --configuration development",
+    "test": "cross-env NODE_OPTIONS=--openssl-legacy-provider ng test"
   },
   "private": true,
   "dependencies": {
@@ -30,6 +30,7 @@
     "@angular/compiler-cli": "~12.2.0",
     "@types/jasmine": "~3.8.0",
     "@types/node": "^12.11.1",
+    "cross-env": "^10.1.0",
     "jasmine-core": "~3.8.0",
     "karma": "~6.3.0",
     "karma-chrome-launcher": "~3.1.0",
