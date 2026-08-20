@@ -1,0 +1,39 @@
+<div class="card bg-custom-card border-custom p-3">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="text-white mb-0">Historial y Programación de Mantenimiento</h5>
+    <button class="btn btn-sm btn-primary" *ngIf="flotaService.puedeRegistrarOAsignar()">
+      <i class="bi bi-wrench"></i> Registrar Servicio
+    </button>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-dark table-hover border-custom align-middle">
+      <thead>
+        <tr class="text-custom-muted">
+          <th>Placa y Unidad</th>
+          <th>Estado Actual</th>
+          <th>Último Servicio Realizado</th>
+          <th>Próximo Mantenimiento</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of flotaService.vehiculos$ | async">
+          <td>
+            <div class="fw-bold text-white">{{ v.placa }}</div>
+            <small class="text-custom-muted">{{ v.identificador }}</small>
+          </td>
+          <td><span class="badge" [ngClass]="'badge-' + v.estado.toLowerCase()">{{ v.estado }}</span></td>
+          <td class="text-white small">{{ v.ultimoServicio || 'No registrado' }}</td>
+          <td>
+            <span *ngIf="esMantenimientoVencido(v.proximoMantenimiento)" class="badge bg-danger text-white border border-danger p-2">
+              ⚠️ VENCIDO: {{ v.proximoMantenimiento }}
+            </span>
+            <span *ngIf="!esMantenimientoVencido(v.proximoMantenimiento)" class="badge bg-dark border border-secondary p-2">
+              🗓️ {{ v.proximoMantenimiento || 'N/A' }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
