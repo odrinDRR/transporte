@@ -3,16 +3,16 @@
   <div class="card bg-custom-card border-custom shadow-lg w-100" style="max-width: 750px; border-radius: 20px;">
     
     <!-- ==========================================
-         PANTALLA 1: INGRESO DE CÉDULA (Tipo Duolingo)
+         PANTALLA 1: INGRESO DE CÉDULA
          ========================================== -->
     <div *ngIf="fasePrincipal === 'INGRESO_CEDULA'" class="card-body p-5 text-center">
       <div class="display-1 mb-4">🆔</div>
       <h3 class="text-white fw-bold mb-3">¡Hola! Identifícate</h3>
-      <p class="text-custom-muted mb-5">Ingresa tu número de cédula para acceder a tu vehículo asignado.</p>
+      <p class="text-custom-muted mb-5">Ingresa tu número de cédula o ficha para acceder a tu vehículo asignado.</p>
       
       <div class="mx-auto" style="max-width: 350px;">
         <input type="text" class="form-control form-control-lg bg-dark text-white border-custom text-center mb-4 rounded-4" 
-               placeholder="Ej: 15893201" 
+               placeholder="Cédula o Ficha" 
                [(ngModel)]="cedulaInput"
                maxlength="8"
                appOnlyNumbers
@@ -34,17 +34,18 @@
       
       <div class="row g-4 mx-auto" style="max-width: 600px;">
         <!-- Botón Iniciar -->
-        <div class="col-md-6">
-          <button class="btn btn-outline-success w-100 h-100 p-4 rounded-4 border-2 text-start d-flex flex-column align-items-center"
+        <div [ngClass]="tieneInspeccionAbierta ? 'col-md-6' : 'col-md-12'">
+          <button class="btn w-100 h-100 p-4 rounded-4 border-2 text-start d-flex flex-column align-items-center"
+                  [ngClass]="tieneInspeccionAbierta ? 'btn-outline-success' : 'btn-success text-white shadow-lg'"
                   (click)="seleccionarRuta('INICIO')">
-            <i class="bi bi-truck text-success mb-3" style="font-size: 3rem;"></i>
+            <i class="bi bi-truck mb-3" [ngClass]="tieneInspeccionAbierta ? 'text-success' : 'text-white'" style="font-size: 3rem;"></i>
             <h5 class="fw-bold mb-1">Iniciar Ruta</h5>
-            <small class="text-white-50 text-center">Inspección de salida (Patio a Ruta)</small>
+            <small [ngClass]="tieneInspeccionAbierta ? 'text-white-50' : 'text-white'" class="text-center">Inspección de salida (Patio a Ruta)</small>
           </button>
         </div>
         
-        <!-- Botón Cerrar -->
-        <div class="col-md-6">
+        <!-- Botón Cerrar (Solo si tiene ruta abierta) -->
+        <div class="col-md-6" *ngIf="tieneInspeccionAbierta">
           <button class="btn btn-outline-warning w-100 h-100 p-4 rounded-4 border-2 text-start d-flex flex-column align-items-center"
                   (click)="seleccionarRuta('CIERRE')">
             <i class="bi bi-flag text-warning mb-3" style="font-size: 3rem;"></i>
@@ -94,9 +95,23 @@
           </div>
         </div>
 
-        <!-- Etapa 2 -->
+       <!-- Etapa 2 -->
         <div *ngSwitchCase="2">
           <h5 class="text-white mb-4">Etapa 2: Exterior y Carrocería</h5>
+          
+          <!-- Bloque de Carga de Fotos -->
+          <div class="mb-4 bg-dark p-3 rounded-4 border" [ngClass]="fotosExterior.length === 10 ? 'border-success' : 'border-warning'">
+            <label class="form-label text-warning fw-bold mb-3"><i class="bi bi-camera"></i> Evidencia Fotográfica (Obligatorio: 10 fotos)</label>
+            <input type="file" class="form-control form-control-lg bg-custom-main text-white border-custom mb-2" accept="image/*" multiple (change)="cargarFotosExterior($event)">
+            
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <small class="text-custom-muted">Seleccione las 10 imágenes a la vez.</small>
+              <span class="badge fs-6" [ngClass]="fotosExterior.length === 10 ? 'bg-success' : 'bg-danger'">
+                {{ fotosExterior.length }} / 10 Fotos
+              </span>
+            </div>
+          </div>
+
           <div class="form-check form-switch mb-3 bg-dark p-3 rounded-3 border border-custom d-flex align-items-center">
             <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.carroceriaOk" style="transform: scale(1.3);">
             <label class="form-check-label text-white">Latonería y pintura en buen estado</label>
@@ -110,6 +125,20 @@
         <!-- Etapa 3 -->
         <div *ngSwitchCase="3">
           <h5 class="text-white mb-4">Etapa 3: Interior y Cabina</h5>
+
+          <!-- Bloque de Carga de Fotos -->
+          <div class="mb-4 bg-dark p-3 rounded-4 border" [ngClass]="fotosInterior.length === 10 ? 'border-success' : 'border-warning'">
+            <label class="form-label text-warning fw-bold mb-3"><i class="bi bi-camera"></i> Evidencia Fotográfica (Obligatorio: 10 fotos)</label>
+            <input type="file" class="form-control form-control-lg bg-custom-main text-white border-custom mb-2" accept="image/*" multiple (change)="cargarFotosInterior($event)">
+            
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <small class="text-custom-muted">Seleccione las 10 imágenes a la vez.</small>
+              <span class="badge fs-6" [ngClass]="fotosInterior.length === 10 ? 'bg-success' : 'bg-danger'">
+                {{ fotosInterior.length }} / 10 Fotos
+              </span>
+            </div>
+          </div>
+
           <div class="form-check form-switch mb-3 bg-dark p-3 rounded-3 border border-custom d-flex align-items-center">
             <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.cinturonesOk" style="transform: scale(1.3);">
             <label class="form-check-label text-white">Cinturones de seguridad funcionales</label>
@@ -154,7 +183,14 @@
       <!-- Botones de Navegación -->
       <div class="d-flex justify-content-between mt-5 pt-3 border-top border-custom">
         <button class="btn btn-secondary rounded-pill px-4" [disabled]="etapaActual === 1" (click)="retroceder()">Anterior</button>
-        <button class="btn btn-primary rounded-pill px-4" *ngIf="etapaActual < 5" (click)="avanzar()">Siguiente</button>
+        
+        <!-- El botón "Siguiente" se bloquea dinámicamente si no hay 10 fotos -->
+        <button class="btn btn-primary rounded-pill px-4" *ngIf="etapaActual < 5" 
+                (click)="avanzar()"
+                [disabled]="(etapaActual === 2 && fotosExterior.length !== 10) || (etapaActual === 3 && fotosInterior.length !== 10)">
+          Siguiente
+        </button>
+        
         <button class="btn btn-success rounded-pill px-4 fw-bold shadow" *ngIf="etapaActual === 5" (click)="finalizar()">Enviar Reporte</button>
       </div>
 

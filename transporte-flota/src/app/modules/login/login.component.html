@@ -53,7 +53,7 @@
       </div>
 
       <!-- ==========================================
-           VISTA B: REGISTRO DE USUARIO (TIPO DUOLINGO)
+           VISTA B: REGISTRO DE USUARIO
            ========================================== -->
       <div *ngIf="mostrarRegistro" class="text-center">
         
@@ -152,11 +152,27 @@
           <div class="row g-3 text-start mx-auto" style="max-width: 500px;">
             <div class="col-12">
               <label class="form-label text-custom-muted small ms-2 fw-bold">Usuario o Correo Electrónico</label>
-              <input type="text" class="form-control form-control-lg bg-dark text-white border-custom rounded-4" [(ngModel)]="nuevoUsuario.correo" placeholder="Ej: correo@empresa.com">
+              <input type="text" class="form-control form-control-lg bg-dark text-white border-custom rounded-4" [(ngModel)]="nuevoUsuario.correo" placeholder="Ej: correo@empresa.com" minlength="5" maxlength="15">
             </div>
             <div class="col-12 mt-3">
               <label class="form-label text-custom-muted small ms-2 fw-bold">Contraseña Segura</label>
-              <input type="password" class="form-control form-control-lg bg-dark text-white border-custom rounded-4" [(ngModel)]="nuevoUsuario.password" placeholder="Mínimo 8 caracteres">
+              <input type="password" class="form-control form-control-lg bg-dark text-white border-custom rounded-4" [(ngModel)]="nuevoUsuario.password" placeholder="Tu contraseña">
+              
+              <!-- Reglas de la Contraseña -->
+              <ul class="mt-2 mb-0 list-unstyled" style="font-size: 0.85rem;">
+                <li [ngClass]="tieneLongitudCorrecta ? 'text-success' : 'text-custom-muted'">
+                  <i class="bi" [ngClass]="tieneLongitudCorrecta ? 'bi-check-circle-fill' : 'bi-circle'"></i> Entre <strong>8 y 14 caracteres</strong>
+                </li>
+                <li [ngClass]="tieneMayuscula ? 'text-success' : 'text-custom-muted'">
+                  <i class="bi" [ngClass]="tieneMayuscula ? 'bi-check-circle-fill' : 'bi-circle'"></i> Al menos una <strong>letra mayúscula</strong>
+                </li>
+                <li [ngClass]="tieneNumero ? 'text-success' : 'text-custom-muted'">
+                  <i class="bi" [ngClass]="tieneNumero ? 'bi-check-circle-fill' : 'bi-circle'"></i> Al menos un <strong>número</strong>
+                </li>
+                <li [ngClass]="tieneEspecial ? 'text-success' : 'text-custom-muted'">
+                  <i class="bi" [ngClass]="tieneEspecial ? 'bi-check-circle-fill' : 'bi-circle'"></i> Al menos un <strong>carácter especial</strong>
+                </li>
+              </ul>
             </div>
           </div>
 

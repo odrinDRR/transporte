@@ -28,6 +28,7 @@ export interface Conductor {
   fotoUrl: string;
   vehiculoAsignadoId: number | null;
   activo: boolean;
+  inspeccionAbierta?: boolean;
 }
 
 export interface RegistroCombustible {

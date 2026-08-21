@@ -88,7 +88,8 @@ private rolActualSubject = new BehaviorSubject<RolUsuario | null>(null);
       vencimientoMedico: '2027-01-20',
       fotoUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
       vehiculoAsignadoId: 101,
-      activo: true
+      activo: true,
+      inspeccionAbierta: true // Prueba: Tiene ruta abierta
     },
     {
       id: 2,
@@ -99,7 +100,8 @@ private rolActualSubject = new BehaviorSubject<RolUsuario | null>(null);
       vencimientoMedico: '2026-10-15',
       fotoUrl: 'https://randomuser.me/api/portraits/men/45.jpg',
       vehiculoAsignadoId: null, // Sin asignar
-      activo: true
+      activo: true,
+      inspeccionAbierta: false // Prueba: No tiene ruta abierta
     }
   ]);
 
