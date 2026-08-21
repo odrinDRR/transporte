@@ -9,7 +9,7 @@ import { RolUsuario } from '../../core/models/fleet.models';
 export class AprobacionesComponent implements OnInit {
   solicitudesPendientes = [
     { id: 1, nombre: 'María', apellido: 'Gómez', cedula: 'V-22334455', cargo: 'EMPLEADO', fecha: '21-08-2026' },
-    { id: 2, nombre: 'José', apellido: 'Rojas', cedula: 'V-19887766', cargo: 'CONDUCTOR', fecha: '21-08-2026' },
+    { id: 2, nombre: 'José', apellido: 'Rojas', cedula: 'V-19887766', cargo: 'COORDINADOR', fecha: '21-08-2026' },
     { id: 3, nombre: 'Ana', apellido: 'Silva', cedula: 'V-17654321', cargo: 'SUPERVISOR', fecha: '20-08-2026' }
   ];
 
@@ -29,7 +29,7 @@ export class AprobacionesComponent implements OnInit {
     if (this.rolActual === 'ADMIN' || this.rolActual === 'COORDINADOR') {
       this.solicitudesVisibles = [...this.solicitudesPendientes];
     } else if (this.rolActual === 'SUPERVISOR') {
-      this.solicitudesVisibles = this.solicitudesPendientes.filter(s => s.cargo === 'EMPLEADO' || s.cargo === 'CONDUCTOR');
+      this.solicitudesVisibles = this.solicitudesPendientes.filter(s => s.cargo === 'EMPLEADO');
     } else {
       this.solicitudesVisibles = [];
     }

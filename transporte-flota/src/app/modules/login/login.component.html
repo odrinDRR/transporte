@@ -88,11 +88,11 @@
             </div>
             <div class="col-md-8">
               <label class="form-label text-custom-muted small ms-2 fw-bold">Cédula de Identidad</label>
-              <input type="text" class="form-control form-control-lg bg-dark text-white border-custom rounded-4" [(ngModel)]="nuevoUsuario.cedula" placeholder="Ej: V-12345678">
+              <input type="text" class="form-control form-control-lg bg-dark text-white border-custom rounded-4" [(ngModel)]="nuevoUsuario.cedula" placeholder="Ej: 12345678" maxlength="8" appOnlyNumbers>
             </div>
             <div class="col-md-4">
               <label class="form-label text-custom-muted small ms-2 fw-bold">Edad</label>
-              <input type="number" class="form-control form-control-lg bg-dark text-white border-custom rounded-4" [(ngModel)]="nuevoUsuario.edad" placeholder="Años">
+              <input type="text" class="form-control form-control-lg bg-dark text-white border-custom rounded-4" [(ngModel)]="nuevoUsuario.edad" placeholder="Ej: 35" maxlength="2" appOnlyNumbers>
             </div>
             <div class="col-12 mt-3">
               <label class="form-label text-custom-muted small ms-2 fw-bold">¿Cuál será tu rol en el sistema?</label>

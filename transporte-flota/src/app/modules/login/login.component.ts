@@ -64,24 +64,52 @@ export class LoginComponent {
     this.mostrarRegistro = !this.mostrarRegistro;
     this.pasoRegistro = 1;
     this.volverRoles();
+    
+    // Limpia los datos si se cancela el registro
+    if (!this.mostrarRegistro) {
+      this.nuevoUsuario = {
+        nombre: '',
+        apellido: '',
+        cedula: '',
+        edad: null,
+        cargo: '',
+        licencia: '',
+        categoriaLicencia: '',
+        vencimientoLicencia: '',
+        vencimientoMedico: '',
+        correo: '',
+        password: '',
+        estado: 'PENDIENTE'
+      };
+    }
   }
 
+ // --- MÉTODOS DE REGISTRO PASO A PASO ---
+  
   avanzarRegistro(): void {
     if (this.pasoRegistro === 1) {
       if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.cedula || !this.nuevoUsuario.cargo) {
         alert('Por favor, completa tus datos básicos e indica tu cargo.');
         return;
       }
-      // Si es conductor, va al paso 2 (Documentos). Si no, salta al paso 3 (Credenciales)
-      this.pasoRegistro = this.nuevoUsuario.cargo === 'CONDUCTOR' ? 2 : 3;
+      
+      // Validamos si el cargo requiere documentos de manejo
+      const requiereDocumentos = this.nuevoUsuario.cargo === 'EMPLEADO';
+      
+      // Si los requiere, va al Paso 2. Si es Admin o Coordinador, salta directo al Paso 3.
+      this.pasoRegistro = requiereDocumentos ? 2 : 3;
+      
     } else if (this.pasoRegistro === 2) {
       this.pasoRegistro = 3;
     }
   }
 
   retrocederRegistro(): void {
-    if (this.pasoRegistro === 3 && this.nuevoUsuario.cargo !== 'CONDUCTOR') {
-      this.pasoRegistro = 1; // Salta de vuelta al paso 1
+    const requiereDocumentos = this.nuevoUsuario.cargo === 'EMPLEADO';
+    
+    // Si estamos en el paso final y el rol NO requiere documentos, al retroceder debe saltar al paso 1
+    if (this.pasoRegistro === 3 && !requiereDocumentos) {
+      this.pasoRegistro = 1; 
     } else {
       this.pasoRegistro--;
     }
