@@ -41,6 +41,7 @@ export class InspeccionComponent {
     pinturaOk: true,
     parabrisasOk: true,
     cauchosOk: true,
+    observaciones: '',
     inspectorFirma: ''
   };
 
