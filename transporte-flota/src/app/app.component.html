@@ -46,6 +46,21 @@
             <i class="bi bi-fuel-pump"></i> Combustible
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'inspeccion'" (click)="cambiarModulo('inspeccion')" href="javascript:void(0)">
+            <i class="bi bi-clipboard-check"></i> Inspección Vehicular
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'auditoria'" (click)="cambiarModulo('auditoria')" href="javascript:void(0)">
+            <i class="bi bi-layout-split"></i> Auditoría de Patio
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'aprobaciones'" (click)="cambiarModulo('aprobaciones')" href="javascript:void(0)">
+            <i class="bi bi-person-lines-fill"></i> Aprobaciones
+          </a>
+        </li>
       </ng-container>
 
       <!-- 2. EMPLEADO: Solo ve la Flota (Lectura) y envía Inspecciones -->
@@ -65,8 +80,18 @@
       <!-- 3. SUPERVISOR: Solo evalúa las comparativas y aprueba -->
       <ng-container *ngIf="rolActual === 'SUPERVISOR'">
         <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
+            <i class="bi bi-truck"></i> Consulta de Flota
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'auditoria'" (click)="cambiarModulo('auditoria')" href="javascript:void(0)">
             <i class="bi bi-layout-split"></i> Comparativa Inicio/Cierre
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'aprobaciones'" (click)="cambiarModulo('aprobaciones')" href="javascript:void(0)">
+            <i class="bi bi-person-check"></i> Aprobar Empleados
           </a>
         </li>
       </ng-container>
@@ -107,6 +132,7 @@
       <app-combustible *ngSwitchCase="'combustible'"></app-combustible>
       <app-inspeccion *ngSwitchCase="'inspeccion'"></app-inspeccion>
       <app-auditoria *ngSwitchCase="'auditoria'"></app-auditoria>
+      <app-aprobaciones *ngSwitchCase="'aprobaciones'"></app-aprobaciones>
     </div>
   </main>
 </div>

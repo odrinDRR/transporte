@@ -12,6 +12,8 @@ import { CombustibleComponent } from './modules/combustible/combustible.componen
 import { FilterStatusPipe } from './shared/pipes/filter-status.pipe';
 import { LoginComponent } from './modules/login/login.component';
 import { AuditoriaComponent } from './modules/auditoria/auditoria.component';
+import { OnlyNumbersDirective } from './shared/directives/only-numbers.directive';
+import { AprobacionesComponent } from './modules/aprobaciones/aprobaciones.component';
 
 @NgModule({
   declarations: [
@@ -24,7 +26,9 @@ import { AuditoriaComponent } from './modules/auditoria/auditoria.component';
     CombustibleComponent,
     FilterStatusPipe,
     LoginComponent,
-    AuditoriaComponent
+    AuditoriaComponent,
+    OnlyNumbersDirective,
+    AprobacionesComponent
   ],
   imports: [
     BrowserModule,

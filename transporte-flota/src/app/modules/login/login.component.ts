@@ -9,26 +9,42 @@ import { FlotaService } from '../../core/services/flota.service';
 export class LoginComponent {
   @Output() loginCompletado = new EventEmitter<void>();
   
-  // Variables para controlar la vista y el formulario
+  // Variables del Login
   rolSeleccionado: RolUsuario | null = null;
   usuario: string = '';
   clave: string = '';
-  mostrarClave: boolean = false;
+
+  // Variables del Registro (Estilo Duolingo)
+  mostrarRegistro: boolean = false;
+  pasoRegistro: number = 1; 
+  
+  nuevoUsuario = {
+    nombre: '',
+    apellido: '',
+    cedula: '',
+    edad: null,
+    cargo: '',
+    // Campos Conductor
+    licencia: '',
+    categoriaLicencia: '',
+    vencimientoLicencia: '',
+    vencimientoMedico: '',
+    // Credenciales (Paso Final)
+    correo: '',
+    password: '',
+    estado: 'PENDIENTE' // Clave para la lógica de aprobación
+  };
 
   constructor(private flotaService: FlotaService) {}
 
-  toggleClave(): void {
-    this.mostrarClave = !this.mostrarClave;
-  }
-
+  // --- MÉTODOS DE LOGIN ---
   seleccionarRol(rol: RolUsuario): void {
     this.rolSeleccionado = rol;
-    // Autocompletamos un usuario de prueba para agilizar la demo
     this.usuario = `${rol.toLowerCase()}@empresa.com`;
     this.clave = '123456';
   }
 
-  volver(): void {
+  volverRoles(): void {
     this.rolSeleccionado = null;
     this.usuario = '';
     this.clave = '';
@@ -39,7 +55,50 @@ export class LoginComponent {
       this.flotaService.iniciarSesion(this.rolSeleccionado);
       this.loginCompletado.emit();
     } else {
-      alert('Por favor, ingrese un usuario y clave válidos para la demostración.');
+      alert('Por favor, ingrese credenciales válidas.');
     }
+  }
+
+  // --- MÉTODOS DE REGISTRO PASO A PASO ---
+  alternarRegistro(): void {
+    this.mostrarRegistro = !this.mostrarRegistro;
+    this.pasoRegistro = 1;
+    this.volverRoles();
+  }
+
+  avanzarRegistro(): void {
+    if (this.pasoRegistro === 1) {
+      if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.cedula || !this.nuevoUsuario.cargo) {
+        alert('Por favor, completa tus datos básicos e indica tu cargo.');
+        return;
+      }
+      // Si es conductor, va al paso 2 (Documentos). Si no, salta al paso 3 (Credenciales)
+      this.pasoRegistro = this.nuevoUsuario.cargo === 'CONDUCTOR' ? 2 : 3;
+    } else if (this.pasoRegistro === 2) {
+      this.pasoRegistro = 3;
+    }
+  }
+
+  retrocederRegistro(): void {
+    if (this.pasoRegistro === 3 && this.nuevoUsuario.cargo !== 'CONDUCTOR') {
+      this.pasoRegistro = 1; // Salta de vuelta al paso 1
+    } else {
+      this.pasoRegistro--;
+    }
+  }
+
+  enviarParaAprobacion(): void {
+    if (!this.nuevoUsuario.correo || !this.nuevoUsuario.password) {
+      alert('Debes crear un usuario y contraseña para acceder al sistema.');
+      return;
+    }
+    
+    // Aquí el backend guardaría el usuario con estado 'PENDIENTE'
+    console.log('Usuario enviado para aprobación:', this.nuevoUsuario);
+    
+    alert(`¡Listo ${this.nuevoUsuario.nombre}! Tu solicitud fue enviada.\n\nRecuerda que un Coordinador o Supervisor debe aprobar tu perfil antes de que puedas iniciar sesión.`);
+    
+    // Reset y vuelta al inicio
+    this.alternarRegistro();
   }
 }
