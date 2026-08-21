@@ -14,7 +14,7 @@ export class LoginComponent {
   usuario: string = '';
   clave: string = '';
 
-  // Variables del Registro (Estilo Duolingo)
+  // Variables del Registro 
   mostrarRegistro: boolean = false;
   pasoRegistro: number = 1; 
   
@@ -121,12 +121,49 @@ export class LoginComponent {
       return;
     }
     
-    // Aquí el backend guardaría el usuario con estado 'PENDIENTE'
+    if (this.nuevoUsuario.correo.length < 5 || this.nuevoUsuario.correo.length > 15) {
+      alert('❌ El nombre de usuario o correo debe tener entre 5 y 15 caracteres.');
+      return;
+    }
+    
+    // --- NUEVO: VALIDACIÓN ESTRICTA DE CONTRASEÑA ---
+    // Expresión regular: 
+    // (?=.*[A-Z]) -> Al menos una mayúscula
+    // (?=.*\d)    -> Al menos un número
+    // (?=.*[^a-zA-Z0-9]) -> Al menos un carácter especial
+    // .{8,14}     -> Entre 8 y 14 caracteres de longitud
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,14}$/;
+    
+    if (!passwordRegex.test(this.nuevoUsuario.password)) {
+      alert('❌ La contraseña no es válida. Asegúrate de cumplir con los requisitos mínimos de seguridad indicados en la pantalla.');
+      return;
+    }
+    // ------------------------------------------------
+
+    // Simulación de envío al backend
     console.log('Usuario enviado para aprobación:', this.nuevoUsuario);
     
     alert(`¡Listo ${this.nuevoUsuario.nombre}! Tu solicitud fue enviada.\n\nRecuerda que un Coordinador o Supervisor debe aprobar tu perfil antes de que puedas iniciar sesión.`);
     
     // Reset y vuelta al inicio
     this.alternarRegistro();
+  }
+
+  // --- VALIDACIONES DE CONTRASEÑA EN TIEMPO REAL ---
+  get tieneLongitudCorrecta(): boolean {
+    const pw = this.nuevoUsuario.password || '';
+    return pw.length >= 8 && pw.length <= 14;
+  }
+
+  get tieneMayuscula(): boolean {
+    return /[A-Z]/.test(this.nuevoUsuario.password || '');
+  }
+
+  get tieneNumero(): boolean {
+    return /\d/.test(this.nuevoUsuario.password || '');
+  }
+
+  get tieneEspecial(): boolean {
+    return /[^a-zA-Z0-9]/.test(this.nuevoUsuario.password || '');
   }
 }

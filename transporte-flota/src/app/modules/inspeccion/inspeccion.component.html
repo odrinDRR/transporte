@@ -1,24 +1,24 @@
 <div class="d-flex justify-content-center mt-3">
   
-  <div class="card bg-custom-card border-custom shadow-lg w-100" style="max-width: 750px; border-radius: 20px;">
+  <div class="card bg-custom-card border-custom shadow-lg w-100" style="max-width: 500px; border-radius: 16px;">
     
     <!-- ==========================================
-         PANTALLA 1: INGRESO DE CÉDULA (Tipo Duolingo)
+         PANTALLA 1: INGRESO DE CÉDULA
          ========================================== -->
-    <div *ngIf="fasePrincipal === 'INGRESO_CEDULA'" class="card-body p-5 text-center">
-      <div class="display-1 mb-4">🆔</div>
-      <h3 class="text-white fw-bold mb-3">¡Hola! Identifícate</h3>
-      <p class="text-custom-muted mb-5">Ingresa tu número de cédula para acceder a tu vehículo asignado.</p>
+    <div *ngIf="fasePrincipal === 'INGRESO_CEDULA'" class="card-body p-3 p-md-4 text-center">
+      <div class="fs-1 mb-2">🆔</div>
+      <h5 class="text-white fw-bold mb-2">¡Hola! Identifícate</h5>
+      <p class="text-custom-muted small mb-3">Ingresa tu número de cédula o ficha para acceder a tu vehículo asignado.</p>
       
-      <div class="mx-auto" style="max-width: 350px;">
-        <input type="text" class="form-control form-control-lg bg-dark text-white border-custom text-center mb-4 rounded-4" 
-               placeholder="Ej: 15893201" 
+      <div class="mx-auto" style="max-width: 300px;">
+        <input type="text" class="form-control bg-dark text-white border-custom text-center mb-3 rounded-4" 
+               placeholder="Cédula o Ficha" 
                [(ngModel)]="cedulaInput"
                maxlength="8"
                appOnlyNumbers
-               style="font-size: 1.5rem; letter-spacing: 2px;">
+               style="font-size: 1.25rem; letter-spacing: 2px;">
         
-        <button class="btn btn-primary btn-lg w-100 fw-bold rounded-pill shadow" (click)="verificarCedula()">
+        <button class="btn btn-primary w-100 fw-bold rounded-pill shadow" (click)="verificarCedula()">
           Continuar <i class="bi bi-arrow-right"></i>
         </button>
       </div>
@@ -27,34 +27,35 @@
     <!-- ==========================================
          PANTALLA 2: SELECCIÓN DE ACCIÓN (Inicio / Cierre)
          ========================================== -->
-    <div *ngIf="fasePrincipal === 'SELECCION_TIPO'" class="card-body p-5 text-center">
-      <div class="display-1 mb-3">👋</div>
-      <h3 class="text-white fw-bold">¡Bienvenido, {{ nombreConductorActual }}!</h3>
-      <p class="text-custom-muted mb-5">¿Qué reporte deseas realizar el día de hoy?</p>
+    <div *ngIf="fasePrincipal === 'SELECCION_TIPO'" class="card-body p-3 p-md-4 text-center">
+      <div class="fs-1 mb-2">👋</div>
+      <h5 class="text-white fw-bold mb-1">¡Bienvenido, {{ nombreConductorActual }}!</h5>
+      <p class="text-custom-muted small mb-3">¿Qué reporte deseas realizar el día de hoy?</p>
       
-      <div class="row g-4 mx-auto" style="max-width: 600px;">
+      <div class="row g-2 mx-auto" style="max-width: 500px;">
         <!-- Botón Iniciar -->
-        <div class="col-md-6">
-          <button class="btn btn-outline-success w-100 h-100 p-4 rounded-4 border-2 text-start d-flex flex-column align-items-center"
+        <div [ngClass]="tieneInspeccionAbierta ? 'col-6' : 'col-12'">
+          <button class="btn w-100 h-100 p-2 rounded-4 border-2 text-center d-flex flex-column align-items-center justify-content-center"
+                  [ngClass]="tieneInspeccionAbierta ? 'btn-outline-success' : 'btn-success text-white shadow-lg'"
                   (click)="seleccionarRuta('INICIO')">
-            <i class="bi bi-truck text-success mb-3" style="font-size: 3rem;"></i>
-            <h5 class="fw-bold mb-1">Iniciar Ruta</h5>
-            <small class="text-white-50 text-center">Inspección de salida (Patio a Ruta)</small>
+            <i class="bi bi-truck mb-1" [ngClass]="tieneInspeccionAbierta ? 'text-success' : 'text-white'" style="font-size: 2rem;"></i>
+            <h6 class="fw-bold mb-0">Iniciar Ruta</h6>
+            <small [ngClass]="tieneInspeccionAbierta ? 'text-white-50' : 'text-white'" style="font-size: 0.7rem;">Salida (Patio a Ruta)</small>
           </button>
         </div>
         
-        <!-- Botón Cerrar -->
-        <div class="col-md-6">
-          <button class="btn btn-outline-warning w-100 h-100 p-4 rounded-4 border-2 text-start d-flex flex-column align-items-center"
+        <!-- Botón Cerrar (Solo si tiene ruta abierta) -->
+        <div class="col-6" *ngIf="tieneInspeccionAbierta">
+          <button class="btn btn-outline-warning w-100 h-100 p-2 rounded-4 border-2 text-center d-flex flex-column align-items-center justify-content-center"
                   (click)="seleccionarRuta('CIERRE')">
-            <i class="bi bi-flag text-warning mb-3" style="font-size: 3rem;"></i>
-            <h5 class="fw-bold mb-1">Cerrar Ruta</h5>
-            <small class="text-white-50 text-center">Inspección de llegada (Ruta a Patio)</small>
+            <i class="bi bi-flag text-warning mb-1" style="font-size: 2rem;"></i>
+            <h6 class="fw-bold mb-0">Cerrar Ruta</h6>
+            <small class="text-white-50" style="font-size: 0.7rem;">Llegada (Ruta a Patio)</small>
           </button>
         </div>
       </div>
 
-      <button class="btn btn-link text-custom-muted mt-5 text-decoration-none" (click)="fasePrincipal = 'INGRESO_CEDULA'">
+      <button class="btn btn-link text-custom-muted mt-3 text-decoration-none small" (click)="fasePrincipal = 'INGRESO_CEDULA'">
         <i class="bi bi-arrow-left"></i> No soy {{ nombreConductorActual }}
       </button>
     </div>
@@ -62,100 +63,185 @@
     <!-- ==========================================
          PANTALLA 3: FORMULARIO PASO A PASO (El actual)
          ========================================== -->
-    <div *ngIf="fasePrincipal === 'FORMULARIO'" class="card-body p-4 p-md-5">
+    <div *ngIf="fasePrincipal === 'FORMULARIO'" class="card-body p-3 p-md-4">
       
       <!-- Cabecera Dinámica -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
         <button class="btn btn-sm btn-outline-secondary rounded-circle" (click)="fasePrincipal = 'SELECCION_TIPO'">
           <i class="bi bi-x-lg"></i>
         </button>
-        <h5 class="text-white fw-bold mb-0">
+        <h6 class="text-white fw-bold mb-0">
           <i class="bi" [ngClass]="tipoInspeccionActual === 'INICIO' ? 'bi-truck text-success' : 'bi-flag text-warning'"></i>
           Reporte de {{ tipoInspeccionActual }}
-        </h5>
+        </h6>
       </div>
 
       <!-- Stepper Visual -->
-      <div class="d-flex justify-content-between mb-5 border-bottom border-custom pb-3">
-        <span class="badge" [ngClass]="etapaActual >= 1 ? 'bg-primary' : 'bg-dark border border-secondary'">1. Datos</span>
-        <span class="badge" [ngClass]="etapaActual >= 2 ? 'bg-primary' : 'bg-dark border border-secondary'">2. Exterior</span>
-        <span class="badge" [ngClass]="etapaActual >= 3 ? 'bg-primary' : 'bg-dark border border-secondary'">3. Interior</span>
-        <span class="badge" [ngClass]="etapaActual >= 4 ? 'bg-primary' : 'bg-dark border border-secondary'">4. Motor</span>
+      <div class="d-flex justify-content-between mb-4 border-bottom border-custom pb-3 overflow-auto text-nowrap">
+        <span class="badge me-1" [ngClass]="etapaActual >= 1 ? 'bg-primary' : 'bg-dark border border-secondary'">1. Datos</span>
+        <span class="badge me-1" [ngClass]="etapaActual >= 2 ? 'bg-primary' : 'bg-dark border border-secondary'">2. Exterior</span>
+        <span class="badge me-1" [ngClass]="etapaActual >= 3 ? 'bg-primary' : 'bg-dark border border-secondary'">3. Interior</span>
+        <span class="badge me-1" [ngClass]="etapaActual >= 4 ? 'bg-primary' : 'bg-dark border border-secondary'">4. Motor</span>
         <span class="badge" [ngClass]="etapaActual >= 5 ? 'bg-primary' : 'bg-dark border border-secondary'">5. Dictamen</span>
       </div>
 
       <div [ngSwitch]="etapaActual">
         <!-- Etapa 1 -->
         <div *ngSwitchCase="1">
-          <h5 class="text-white mb-4">Etapa 1: Datos Básicos</h5>
-          <div class="mb-4">
-            <label class="form-label text-custom-muted">Kilometraje al momento del {{ tipoInspeccionActual | lowercase }}:</label>
-            <input type="number" [(ngModel)]="inspeccion.kilometraje" class="form-control form-control-lg bg-dark text-white border-custom rounded-3">
+          <h6 class="text-white mb-3">Etapa 1: Datos Básicos y Verificación</h6>
+          <div class="mb-3">
+            <label class="form-label text-custom-muted small">Kilometraje al momento del {{ tipoInspeccionActual | lowercase }}:</label>
+            <input type="number" [(ngModel)]="inspeccion.kilometraje" class="form-control bg-dark text-white border-custom rounded-3">
+          </div>
+          
+          <h6 class="text-warning mt-3 mb-2 small fw-bold">Identidad del Vehículo</h6>
+          <div class="form-check form-switch mb-2 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center">
+            <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.serialOk" style="transform: scale(1.1);">
+            <label class="form-check-label text-white small">Serial de chasis / VIN visible y coincide</label>
           </div>
         </div>
 
-        <!-- Etapa 2 -->
+       <!-- Etapa 2 -->
         <div *ngSwitchCase="2">
-          <h5 class="text-white mb-4">Etapa 2: Exterior y Carrocería</h5>
-          <div class="form-check form-switch mb-3 bg-dark p-3 rounded-3 border border-custom d-flex align-items-center">
-            <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.carroceriaOk" style="transform: scale(1.3);">
-            <label class="form-check-label text-white">Latonería y pintura en buen estado</label>
+          <h6 class="text-white mb-3">Etapa 2: Exterior, Cristales y Neumáticos</h6>
+          
+          <div class="mb-3 bg-dark p-2 rounded-4 border" [ngClass]="fotosExterior.length === 10 ? 'border-success' : 'border-warning'">
+            <label class="form-label text-warning fw-bold mb-2 small"><i class="bi bi-camera"></i> Evidencia Fotográfica (Obligatorio: 10 fotos)</label>
+            <input type="file" class="form-control bg-custom-main text-white border-custom mb-2" accept="image/*" multiple (change)="cargarFotosExterior($event)">
+            
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <small class="text-custom-muted" style="font-size: 0.75rem;">Seleccione las 10 imágenes a la vez.</small>
+              <span class="badge" [ngClass]="fotosExterior.length === 10 ? 'bg-success' : 'bg-danger'">
+                {{ fotosExterior.length }} / 10 Fotos
+              </span>
+            </div>
           </div>
-          <div class="form-check form-switch mb-3 bg-dark p-3 rounded-3 border border-custom d-flex align-items-center">
-            <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.lucesOk" style="transform: scale(1.3);">
-            <label class="form-check-label text-white">Luces principales e intermitentes funcionales</label>
+
+          <div class="row g-2">
+            <!-- Columna Izquierda -->
+            <div class="col-12 col-md-6">
+              <div class="form-check form-switch mb-1 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.latoneriaOk" style="transform: scale(1.1);">
+                <label class="form-check-label text-white small">Latonería sin abolladuras nuevas</label>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="form-check form-switch mb-1 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.pinturaOk" style="transform: scale(1.1);">
+                <label class="form-check-label text-white small">Pintura sin rayones profundos</label>
+              </div>
+            </div>
+
+            <!-- Columna Derecha -->
+            <div class="col-12 col-md-6">
+              <div class="form-check form-switch mb-1 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.parabrisasOk" style="transform: scale(1.1);">
+                <label class="form-check-label text-white small">Parabrisas frontal sin grietas</label>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="form-check form-switch mb-1 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.vidriosOk" style="transform: scale(1.1);">
+                <label class="form-check-label text-white small">Vidrios laterales e intermitentes intactos</label>
+              </div>
+            </div>
+            
+            <div class="col-12">
+              <div class="form-check form-switch mb-1 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center">
+                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.cauchosOk" style="transform: scale(1.1);">
+                <label class="form-check-label text-white small">Cauchos con presión adecuada y sin desgaste extremo</label>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Etapa 3 -->
         <div *ngSwitchCase="3">
-          <h5 class="text-white mb-4">Etapa 3: Interior y Cabina</h5>
-          <div class="form-check form-switch mb-3 bg-dark p-3 rounded-3 border border-custom d-flex align-items-center">
-            <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.cinturonesOk" style="transform: scale(1.3);">
-            <label class="form-check-label text-white">Cinturones de seguridad funcionales</label>
+          <h6 class="text-white mb-3">Etapa 3: Interior y Cabina</h6>
+
+          <div class="mb-3 bg-dark p-2 rounded-4 border" [ngClass]="fotosInterior.length === 10 ? 'border-success' : 'border-warning'">
+            <label class="form-label text-warning fw-bold mb-2 small"><i class="bi bi-camera"></i> Evidencia Fotográfica (Obligatorio: 10 fotos)</label>
+            <input type="file" class="form-control bg-custom-main text-white border-custom mb-2" accept="image/*" multiple (change)="cargarFotosInterior($event)">
+            
+            <div class="d-flex justify-content-between align-items-center mt-1">
+              <small class="text-custom-muted" style="font-size: 0.75rem;">Seleccione las 10 imágenes a la vez.</small>
+              <span class="badge" [ngClass]="fotosInterior.length === 10 ? 'bg-success' : 'bg-danger'">
+                {{ fotosInterior.length }} / 10 Fotos
+              </span>
+            </div>
           </div>
-          <div class="form-check form-switch mb-3 bg-dark p-3 rounded-3 border border-custom d-flex align-items-center">
-            <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.extintorVigente" style="transform: scale(1.3);">
-            <label class="form-check-label text-white">Extintor vigente y en su lugar</label>
+
+          <div class="row g-2">
+            <div class="col-12 col-md-6">
+              <div class="form-check form-switch mb-1 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.cinturonesOk" style="transform: scale(1.1);">
+                <label class="form-check-label text-white small">Cinturones de seguridad funcionales</label>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="form-check form-switch mb-1 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.extintorVigente" style="transform: scale(1.1);">
+                <label class="form-check-label text-white small">Extintor vigente y en su lugar</label>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Etapa 4 -->
         <div *ngSwitchCase="4">
-          <h5 class="text-white mb-4">Etapa 4: Motor y Fluidos</h5>
-          <div class="form-check form-switch mb-3 bg-dark p-3 rounded-3 border border-custom d-flex align-items-center">
-            <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.nivelAceiteOk" style="transform: scale(1.3);">
-            <label class="form-check-label text-white">Nivel de Aceite de Motor</label>
-          </div>
-          <div class="form-check form-switch mb-3 bg-dark p-3 rounded-3 border border-custom d-flex align-items-center">
-            <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.refrigeranteOk" style="transform: scale(1.3);">
-            <label class="form-check-label text-white">Nivel de Refrigerante</label>
+          <h6 class="text-white mb-3">Etapa 4: Motor y Fluidos</h6>
+          <div class="row g-2">
+            <div class="col-12 col-md-6">
+              <div class="form-check form-switch mb-1 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.nivelAceiteOk" style="transform: scale(1.1);">
+                <label class="form-check-label text-white small">Nivel de Aceite de Motor</label>
+              </div>
+            </div>
+            <div class="col-12 col-md-6">
+              <div class="form-check form-switch mb-1 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.refrigeranteOk" style="transform: scale(1.1);">
+                <label class="form-check-label text-white small">Nivel de Refrigerante</label>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Etapa 5 -->
         <div *ngSwitchCase="5">
-          <h5 class="text-white mb-4">Etapa 5: Dictamen y Declaración</h5>
-          <div class="mb-4">
-            <label class="form-label text-custom-muted">Dictamen Final</label>
-            <select [(ngModel)]="inspeccion.dictamen" class="form-select form-select-lg bg-dark text-white border-custom rounded-3">
+          <h6 class="text-white mb-3">Etapa 5: Dictamen y Declaración</h6>
+          
+          <div class="mb-3">
+            <label class="form-label text-custom-muted small">Dictamen Final</label>
+            <select [(ngModel)]="inspeccion.dictamen" class="form-select bg-dark text-white border-custom rounded-3">
               <option value="APTO">🟢 Apto para Circular</option>
               <option value="OBSERVADO">🟡 Observado con Pendientes Menores</option>
               <option value="NO_APTO">🔴 No Apto (Remitir a Taller)</option>
             </select>
           </div>
+
           <div class="mb-3">
-            <label class="form-label text-custom-muted">Firma del Conductor</label>
-            <input type="text" [(ngModel)]="inspeccion.inspectorFirma" readonly class="form-control form-control-lg bg-dark text-white border-custom rounded-3 text-center"[cite: 1, 2]>
+            <label class="form-label text-custom-muted small">Observaciones adicionales (Opcional)</label>
+            <textarea [(ngModel)]="inspeccion.observaciones" class="form-control bg-dark text-white border-custom rounded-3" rows="2" placeholder="Detalles o novedades encontradas..."></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label text-custom-muted small">Firma del Conductor (Auto-completada)</label>
+            <input type="text" [(ngModel)]="inspeccion.inspectorFirma" readonly class="form-control bg-dark text-white border-custom rounded-3 text-center">
           </div>
         </div>
       </div>
 
       <!-- Botones de Navegación -->
-      <div class="d-flex justify-content-between mt-5 pt-3 border-top border-custom">
-        <button class="btn btn-secondary rounded-pill px-4" [disabled]="etapaActual === 1" (click)="retroceder()">Anterior</button>
-        <button class="btn btn-primary rounded-pill px-4" *ngIf="etapaActual < 5" (click)="avanzar()">Siguiente</button>
-        <button class="btn btn-success rounded-pill px-4 fw-bold shadow" *ngIf="etapaActual === 5" (click)="finalizar()">Enviar Reporte</button>
+      <div class="d-flex justify-content-between mt-4 pt-3 border-top border-custom">
+        <button class="btn btn-sm btn-secondary rounded-pill px-3" [disabled]="etapaActual === 1" (click)="retroceder()">Anterior</button>
+        
+        <button class="btn btn-sm btn-primary rounded-pill px-4" *ngIf="etapaActual < 5" 
+                (click)="avanzar()"
+                [disabled]="(etapaActual === 2 && fotosExterior.length !== 10) || (etapaActual === 3 && fotosInterior.length !== 10)">
+          Siguiente
+        </button>
+        
+        <button class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow" *ngIf="etapaActual === 5" (click)="finalizar()">Enviar Reporte</button>
       </div>
 
     </div>
