@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FlotaService } from './core/services/flota.service';
 import { RolUsuario } from './core/models/fleet.models';
 
@@ -7,20 +7,36 @@ import { RolUsuario } from './core/models/fleet.models';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   moduloActivo: string = 'flota';
+  isLoggedIn: boolean = false;
 
   constructor(public flotaService: FlotaService) {}
+
+  ngOnInit() {
+    // Escuchar si hay un usuario logueado para mostrar el sistema
+    this.flotaService.rolActual$.subscribe(rol => {
+      this.isLoggedIn = !!rol;
+    });
+  }
+
+  onLogin() {
+    // Lógica para redirigir según el rol al entrar
+    const rol = this.flotaService.rolActual;
+    if (rol === 'EMPLEADO') {
+      this.moduloActivo = 'inspeccion';
+    } else if (rol === 'SUPERVISOR') {
+      this.moduloActivo = 'auditoria'; // Este será el módulo de validación visual
+    } else {
+      this.moduloActivo = 'flota';
+    }
+  }
 
   cambiarModulo(modulo: string): void {
     this.moduloActivo = modulo;
   }
 
-  alCambiarRol(event: Event): void {
-    const rol = (event.target as HTMLSelectElement).value as RolUsuario;
-    this.flotaService.cambiarRol(rol);
-    if (rol === 'CONDUCTOR') {
-      this.moduloActivo = 'inspeccion';
-    }
+  cerrarSesion(): void {
+    this.flotaService.cerrarSesion();
   }
 }

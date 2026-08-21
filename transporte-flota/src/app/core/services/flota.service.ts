@@ -4,8 +4,12 @@ import { Vehiculo, Conductor, RolUsuario, RegistroCombustible } from '../models/
 
 @Injectable({ providedIn: 'root' })
 export class FlotaService {
-  private rolActualSubject = new BehaviorSubject<RolUsuario>('ADMIN');
+private rolActualSubject = new BehaviorSubject<RolUsuario | null>(null);
   public rolActual$ = this.rolActualSubject.asObservable();
+
+  get rolActual(): RolUsuario | null {
+    return this.rolActualSubject.value;
+  }
 
   // DATOS DE PRUEBA: FLOTA VEHICULAR
   private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([
@@ -19,7 +23,7 @@ export class FlotaService {
       conductorId: 1, // Asignado a Carlos Mendoza
       vin: 'VIN-9382019283',
       kilometraje: 124500,
-      fotos: ['https://images.unsplash.com/photo-1586191582150-137b587399f1?auto=format&fit=crop&w=800&q=80'],
+      fotos: ['/assets/images/camion-350.jpg'],
       ultimoServicio: '10/08/2026 - Cambio de aceite y filtros',
       proximoMantenimiento: '2026-11-10',
       seguroRcvVigente: true
@@ -49,7 +53,7 @@ export class FlotaService {
       conductorId: 2, // Asignado a Luis Pérez
       vin: 'VIN-5566778899',
       kilometraje: 45000,
-      fotos: ['https://images.unsplash.com/photo-1554344583-11bb587e9142?auto=format&fit=crop&w=800&q=80'],
+      fotos: ['/assets/images/furgon.jpg'],
       ultimoServicio: '01/08/2026 - Revisión general de frenos',
       proximoMantenimiento: '2026-12-01',
       seguroRcvVigente: true
@@ -64,7 +68,7 @@ export class FlotaService {
       conductorId: 3, // Asignado a Miguel Torres
       vin: 'VIN-1122334455',
       kilometraje: 420800,
-      fotos: ['https://images.unsplash.com/photo-1594502184342-2e12f877aa73?auto=format&fit=crop&w=800&q=80'],
+      fotos: ['/assets/images/pickup.jpg'],
       ultimoServicio: '20/01/2026 - Reconstrucción de caja',
       proximoMantenimiento: '2026-06-20', // Alerta: Mantenimiento muy vencido
       seguroRcvVigente: false // Alerta: Seguro vencido
@@ -123,20 +127,25 @@ export class FlotaService {
     this.rolActualSubject.next(rol);
   }
 
-  get rolActual(): RolUsuario {
-    return this.rolActualSubject.value;
-  }
-
   puedeEditarOEliminar(): boolean {
-    return this.rolActual === 'ADMIN';
+    const rol = this.rolActualSubject.value;
+    return rol === 'ADMIN' || rol === 'COORDINADOR';
   }
 
   puedeRegistrarOAsignar(): boolean {
-    return this.rolActual === 'ADMIN' || this.rolActual === 'COORDINADOR';
+    const rol = this.rolActualSubject.value;
+    return rol === 'ADMIN' || rol === 'COORDINADOR' || rol === 'EMPLEADO';
   }
 
   eliminarVehiculo(id: number): void {
-    if (!this.puedeEditarOEliminar()) return;
     this.vehiculosSubject.next(this.vehiculosSubject.value.filter(v => v.id !== id));
+  }
+
+  iniciarSesion(rol: RolUsuario): void {
+    this.rolActualSubject.next(rol);
+  }
+
+  cerrarSesion(): void {
+    this.rolActualSubject.next(null);
   }
 }
