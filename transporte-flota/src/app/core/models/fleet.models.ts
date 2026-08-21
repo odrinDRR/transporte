@@ -22,12 +22,13 @@ export interface Conductor {
   id: number;
   nombre: string;
   cedula: string;
-  carnet: string;
+  fichaNumerica: string;
   vencimientoLicencia: string;
   vencimientoMedico: string;
   fotoUrl: string;
   vehiculoAsignadoId: number | null;
   activo: boolean;
+  inspeccionAbierta?: boolean;
 }
 
 export interface RegistroCombustible {

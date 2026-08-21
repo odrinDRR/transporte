@@ -1,0 +1,45 @@
+<div class="card bg-custom-card border-custom p-3">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="text-white mb-0"><i class="bi bi-person-lines-fill"></i> Solicitudes Pendientes</h5>
+    <span class="badge bg-primary">{{ solicitudesVisibles.length }} por revisar</span>
+  </div>
+
+  <div class="table-responsive" *ngIf="solicitudesVisibles.length > 0">
+    <table class="table table-dark table-hover border-custom align-middle">
+      <thead>
+        <tr class="text-custom-muted">
+          <th>Fecha</th>
+          <th>Solicitante</th>
+          <th>Cargo Solicitado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of solicitudesVisibles">
+          <td class="text-custom-muted small">{{ s.fecha }}</td>
+          <td>
+            <div class="fw-bold text-white">{{ s.nombre }} {{ s.apellido }}</div>
+            <small class="text-custom-muted">CI: {{ s.cedula }}</small>
+          </td>
+          <td>
+            <span class="badge bg-dark border border-secondary text-info">{{ s.cargo }}</span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-success me-2 fw-bold" (click)="aprobar(s.id, s.nombre)">
+              <i class="bi bi-check-lg"></i> Aprobar
+            </button>
+            <button class="btn btn-sm btn-outline-danger" (click)="rechazar(s.id)">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div *ngIf="solicitudesVisibles.length === 0" class="text-center p-5 text-custom-muted border border-custom rounded border-dashed">
+    <i class="bi bi-inboxes display-4 mb-3 d-block"></i>
+    <h5>Bandeja limpia</h5>
+    <p>No tienes solicitudes de registro pendientes por aprobar en tu nivel de acceso.</p>
+  </div>
+</div>
