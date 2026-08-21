@@ -4,8 +4,12 @@ import { Vehiculo, Conductor, RolUsuario, RegistroCombustible } from '../models/
 
 @Injectable({ providedIn: 'root' })
 export class FlotaService {
-  private rolActualSubject = new BehaviorSubject<RolUsuario>('ADMIN');
+private rolActualSubject = new BehaviorSubject<RolUsuario | null>(null);
   public rolActual$ = this.rolActualSubject.asObservable();
+
+  get rolActual(): RolUsuario | null {
+    return this.rolActualSubject.value;
+  }
 
   // DATOS DE PRUEBA: FLOTA VEHICULAR
   private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([
@@ -19,7 +23,7 @@ export class FlotaService {
       conductorId: 1, // Asignado a Carlos Mendoza
       vin: 'VIN-9382019283',
       kilometraje: 124500,
-      fotos: ['https://images.unsplash.com/photo-1586191582150-137b587399f1?auto=format&fit=crop&w=800&q=80'],
+      fotos: ['/assets/images/camion-350.jpg'],
       ultimoServicio: '10/08/2026 - Cambio de aceite y filtros',
       proximoMantenimiento: '2026-11-10',
       seguroRcvVigente: true
@@ -49,7 +53,7 @@ export class FlotaService {
       conductorId: 2, // Asignado a Luis Pérez
       vin: 'VIN-5566778899',
       kilometraje: 45000,
-      fotos: ['https://images.unsplash.com/photo-1554344583-11bb587e9142?auto=format&fit=crop&w=800&q=80'],
+      fotos: ['/assets/images/furgon.jpg'],
       ultimoServicio: '01/08/2026 - Revisión general de frenos',
       proximoMantenimiento: '2026-12-01',
       seguroRcvVigente: true
@@ -64,7 +68,7 @@ export class FlotaService {
       conductorId: 3, // Asignado a Miguel Torres
       vin: 'VIN-1122334455',
       kilometraje: 420800,
-      fotos: ['https://images.unsplash.com/photo-1594502184342-2e12f877aa73?auto=format&fit=crop&w=800&q=80'],
+      fotos: ['/assets/images/pickup.jpg'],
       ultimoServicio: '20/01/2026 - Reconstrucción de caja',
       proximoMantenimiento: '2026-06-20', // Alerta: Mantenimiento muy vencido
       seguroRcvVigente: false // Alerta: Seguro vencido
@@ -73,12 +77,13 @@ export class FlotaService {
   public vehiculos$ = this.vehiculosSubject.asObservable();
 
   // DATOS DE PRUEBA: CONDUCTORES
+  // Actualización de los datos de prueba en FlotaService
   private conductoresSubject = new BehaviorSubject<Conductor[]>([
     {
       id: 1,
       nombre: 'Carlos Mendoza',
       cedula: 'V-15893201',
-      carnet: 'Ficha 442 - Activo',
+      fichaNumerica: '442', // Ficha asignada
       vencimientoLicencia: '2028-05-12',
       vencimientoMedico: '2027-01-20',
       fotoUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
@@ -89,25 +94,53 @@ export class FlotaService {
       id: 2,
       nombre: 'Luis Pérez',
       cedula: 'V-20123456',
-      carnet: 'Ficha 105 - Activo',
-      vencimientoLicencia: '2026-09-01', // Alerta: Por vencer pronto
+      fichaNumerica: '105',
+      vencimientoLicencia: '2026-09-01',
       vencimientoMedico: '2026-10-15',
       fotoUrl: 'https://randomuser.me/api/portraits/men/45.jpg',
-      vehiculoAsignadoId: 103,
+      vehiculoAsignadoId: null, // Sin asignar
       activo: true
-    },
-    {
-      id: 3,
-      nombre: 'Miguel Torres',
-      cedula: 'V-18765432',
-      carnet: 'Ficha 89 - Permiso',
-      vencimientoLicencia: '2025-11-30', // Alerta: Vencida
-      vencimientoMedico: '2027-03-10',
-      fotoUrl: 'https://randomuser.me/api/portraits/men/22.jpg',
-      vehiculoAsignadoId: 104,
-      activo: false
     }
   ]);
+
+  // --- MÉTODO PARA ASIGNAR POR FICHA O CÉDULA ---
+  asignarUnidad(idVehiculo: number, terminoBusqueda: string): string {
+    const conductores = this.conductoresSubject.value;
+    const vehiculos = this.vehiculosSubject.value;
+    
+    // 1. Buscamos al conductor coincidiendo exactamente con Ficha o Cédula
+    const conductorEncontrado = conductores.find(c => 
+      c.cedula === terminoBusqueda.trim() || c.fichaNumerica === terminoBusqueda.trim()
+    );
+
+    if (!conductorEncontrado) {
+      return 'ERROR: No se encontró ningún conductor con esa Cédula o Ficha.';
+    }
+
+    // 2. Aplicamos la asignación cruzada
+    const idxConductor = conductores.findIndex(c => c.id === conductorEncontrado.id);
+    const idxVehiculo = vehiculos.findIndex(v => v.id === idVehiculo);
+
+    if (idxVehiculo !== -1) {
+      // Liberamos al conductor anterior si lo hubiera
+      const conductorAnteriorId = vehiculos[idxVehiculo].conductorId;
+      if (conductorAnteriorId) {
+        const idxAnterior = conductores.findIndex(c => c.id === conductorAnteriorId);
+        if (idxAnterior !== -1) conductores[idxAnterior].vehiculoAsignadoId = null;
+      }
+
+      // Asignamos al nuevo
+      vehiculos[idxVehiculo].conductorId = conductorEncontrado.id;
+      conductores[idxConductor].vehiculoAsignadoId = idVehiculo;
+
+      this.conductoresSubject.next([...conductores]);
+      this.vehiculosSubject.next([...vehiculos]);
+      
+      return `ÉXITO: Unidad asignada a ${conductorEncontrado.nombre} (Ficha: ${conductorEncontrado.fichaNumerica})`;
+    }
+    
+    return 'ERROR: Vehículo no encontrado.';
+  }
   public conductores$ = this.conductoresSubject.asObservable();
 
   // DATOS DE PRUEBA: REGISTROS DE COMBUSTIBLE
@@ -123,20 +156,25 @@ export class FlotaService {
     this.rolActualSubject.next(rol);
   }
 
-  get rolActual(): RolUsuario {
-    return this.rolActualSubject.value;
-  }
-
   puedeEditarOEliminar(): boolean {
-    return this.rolActual === 'ADMIN';
+    const rol = this.rolActualSubject.value;
+    return rol === 'ADMIN' || rol === 'COORDINADOR';
   }
 
   puedeRegistrarOAsignar(): boolean {
-    return this.rolActual === 'ADMIN' || this.rolActual === 'COORDINADOR';
+    const rol = this.rolActualSubject.value;
+    return rol === 'ADMIN' || rol === 'COORDINADOR' || rol === 'EMPLEADO';
   }
 
   eliminarVehiculo(id: number): void {
-    if (!this.puedeEditarOEliminar()) return;
     this.vehiculosSubject.next(this.vehiculosSubject.value.filter(v => v.id !== id));
+  }
+
+  iniciarSesion(rol: RolUsuario): void {
+    this.rolActualSubject.next(rol);
+  }
+
+  cerrarSesion(): void {
+    this.rolActualSubject.next(null);
   }
 }

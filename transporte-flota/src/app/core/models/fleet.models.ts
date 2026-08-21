@@ -1,4 +1,5 @@
-export type RolUsuario = 'ADMIN' | 'COORDINADOR' | 'EMPLEADO' | 'CONDUCTOR';
+// Actualizamos los roles según la nueva lógica de negocio
+export type RolUsuario = 'ADMIN' | 'COORDINADOR' | 'EMPLEADO' | 'SUPERVISOR';
 export type EstadoVehiculo = 'OPERATIVO' | 'TALLER' | 'INACTIVO';
 
 export interface Vehiculo {
@@ -21,7 +22,7 @@ export interface Conductor {
   id: number;
   nombre: string;
   cedula: string;
-  carnet: string;
+  fichaNumerica: string;
   vencimientoLicencia: string;
   vencimientoMedico: string;
   fotoUrl: string;

@@ -1,23 +1,29 @@
-<div class="d-flex min-vh-100">
+<!-- PANTALLA DE LOGIN -->
+<app-login *ngIf="!isLoggedIn" (loginCompletado)="onLogin()"></app-login>
+
+<div class="d-flex min-vh-100" *ngIf="isLoggedIn">
   
   <!-- Barra Lateral (Sidebar) -->
   <aside class="d-none d-md-flex flex-column p-3 bg-custom-sidebar border-end border-custom" style="width: 280px;">
     <div class="d-flex align-items-center gap-2 pb-3 mb-3 border-bottom border-custom">
       <div class="bg-white p-1 rounded">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Pequiven_logo.svg/512px-Pequiven_logo.svg.png" width="36" alt="Logo">
+        <img src="assets/images/logo.jpg" width="36" alt="Logo">
       </div>
-      <div>
+      <!-- <div>
         <h6 class="text-white fw-bold mb-0" style="font-size: 0.85rem;">GERENCIA LOGÍSTICA</h6>
         <small class="text-primary fw-bold text-uppercase" style="font-size: 0.68rem;">ROL: {{ (flotaService.rolActual$ | async) }}</small>
-      </div>
+      </div> -->
     </div>
 
     <!-- Menú Dinámico según Rol (RBAC) -->
-    <ul class="nav nav-pills flex-column gap-2 mb-auto">
-      <ng-container *ngIf="(flotaService.rolActual$ | async) !== 'CONDUCTOR'">
+    <!-- Menú Dinámico según Rol (RBAC) -->
+    <ul class="nav nav-pills flex-column gap-2 mb-auto" *ngIf="flotaService.rolActual$ | async as rolActual">
+      
+      <!-- 1. ADMIN Y COORDINADOR: Ven todo el sistema maestro -->
+      <ng-container *ngIf="rolActual === 'ADMIN' || rolActual === 'COORDINADOR'">
         <li class="nav-item">
           <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
-            <i class="bi bi-truck"></i> Flota y Dashboard
+            <i class="bi bi-truck"></i> Parque Automotor
           </a>
         </li>
         <li class="nav-item">
@@ -40,13 +46,56 @@
             <i class="bi bi-fuel-pump"></i> Combustible
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'inspeccion'" (click)="cambiarModulo('inspeccion')" href="javascript:void(0)">
+            <i class="bi bi-clipboard-check"></i> Inspección Vehicular
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'auditoria'" (click)="cambiarModulo('auditoria')" href="javascript:void(0)">
+            <i class="bi bi-layout-split"></i> Auditoría de Patio
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'aprobaciones'" (click)="cambiarModulo('aprobaciones')" href="javascript:void(0)">
+            <i class="bi bi-person-lines-fill"></i> Aprobaciones
+          </a>
+        </li>
       </ng-container>
 
-      <li class="nav-item">
-        <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'inspeccion'" (click)="cambiarModulo('inspeccion')" href="javascript:void(0)">
-          <i class="bi bi-clipboard-check"></i> Inspección Vehicular
-        </a>
-      </li>
+      <!-- 2. EMPLEADO: Solo ve la Flota (Lectura) y envía Inspecciones -->
+      <ng-container *ngIf="rolActual === 'EMPLEADO'">
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
+            <i class="bi bi-truck"></i> Consulta de Flota
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'inspeccion'" (click)="cambiarModulo('inspeccion')" href="javascript:void(0)">
+            <i class="bi bi-clipboard-check"></i> Enviar Inspección
+          </a>
+        </li>
+      </ng-container>
+
+      <!-- 3. SUPERVISOR: Solo evalúa las comparativas y aprueba -->
+      <ng-container *ngIf="rolActual === 'SUPERVISOR'">
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
+            <i class="bi bi-truck"></i> Consulta de Flota
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'auditoria'" (click)="cambiarModulo('auditoria')" href="javascript:void(0)">
+            <i class="bi bi-layout-split"></i> Comparativa Inicio/Cierre
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'aprobaciones'" (click)="cambiarModulo('aprobaciones')" href="javascript:void(0)">
+            <i class="bi bi-person-check"></i> Aprobar Empleados
+          </a>
+        </li>
+      </ng-container>
+
     </ul>
   </aside>
 
@@ -59,16 +108,19 @@
         <small class="text-custom-muted">Sistema Integral de Gestión de Flotas</small>
       </div>
 
-      <!-- Simulador de Rol -->
+      <!-- Simulador de Rol
       <div class="input-group input-group-sm w-auto">
         <span class="input-group-text bg-dark text-white border-custom"><i class="bi bi-shield-lock me-1"></i> Rol</span>
         <select class="form-select bg-dark text-white border-custom" (change)="alCambiarRol($event)">
           <option value="ADMIN">1. Admin / Gerente</option>
           <option value="COORDINADOR">2. Coordinador</option>
           <option value="EMPLEADO">3. Empleado</option>
-          <option value="CONDUCTOR">4. Conductor</option>
+
         </select>
-      </div>
+      </div> -->
+      <button class="btn btn-sm btn-outline-danger" (click)="cerrarSesion()">
+  <i class="bi bi-box-arrow-right"></i> Salir
+</button>
     </header>
 
     <!-- Contenido Dinámico -->
@@ -79,6 +131,8 @@
       <app-documentos *ngSwitchCase="'documentos'"></app-documentos>
       <app-combustible *ngSwitchCase="'combustible'"></app-combustible>
       <app-inspeccion *ngSwitchCase="'inspeccion'"></app-inspeccion>
+      <app-auditoria *ngSwitchCase="'auditoria'"></app-auditoria>
+      <app-aprobaciones *ngSwitchCase="'aprobaciones'"></app-aprobaciones>
     </div>
   </main>
 </div>
