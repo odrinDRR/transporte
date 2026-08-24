@@ -1,41 +1,101 @@
 <div class="card bg-custom-card border-custom p-3" *ngIf="flotaService.vehiculos$ | async as vehiculos">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h5 class="text-white mb-0">Directorio y Asignación de Conductores</h5>
+  
+  <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-custom pb-3">
+    <h5 class="text-white mb-0"><i class="bi bi-person-badge"></i> Directorio de Conductores</h5>
     <button class="btn btn-sm btn-primary" *ngIf="flotaService.puedeRegistrarOAsignar()">
       <i class="bi bi-person-plus"></i> Registrar Conductor
     </button>
   </div>
 
+  <!-- Buscador Principal -->
+  <div class="mb-4" style="max-width: 400px;">
+    <label class="form-label text-custom-muted small">Buscador Inteligente</label>
+    <div class="input-group">
+      <span class="input-group-text bg-dark text-custom-muted border-custom"><i class="bi bi-search"></i></span>
+      <input type="text" class="form-control bg-dark text-white border-custom" 
+             placeholder="Buscar por cédula, ficha o nombre..."
+             (keyup)="aplicarFiltro($event)">
+    </div>
+  </div>
+
+  <!-- Tabla de Conductores -->
   <div class="table-responsive">
     <table class="table table-dark table-hover border-custom align-middle">
       <thead>
         <tr class="text-custom-muted">
           <th>Foto</th>
           <th>Nombre y Ficha</th>
-          <th>Licencia</th>
-          <th>Cert. Médico</th>
+          <th>Cédula</th>
           <th>Unidad Asignada</th>
           <th *ngIf="flotaService.puedeRegistrarOAsignar()">Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let c of flotaService.conductores$ | async">
+        <tr *ngFor="let c of conductoresFiltrados$ | async">
           <td><img [src]="c.fotoUrl" class="rounded-circle border border-secondary" width="45" height="45" alt="Foto"></td>
           <td>
             <div class="fw-bold text-white">{{ c.nombre }}</div>
-            <small class="text-custom-muted">{{ c.cedula }} • {{ c.carnet }}</small>
+            <small class="text-custom-muted">Ficha: {{ c.fichaNumerica }}</small>
           </td>
-          <td><span class="badge bg-dark border border-secondary">{{ c.vencimientoLicencia }}</span></td>
-          <td><span class="badge bg-dark border border-secondary">{{ c.vencimientoMedico }}</span></td>
+          <td class="text-white">{{ c.cedula }}</td>
           <td>
-            <span class="badge bg-primary" *ngIf="c.vehiculoAsignadoId">Unidad: {{ obtenerPlacaAsignada(c.vehiculoAsignadoId, vehiculos) }}</span>
-            <span class="text-warning small" *ngIf="!c.vehiculoAsignadoId">Sin Unidad</span>
+            <span class="badge bg-primary" *ngIf="c.vehiculoAsignadoId">
+              {{ obtenerPlacaAsignada(c.vehiculoAsignadoId, vehiculos) }}
+            </span>
+            <span class="badge bg-dark border border-warning text-warning" *ngIf="!c.vehiculoAsignadoId">
+              Sin Unidad
+            </span>
           </td>
           <td *ngIf="flotaService.puedeRegistrarOAsignar()">
-            <button class="btn btn-sm btn-outline-secondary">Asignar</button>
+            <!-- Botón Asignar en la Fila -->
+            <button class="btn btn-sm btn-outline-info" (click)="abrirAsignacion(c)">
+              <i class="bi bi-link-45deg"></i> Asignar Vehículo
+            </button>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
+
+  <!-- ==========================================
+       MODAL DE ASIGNACIÓN
+       ========================================== -->
+  <div class="modal d-block bg-dark bg-opacity-75" tabindex="-1" *ngIf="conductorSeleccionado">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-custom-card border-custom text-white">
+        <div class="modal-header border-custom">
+          <h5 class="modal-title fw-bold"><i class="bi bi-car-front"></i> Asignar Unidad</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="cerrarAsignacion()"></button>
+        </div>
+        
+        <div class="modal-body">
+          <p class="text-custom-muted mb-4">
+            Vincular vehículo a: <strong class="text-white fs-5">{{ conductorSeleccionado.nombre }}</strong> (Ficha: {{ conductorSeleccionado.fichaNumerica }})
+          </p>
+          
+          <div class="mb-4">
+            <label class="form-label text-custom-muted small">Seleccione la Unidad de la Flota</label>
+            <select class="form-select bg-dark text-white border-custom" [(ngModel)]="vehiculoSeleccionadoId">
+              <option [value]="null" disabled selected>Elija una unidad de la lista...</option>
+              <option *ngFor="let v of vehiculos" [value]="v.id">
+                {{ v.placa }} - {{ v.identificador }} ({{ v.estado }})
+              </option>
+            </select>
+          </div>
+
+          <!-- Mensaje de confirmación o error -->
+          <div *ngIf="mensajeAsignacion" class="mb-3 small px-3 py-2 rounded" 
+               [ngClass]="mensajeAsignacion.includes('ÉXITO') ? 'bg-success bg-opacity-25 text-success' : 'bg-danger bg-opacity-25 text-danger'">
+            {{ mensajeAsignacion }}
+          </div>
+        </div>
+        
+        <div class="modal-footer border-custom">
+          <button type="button" class="btn btn-secondary" (click)="cerrarAsignacion()">Cancelar</button>
+          <button type="button" class="btn btn-primary fw-bold" (click)="confirmarAsignacion()">Guardar Asignación</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>

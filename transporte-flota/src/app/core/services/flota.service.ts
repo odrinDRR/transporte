@@ -77,41 +77,72 @@ private rolActualSubject = new BehaviorSubject<RolUsuario | null>(null);
   public vehiculos$ = this.vehiculosSubject.asObservable();
 
   // DATOS DE PRUEBA: CONDUCTORES
+  // Actualización de los datos de prueba en FlotaService
   private conductoresSubject = new BehaviorSubject<Conductor[]>([
     {
       id: 1,
       nombre: 'Carlos Mendoza',
       cedula: 'V-15893201',
-      carnet: 'Ficha 442 - Activo',
+      fichaNumerica: '442', // Ficha asignada
       vencimientoLicencia: '2028-05-12',
       vencimientoMedico: '2027-01-20',
       fotoUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
       vehiculoAsignadoId: 101,
-      activo: true
+      activo: true,
+      inspeccionAbierta: true // Prueba: Tiene ruta abierta
     },
     {
       id: 2,
       nombre: 'Luis Pérez',
       cedula: 'V-20123456',
-      carnet: 'Ficha 105 - Activo',
-      vencimientoLicencia: '2026-09-01', // Alerta: Por vencer pronto
+      fichaNumerica: '105',
+      vencimientoLicencia: '2026-09-01',
       vencimientoMedico: '2026-10-15',
       fotoUrl: 'https://randomuser.me/api/portraits/men/45.jpg',
-      vehiculoAsignadoId: 103,
-      activo: true
-    },
-    {
-      id: 3,
-      nombre: 'Miguel Torres',
-      cedula: 'V-18765432',
-      carnet: 'Ficha 89 - Permiso',
-      vencimientoLicencia: '2025-11-30', // Alerta: Vencida
-      vencimientoMedico: '2027-03-10',
-      fotoUrl: 'https://randomuser.me/api/portraits/men/22.jpg',
-      vehiculoAsignadoId: 104,
-      activo: false
+      vehiculoAsignadoId: null, // Sin asignar
+      activo: true,
+      inspeccionAbierta: false // Prueba: No tiene ruta abierta
     }
   ]);
+
+  // --- MÉTODO PARA ASIGNAR POR FICHA O CÉDULA ---
+  asignarUnidad(idVehiculo: number, terminoBusqueda: string): string {
+    const conductores = this.conductoresSubject.value;
+    const vehiculos = this.vehiculosSubject.value;
+    
+    // 1. Buscamos al conductor coincidiendo exactamente con Ficha o Cédula
+    const conductorEncontrado = conductores.find(c => 
+      c.cedula === terminoBusqueda.trim() || c.fichaNumerica === terminoBusqueda.trim()
+    );
+
+    if (!conductorEncontrado) {
+      return 'ERROR: No se encontró ningún conductor con esa Cédula o Ficha.';
+    }
+
+    // 2. Aplicamos la asignación cruzada
+    const idxConductor = conductores.findIndex(c => c.id === conductorEncontrado.id);
+    const idxVehiculo = vehiculos.findIndex(v => v.id === idVehiculo);
+
+    if (idxVehiculo !== -1) {
+      // Liberamos al conductor anterior si lo hubiera
+      const conductorAnteriorId = vehiculos[idxVehiculo].conductorId;
+      if (conductorAnteriorId) {
+        const idxAnterior = conductores.findIndex(c => c.id === conductorAnteriorId);
+        if (idxAnterior !== -1) conductores[idxAnterior].vehiculoAsignadoId = null;
+      }
+
+      // Asignamos al nuevo
+      vehiculos[idxVehiculo].conductorId = conductorEncontrado.id;
+      conductores[idxConductor].vehiculoAsignadoId = idVehiculo;
+
+      this.conductoresSubject.next([...conductores]);
+      this.vehiculosSubject.next([...vehiculos]);
+      
+      return `ÉXITO: Unidad asignada a ${conductorEncontrado.nombre} (Ficha: ${conductorEncontrado.fichaNumerica})`;
+    }
+    
+    return 'ERROR: Vehículo no encontrado.';
+  }
   public conductores$ = this.conductoresSubject.asObservable();
 
   // DATOS DE PRUEBA: REGISTROS DE COMBUSTIBLE
