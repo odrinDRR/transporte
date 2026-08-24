@@ -1,0 +1,215 @@
+/* ESTILO CONCESIONARIO CORPORATIVO */
+$dealer-bg: #090d16;
+$dealer-card-bg: rgba(18, 26, 43, 0.85);
+$dealer-border: rgba(255, 255, 255, 0.08);
+$dealer-primary: #0066ff;
+$dealer-primary-hover: #0052cc;
+$dealer-input-bg: rgba(255, 255, 255, 0.04);
+$dropdown-bg: #121a2b;
+
+.dealer-viewport {
+  background: radial-gradient(circle at 50% 20%, #172339 0%, $dealer-bg 80%);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  color: #e2e8f0;
+}
+
+.fs-xs { font-size: 0.725rem; }
+.fs-sm { font-size: 0.875rem; }
+.tracking-tight { letter-spacing: -0.03em; }
+
+/* REMOVER FLECHITAS (SPINNERS) DE CAMPOS NUMÉRICOS */
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+
+input[type=number] {
+  -moz-appearance: textfield !important;
+}
+
+/* SHOWROOM BRANDING */
+.brand-showroom {
+  .logo-emblem-wrapper {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    
+    .logo-halo {
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, $dealer-primary, transparent);
+      opacity: 0.6;
+      filter: blur(8px);
+    }
+
+    .dealer-logo {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  .dealer-badge {
+    background: rgba(0, 102, 255, 0.15);
+    color: #60a5fa;
+    border: 1px solid rgba(96, 165, 250, 0.3);
+    font-size: 0.65rem;
+    padding: 0.35em 0.8em;
+    letter-spacing: 0.05em;
+  }
+}
+
+.dealer-card {
+  background: $dealer-card-bg;
+  backdrop-filter: blur(20px);
+  border: 1px solid $dealer-border !important;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+}
+
+.role-card-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 88px;
+
+  .role-icon {
+    font-size: 1.25rem;
+    color: #94a3b8;
+  }
+
+  .arrow-icon {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.2);
+  }
+
+  &:hover {
+    background: rgba(0, 102, 255, 0.1);
+    border-color: rgba(0, 102, 255, 0.4);
+    transform: translateY(-2px);
+
+    .role-icon { color: $dealer-primary; }
+    .arrow-icon { color: #ffffff; }
+  }
+
+  &.active-role {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.2), rgba(0, 102, 255, 0.05));
+    border-color: $dealer-primary;
+
+    .role-icon { color: #60a5fa; }
+  }
+}
+
+.selected-role-bar {
+  background: rgba(0, 102, 255, 0.08);
+  border: 1px solid rgba(0, 102, 255, 0.2);
+}
+
+select.dealer-control {
+  background-color: $dealer-input-bg !important;
+  color: #ffffff !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+
+  option {
+    background-color: $dropdown-bg !important;
+    color: #ffffff !important;
+    padding: 10px;
+
+    &:disabled {
+      color: #64748b !important;
+    }
+  }
+}
+
+.dealer-input-group {
+  .input-group-text, .form-control, .btn {
+    background-color: $dealer-input-bg !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff;
+  }
+
+  .form-control:focus {
+    box-shadow: none;
+    border-color: $dealer-primary !important;
+  }
+}
+
+.dealer-control {
+  background-color: $dealer-input-bg !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+
+  &:focus {
+    border-color: $dealer-primary !important;
+    box-shadow: 0 0 0 2px rgba(0, 102, 255, 0.2);
+  }
+
+  &::placeholder { color: #64748b; }
+}
+
+.border-dashed {
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+}
+
+.file-upload-box {
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 102, 255, 0.08);
+    border-color: rgba(0, 102, 255, 0.4);
+  }
+
+  &.has-file {
+    border-color: rgba(25, 135, 84, 0.5);
+    background: rgba(25, 135, 84, 0.08);
+  }
+
+  .file-input-hidden {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+}
+
+.btn-dealer-primary {
+  background: linear-gradient(135deg, $dealer-primary, #0040a8);
+  border: none;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(0, 102, 255, 0.4);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, #1a75ff, $dealer-primary-hover);
+    box-shadow: 0 6px 20px rgba(0, 102, 255, 0.6);
+  }
+}
+
+.btn-outline-dealer-light {
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+
+  &:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.dealer-progress {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.bg-black-50 {
+  background-color: rgba(0, 0, 0, 0.3);
+}
