@@ -4,9 +4,7 @@ import { Vehiculo, Conductor, RolUsuario, RegistroCombustible } from '../models/
 
 @Injectable({ providedIn: 'root' })
 export class FlotaService {
-  agregarVehiculo(arg0: { placa: string; identificador: string; marcaModelo: string; anio: number; vin: string; kilometraje: number; estado: "OPERATIVO" | "TALLER" | "INACTIVO"; conductorId: number | null; ultimoServicio: string; fotos: string[]; }) {
-    throw new Error('Method not implemented.');
-  }
+
 private rolActualSubject = new BehaviorSubject<RolUsuario | null>(null);
   public rolActual$ = this.rolActualSubject.asObservable();
 
@@ -173,6 +171,19 @@ private rolActualSubject = new BehaviorSubject<RolUsuario | null>(null);
 
   eliminarVehiculo(id: number): void {
     this.vehiculosSubject.next(this.vehiculosSubject.value.filter(v => v.id !== id));
+  }
+
+  agregarVehiculo(nuevoVehiculo: Omit<Vehiculo, 'id'>): void {
+    const vehiculosActuales = this.vehiculosSubject.value;
+    // Generamos un ID simulado (en la vida real lo hace PostgreSQL)
+    const nuevoId = vehiculosActuales.length > 0 ? Math.max(...vehiculosActuales.map(v => v.id)) + 1 : 1;
+    
+    const vehiculoCompleto: Vehiculo = {
+      ...nuevoVehiculo,
+      id: nuevoId
+    };
+
+    this.vehiculosSubject.next([...vehiculosActuales, vehiculoCompleto]);
   }
 
   iniciarSesion(rol: RolUsuario): void {
