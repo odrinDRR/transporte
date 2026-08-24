@@ -48,7 +48,8 @@ validarSoloNumeros(event: Event, campo: string): void {
     estado: 'OPERATIVO' as 'OPERATIVO' | 'TALLER' | 'INACTIVO',
     conductorId: null as number | null,
     ultimoServicio: '',
-    fotos: [] as string[]
+    fotos: [] as string[],
+    seguroRcvVigente: true
   };
 
   constructor(public flotaService: FlotaService) {}
@@ -150,7 +151,8 @@ validarSoloNumeros(event: Event, campo: string): void {
       estado: 'OPERATIVO',
       conductorId: null,
       ultimoServicio: new Date().toISOString().split('T')[0],
-      fotos: []
+      fotos: [],
+      seguroRcvVigente: true
     };
     this.mostrarModalNuevo = true;
   }
