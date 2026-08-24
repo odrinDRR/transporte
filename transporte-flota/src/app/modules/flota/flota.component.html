@@ -182,17 +182,7 @@
             </span>
           </div>
 
-          <div class="text-start vehicle-specs-box p-3 rounded-3 fs-xs mt-3">
-            <div class="row g-2">
-              <div class="col-6"><strong>Identificador:</strong> {{ vehiculoSeleccionado.identificador }}</div>
-              <div class="col-6"><strong>Marca/Modelo:</strong> {{ vehiculoSeleccionado.marcaModelo }} ({{ vehiculoSeleccionado.anio }})</div>
-              <div class="col-6"><strong>Número de Chasis:</strong> {{ vehiculoSeleccionado.vin }}</div>
-              <div class="col-6"><strong>Kilometraje:</strong> {{ vehiculoSeleccionado.kilometraje | number }} Km</div>
-              <div class="col-6"><strong>Último Servicio:</strong> {{ vehiculoSeleccionado.ultimoServicio || 'N/A' }}</div>
-              <div class="col-6"><strong>Póliza RCV:</strong> <span class="text-success fw-bold">Vigente</span></div>
-              <div class="col-12"><strong>Conductor Asignado:</strong> {{ obtenerNombreConductor(vehiculoSeleccionado.conductorId, conductores) }}</div>
-            </div>
-          </div>
+
 
           <p class="text-secondary fs-xs mt-3 mb-0 print-muted">
             <i class="bi bi-info-circle me-1"></i>Escanee este código QR con el dispositivo corporativo para verificar la documentación completa.

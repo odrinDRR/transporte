@@ -36,21 +36,7 @@ validarSoloNumeros(event: Event, campo: string): void {
   indiceFotoActual: number = 0;
   vehiculoCarrusel: Vehiculo | null = null;
 
-  // Modal Nuevo Vehículo
-  mostrarModalNuevo: boolean = false;
-  nuevoVehiculo = {
-    placa: '',
-    identificador: '',
-    marcaModelo: '',
-    anio: new Date().getFullYear(),
-    vin: '',
-    kilometraje: 0,
-    estado: 'OPERATIVO' as 'OPERATIVO' | 'TALLER' | 'INACTIVO',
-    conductorId: null as number | null,
-    ultimoServicio: '',
-    fotos: [] as string[],
-    seguroRcvVigente: true
-  };
+
 
   // Controles de Registro de Vehículo
   mostrarRegistro: boolean = false;
@@ -60,13 +46,14 @@ validarSoloNumeros(event: Event, campo: string): void {
     placa: '',
     identificador: '',
     marcaModelo: '',
-    anio: null,
+    anio: new Date().getFullYear(),
     vin: '',
-    kilometraje: null,
+    kilometraje: 0,
     estado: 'OPERATIVO' as any,
     conductorId: null,
     fotos: [] as string[],
-    seguroRcvVigente: true
+    seguroRcvVigente: true,
+    ultimoServicio: ''
   };
 
   constructor(public flotaService: FlotaService) {}
@@ -169,7 +156,41 @@ validarSoloNumeros(event: Event, campo: string): void {
     alert(`¡Vehículo ${this.nuevoVehiculo.placa} registrado con éxito!`);
     
     // Reseteamos el formulario
-    this.nuevoVehiculo = { placa: '', identificador: '', marcaModelo: '', anio: null, vin: '', kilometraje: null, estado: 'OPERATIVO', conductorId: null, fotos: [], seguroRcvVigente: true };
+    this.nuevoVehiculo = { placa: '', identificador: '', marcaModelo: '', anio: new Date().getFullYear(), vin: '', kilometraje: 0, estado: 'OPERATIVO', conductorId: null, ultimoServicio: '', fotos: [], seguroRcvVigente: true };
     this.alternarRegistro();
+  }
+
+  // --- CARRUSEL FULLSCREEN ---
+  abrirCarrusel(v: Vehiculo, indexInicial: number = 0): void {
+    if (!v.fotos || v.fotos.length === 0) return;
+    this.vehiculoCarrusel = v;
+    this.fotosCarrusel = v.fotos.slice(0, 10);
+    this.indiceFotoActual = indexInicial;
+    this.mostrarCarrusel = true;
+  }
+
+  cerrarCarrusel(): void {
+    this.mostrarCarrusel = false;
+    this.fotosCarrusel = [];
+    this.indiceFotoActual = 0;
+    this.vehiculoCarrusel = null;
+  }
+
+  siguienteFoto(): void {
+    if (this.fotosCarrusel.length === 0) return;
+    this.indiceFotoActual = (this.indiceFotoActual + 1) % this.fotosCarrusel.length;
+  }
+
+  anteriorFoto(): void {
+    if (this.fotosCarrusel.length === 0) return;
+    this.indiceFotoActual = (this.indiceFotoActual - 1 + this.fotosCarrusel.length) % this.fotosCarrusel.length;
+  }
+
+  seleccionarFoto(index: number): void {
+    this.indiceFotoActual = index;
+  }
+
+  imprimirFicha(): void {
+    window.print();
   }
 }
