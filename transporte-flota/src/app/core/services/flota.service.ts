@@ -175,6 +175,19 @@ private rolActualSubject = new BehaviorSubject<RolUsuario | null>(null);
     this.vehiculosSubject.next(this.vehiculosSubject.value.filter(v => v.id !== id));
   }
 
+  agregarVehiculo(nuevoVehiculo: Omit<Vehiculo, 'id'>): void {
+    const vehiculosActuales = this.vehiculosSubject.value;
+    // Generamos un ID simulado (en la vida real lo hace PostgreSQL)
+    const nuevoId = vehiculosActuales.length > 0 ? Math.max(...vehiculosActuales.map(v => v.id)) + 1 : 1;
+    
+    const vehiculoCompleto: Vehiculo = {
+      ...nuevoVehiculo,
+      id: nuevoId
+    };
+
+    this.vehiculosSubject.next([...vehiculosActuales, vehiculoCompleto]);
+  }
+
   iniciarSesion(rol: RolUsuario): void {
     this.rolActualSubject.next(rol);
   }

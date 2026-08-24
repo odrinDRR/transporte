@@ -52,6 +52,23 @@ validarSoloNumeros(event: Event, campo: string): void {
     seguroRcvVigente: true
   };
 
+  // Controles de Registro de Vehículo
+  mostrarRegistro: boolean = false;
+  fotoPerfilVehiculo: File | null = null;
+  fotosVehiculo: File[] = [];
+  nuevoVehiculo = {
+    placa: '',
+    identificador: '',
+    marcaModelo: '',
+    anio: null,
+    vin: '',
+    kilometraje: null,
+    estado: 'OPERATIVO' as any,
+    conductorId: null,
+    fotos: [] as string[],
+    seguroRcvVigente: true
+  };
+
   constructor(public flotaService: FlotaService) {}
 
   ngOnInit(): void {
@@ -62,180 +79,97 @@ validarSoloNumeros(event: Event, campo: string): void {
       this.filtroEstado$
     ]).pipe(
       map(([vehiculos, texto, estado]) => {
-        return vehiculos.filter(v => {
-          const coincideTexto = v.placa.toLowerCase().includes(texto.toLowerCase()) ||
-                                v.identificador.toLowerCase().includes(texto.toLowerCase()) ||
-                                v.marcaModelo.toLowerCase().includes(texto.toLowerCase());
-          const coincideEstado = estado === 'TODOS' || v.estado === estado;
-          return coincideTexto && coincideEstado;
-        });
+        let resultado = vehiculos;
+
+        if (estado !== 'TODOS') {
+          resultado = resultado.filter(v => v.estado === estado);
+        }
+
+        if (texto) {
+          const term = texto.toLowerCase();
+          resultado = resultado.filter(v => 
+            v.placa.toLowerCase().includes(term) ||
+            v.identificador.toLowerCase().includes(term)
+          );
+        }
+
+        return resultado;
       })
     );
   }
   
 
-  aplicarTexto(e: Event): void { 
-    this.filtroTexto$.next((e.target as HTMLInputElement).value); 
+  aplicarFiltroBuscador(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.filtroTexto$.next(input.value);
   }
 
-  aplicarEstado(est: string): void { 
-    this.filtroEstado$.next(est); 
+  filtrarPorEstado(estado: string): void {
+    this.filtroEstado$.next(estado);
   }
-  
+
   obtenerNombreConductor(id: number | null, conductores: Conductor[]): string {
     if (!id) return 'Sin Asignar';
     const c = conductores.find(item => item.id === id);
     return c ? c.nombre : 'Sin Asignar';
   }
 
-  // --- FICHA TÉCNICA ---
-  abrirFicha(v: Vehiculo): void { 
-    this.vehiculoSeleccionado = v; 
-    this.fotoFichaIndex = 0;
-  }
-
-  cerrarFicha(): void { 
-    this.vehiculoSeleccionado = null; 
-    this.fotoFichaIndex = 0;
-  }
-
-  siguienteFotoFicha(): void {
-    if (!this.vehiculoSeleccionado?.fotos?.length) return;
-    this.fotoFichaIndex = (this.fotoFichaIndex + 1) % this.vehiculoSeleccionado.fotos.length;
-  }
-
-  anteriorFotoFicha(): void {
-    if (!this.vehiculoSeleccionado?.fotos?.length) return;
-    this.fotoFichaIndex = (this.fotoFichaIndex - 1 + this.vehiculoSeleccionado.fotos.length) % this.vehiculoSeleccionado.fotos.length;
-  }
-
-  // --- CARRUSEL FULLSCREEN ---
-  abrirCarrusel(v: Vehiculo, indexInicial: number = 0): void {
-    if (!v.fotos || v.fotos.length === 0) return;
-    this.vehiculoCarrusel = v;
-    this.fotosCarrusel = v.fotos.slice(0, 10);
-    this.indiceFotoActual = indexInicial;
-    this.mostrarCarrusel = true;
-  }
-
-  cerrarCarrusel(): void {
-    this.mostrarCarrusel = false;
-    this.fotosCarrusel = [];
-    this.indiceFotoActual = 0;
-    this.vehiculoCarrusel = null;
-  }
-
-  siguienteFoto(): void {
-    if (this.fotosCarrusel.length === 0) return;
-    this.indiceFotoActual = (this.indiceFotoActual + 1) % this.fotosCarrusel.length;
-  }
-
-  anteriorFoto(): void {
-    if (this.fotosCarrusel.length === 0) return;
-    this.indiceFotoActual = (this.indiceFotoActual - 1 + this.fotosCarrusel.length) % this.fotosCarrusel.length;
-  }
-
-  seleccionarFoto(index: number): void {
-    this.indiceFotoActual = index;
-  }
-
-  // --- REGISTRO DE NUEVO VEHÍCULO ---
-  abrirModalNuevo(): void {
-    this.nuevoVehiculo = {
-      placa: '',
-      identificador: '',
-      marcaModelo: '',
-      anio: new Date().getFullYear(),
-      vin: '',
-      kilometraje: 0,
-      estado: 'OPERATIVO',
-      conductorId: null,
-      ultimoServicio: new Date().toISOString().split('T')[0],
-      fotos: [],
-      seguroRcvVigente: true
-    };
-    this.mostrarModalNuevo = true;
-  }
-
-  cerrarModalNuevo(): void {
-    this.mostrarModalNuevo = false;
-  }
+  abrirFicha(v: Vehiculo): void { this.vehiculoSeleccionado = v; }
+  cerrarFicha(): void { this.vehiculoSeleccionado = null; }
   
-
-
-// Genera la lista desplegable desde 2026 hasta 1980
-aniosDisponibles: number[] = Array.from({ length: 2026 - 1980 + 1 }, (_, i) => 2026 - i);
-
-validarKilometraje(event: Event): void {
-  const input = event.target as HTMLInputElement;
-  let valor = input.value.replace(/[^0-9]/g, '');
-
-  if (valor.length > 6) {
-    valor = valor.slice(0, 6);
-  }
-
-  if (Number(valor) > 350000) {
-    valor = '350000';
-  }
-
-  input.value = valor;
-  if (this.nuevoVehiculo) {
-    this.nuevoVehiculo.kilometraje = valor ? Number(valor) : 0;
-  }
-}
-
-  cargarFotosNuevoVehiculo(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files) {
-      const archivos = Array.from(input.files);
-      const cuposDisponibles = 10 - this.nuevoVehiculo.fotos.length;
-
-      if (cuposDisponibles <= 0) {
-        alert('Has alcanzado el límite máximo de 10 imágenes para este vehículo.');
-        return;
-      }
-
-      const procesar = archivos.slice(0, cuposDisponibles);
-      procesar.forEach((file: File) => {
-        const reader = new FileReader();
-        reader.onload = (e: ProgressEvent<FileReader>) => {
-          if (e.target?.result && this.nuevoVehiculo.fotos.length < 10) {
-            this.nuevoVehiculo.fotos.push(e.target.result as string);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-  }
-
-  eliminarFotoNueva(index: number): void {
-    this.nuevoVehiculo.fotos.splice(index, 1);
-  }
-
-  guardarNuevoVehiculo(): void {
-    if (!this.nuevoVehiculo.placa || !this.nuevoVehiculo.identificador || !this.nuevoVehiculo.marcaModelo || !this.nuevoVehiculo.vin) {
-      alert('Por favor completa todos los campos obligatorios (Placa, Código, Marca/Modelo y VIN).');
-      return;
-    }
-
-    if (this.nuevoVehiculo.fotos.length === 0) {
-      this.nuevoVehiculo.fotos.push('assets/images/default-truck.jpg');
-    }
-
-    this.flotaService.agregarVehiculo({ ...this.nuevoVehiculo });
-    alert(`Unidad ${this.nuevoVehiculo.placa} registrada exitosamente.`);
-    this.cerrarModalNuevo();
-  }
-
-  imprimirFicha(): void {
-    window.print();
-  }
-
   eliminar(id: number): void {
     if (confirm('¿Eliminar esta unidad de la flota?')) {
       this.flotaService.eliminarVehiculo(id);
     }
   }
 
-  
+  // --- MÉTODOS DE REGISTRO ---
+  alternarRegistro(): void {
+    this.mostrarRegistro = !this.mostrarRegistro;
+    this.fotosVehiculo = [];
+    this.fotoPerfilVehiculo = null; // Limpiamos al salir
+  }
+
+  cargarFotoPerfil(event: any): void {
+    if (event.target.files && event.target.files.length > 0) {
+      this.fotoPerfilVehiculo = event.target.files[0];
+    }
+  }
+
+  cargarFotos(event: any): void {
+    if (event.target.files) {
+      this.fotosVehiculo = Array.from(event.target.files);
+    }
+  }
+
+ guardarVehiculo(): void {
+    if (!this.nuevoVehiculo.placa || !this.nuevoVehiculo.identificador || !this.nuevoVehiculo.marcaModelo) {
+      alert('Por favor, completa los datos básicos (Placa, Nombre y Marca/Modelo).');
+      return;
+    }
+
+    if (!this.fotoPerfilVehiculo) {
+      alert('Debe subir la Foto de Perfil principal del vehículo.');
+      return;
+    }
+
+    if (this.fotosVehiculo.length !== 10) {
+      alert(`Debe subir exactamente 10 fotos adicionales del vehículo. Lleva ${this.fotosVehiculo.length}.`);
+      return;
+    }
+
+    // --- EL TRUCO VISUAL ---
+    // Creamos una URL temporal local para que la imagen se vea al instante en la tarjeta
+    const urlTemporal = URL.createObjectURL(this.fotoPerfilVehiculo);
+    
+    // Guardamos esa URL temporal como la foto principal del vehículo
+    this.nuevoVehiculo.fotos = [urlTemporal]; 
+    
+    this.flotaService.agregarVehiculo(this.nuevoVehiculo as any);
+    alert(`¡Vehículo ${this.nuevoVehiculo.placa} registrado con éxito!`);
+    
+    // Reseteamos el formulario
+    this.nuevoVehiculo = { placa: '', identificador: '', marcaModelo: '', anio: null, vin: '', kilometraje: null, estado: 'OPERATIVO', conductorId: null, fotos: [], seguroRcvVigente: true };
+    this.alternarRegistro();
+  }
 }
