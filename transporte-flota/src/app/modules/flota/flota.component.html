@@ -1,100 +1,391 @@
-<div *ngIf="conductores$ | async as conductores">
-  <!-- KPIs -->
+<div class="fleet-viewport p-3 p-md-4" *ngIf="conductores$ | async as conductores">
+
+  <!-- ==========================================
+       CABECERA
+  =========================================== -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+    <div>
+      <h3 class="text-white fw-bold tracking-tight mb-1">
+        <i class="bi bi-truck-front text-primary me-2"></i>Gestión de Flota Vehicular
+      </h3>
+      <p class="text-secondary small mb-0">Showroom corporativo de unidades operativas y emisión de QR</p>
+    </div>
+    <div>
+      <button class="btn btn-dealer-primary py-2 px-3 fw-bold rounded-3" (click)="abrirModalNuevo()">
+        <i class="bi bi-plus-lg me-1"></i> Registrar Nuevo Vehículo
+      </button>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       METRICAS / KPIS
+  =========================================== -->
   <section class="row g-3 mb-4" *ngIf="flotaService.vehiculos$ | async as vehiculos">
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card bg-custom-card border-custom p-3 border-start border-4 border-success">
-        <small class="text-custom-muted fw-bold">OPERATIVOS</small>
-        <h3 class="text-white fw-bold mb-0 mt-1">{{ (vehiculos | filterStatus:'OPERATIVO').length }}</h3>
+      <div class="card dealer-kpi-card p-3 border-start border-4 border-success">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <small class="text-secondary fw-bold text-uppercase fs-xs">Operativos</small>
+            <h2 class="text-white fw-bold mb-0 mt-1">{{ (vehiculos | filterStatus:'OPERATIVO').length }}</h2>
+          </div>
+          <div class="kpi-icon-glow bg-success-subtle text-success">
+            <i class="bi bi-check-circle-fill fs-4"></i>
+          </div>
+        </div>
       </div>
     </div>
+
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card bg-custom-card border-custom p-3 border-start border-4 border-warning">
-        <small class="text-custom-muted fw-bold">EN TALLER</small>
-        <h3 class="text-white fw-bold mb-0 mt-1">{{ (vehiculos | filterStatus:'TALLER').length }}</h3>
+      <div class="card dealer-kpi-card p-3 border-start border-4 border-warning">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <small class="text-secondary fw-bold text-uppercase fs-xs">En Taller</small>
+            <h2 class="text-white fw-bold mb-0 mt-1">{{ (vehiculos | filterStatus:'TALLER').length }}</h2>
+          </div>
+          <div class="kpi-icon-glow bg-warning-subtle text-warning">
+            <i class="bi bi-tools fs-4"></i>
+          </div>
+        </div>
       </div>
     </div>
+
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card bg-custom-card border-custom p-3 border-start border-4 border-danger">
-        <small class="text-custom-muted fw-bold">FUERA DE SERVICIO</small>
-        <h3 class="text-white fw-bold mb-0 mt-1">{{ (vehiculos | filterStatus:'INACTIVO').length }}</h3>
+      <div class="card dealer-kpi-card p-3 border-start border-4 border-danger">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <small class="text-secondary fw-bold text-uppercase fs-xs">Fuera de Servicio</small>
+            <h2 class="text-white fw-bold mb-0 mt-1">{{ (vehiculos | filterStatus:'INACTIVO').length }}</h2>
+          </div>
+          <div class="kpi-icon-glow bg-danger-subtle text-danger">
+            <i class="bi bi-exclamation-octagon-fill fs-4"></i>
+          </div>
+        </div>
       </div>
     </div>
+
     <div class="col-12 col-sm-6 col-xl-3">
-      <div class="card bg-custom-card border-custom p-3 border-start border-4 border-primary">
-        <small class="text-custom-muted fw-bold">TOTAL FLOTA</small>
-        <h3 class="text-white fw-bold mb-0 mt-1">{{ vehiculos.length }}</h3>
+      <div class="card dealer-kpi-card p-3 border-start border-4 border-primary">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <small class="text-secondary fw-bold text-uppercase fs-xs">Total Unidades</small>
+            <h2 class="text-white fw-bold mb-0 mt-1">{{ vehiculos.length }}</h2>
+          </div>
+          <div class="kpi-icon-glow bg-primary-subtle text-primary">
+            <i class="bi bi-shield-shaded fs-4"></i>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Filtros -->
-  <div class="card bg-custom-card border-custom p-3 mb-4">
-    <div class="row g-2 align-items-center justify-content-between">
+  <!-- ==========================================
+       BARRA DE BÚSQUEDA Y FILTROS
+  =========================================== -->
+  <div class="card dealer-card p-3 mb-4">
+    <div class="row g-3 align-items-center justify-content-between">
       <div class="col-12 col-md-5">
-        <input type="text" class="form-control bg-dark text-white border-custom" placeholder="Buscar por placa o modelo..." (keyup)="aplicarTexto($event)">
+        <div class="input-group dealer-input-group">
+          <span class="input-group-text bg-transparent border-end-0 text-secondary"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control border-start-0 text-white" placeholder="Buscar por placa, modelo o identificador..." (keyup)="aplicarTexto($event)">
+        </div>
       </div>
-      <div class="col-12 col-md-auto d-flex gap-2">
-        <button class="btn btn-sm btn-outline-secondary text-white" (click)="aplicarEstado('TODOS')">Todos</button>
-        <button class="btn btn-sm btn-outline-success" (click)="aplicarEstado('OPERATIVO')">Operativos</button>
-        <button class="btn btn-sm btn-outline-warning" (click)="aplicarEstado('TALLER')">Taller</button>
-        <button class="btn btn-sm btn-outline-danger" (click)="aplicarEstado('INACTIVO')">Inactivos</button>
+      <div class="col-12 col-md-auto d-flex flex-wrap gap-2">
+        <button class="btn btn-sm btn-dealer-filter" [class.active]="(filtroEstado$ | async) === 'TODOS'" (click)="aplicarEstado('TODOS')">Todos</button>
+        <button class="btn btn-sm btn-dealer-filter text-success" [class.active]="(filtroEstado$ | async) === 'OPERATIVO'" (click)="aplicarEstado('OPERATIVO')">Operativos</button>
+        <button class="btn btn-sm btn-dealer-filter text-warning" [class.active]="(filtroEstado$ | async) === 'TALLER'" (click)="aplicarEstado('TALLER')">En Taller</button>
+        <button class="btn btn-sm btn-dealer-filter text-danger" [class.active]="(filtroEstado$ | async) === 'INACTIVO'" (click)="aplicarEstado('INACTIVO')">Inactivos</button>
       </div>
     </div>
   </div>
 
-  <!-- Rejilla de Cards -->
+  <!-- ==========================================
+       REJILLA SHOWROOM
+  =========================================== -->
   <div class="row g-4" *ngIf="vehiculosFiltrados$ | async as vehiculos">
-    <div class="col-12 col-md-6 col-lg-4" *ngFor="let v of vehiculos">
-      <div class="card bg-custom-card border-custom h-100 overflow-hidden shadow-sm">
-        <div class="position-relative" style="height: 180px;">
-          <img [src]="v.fotos[0]" class="w-100 h-100 object-fit-cover" alt="Foto">
-          <span class="position-absolute top-0 start-0 m-2 badge bg-dark border border-secondary">{{ v.placa }}</span>
-          <span class="position-absolute top-0 end-0 m-2 badge" [ngClass]="'badge-' + v.estado.toLowerCase()">{{ v.estado }}</span>
+    <div class="col-12 col-md-6 col-lg-4" *ngFor="let vehiculo of vehiculos">
+      <div class="card vehicle-card dealer-card h-100 overflow-hidden shadow-2xl position-relative">
+        <div class="vehicle-card-header position-relative" (click)="abrirCarrusel(vehiculo)">
+          <span class="badge-placa">{{ vehiculo.placa }}</span>
+          <span class="badge badge-estado" [ngClass]="{
+            'bg-success': vehiculo.estado === 'OPERATIVO',
+            'bg-warning': vehiculo.estado === 'TALLER',
+            'bg-danger': vehiculo.estado === 'INACTIVO'
+          }">
+            {{ vehiculo.estado }}
+          </span>
+          <img [src]="vehiculo.fotos && vehiculo.fotos.length ? vehiculo.fotos[0] : 'assets/images/default-truck.jpg'" 
+               [alt]="vehiculo.identificador" 
+               class="vehicle-img" />
         </div>
-        <div class="card-body d-flex flex-column">
-          <h5 class="text-white fw-bold mb-1">{{ v.identificador }}</h5>
-          <small class="text-custom-muted mb-3">{{ v.marcaModelo }} • {{ v.anio }}</small>
 
-          <div class="p-2 bg-dark rounded border border-custom mb-3">
-            <div class="d-flex justify-content-between mb-1">
-              <small class="text-custom-muted">Conductor:</small>
-              <small class="text-white fw-bold">{{ obtenerNombreConductor(v.conductorId, conductores) }}</small>
+        <div class="card-body p-4 d-flex flex-column">
+          <h5 class="card-title text-white fw-bold mb-0">{{ vehiculo.identificador }}</h5>
+          <p class="card-subtitle text-muted mb-2">{{ vehiculo.marcaModelo }} • {{ vehiculo.anio }}</p>
+
+          <div class="vehicle-specs-box p-3 rounded-3 my-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-secondary fs-xs"><i class="bi bi-person-badge me-1"></i>Conductor:</span>
+              <span class="text-white fw-semibold fs-xs text-truncate ms-2">{{ obtenerNombreConductor(vehiculo.conductorId, conductores) }}</span>
             </div>
-            <div class="d-flex justify-content-between">
-              <small class="text-custom-muted">Kilometraje:</small>
-              <small class="text-white fw-bold">{{ v.kilometraje | number }} Km</small>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="text-secondary fs-xs"><i class="bi bi-speedometer2 me-1"></i>Kilometraje:</span>
+              <span class="text-white fw-semibold fs-xs">{{ vehiculo.kilometraje | number }} Km</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-secondary fs-xs"><i class="bi bi-fingerprint me-1"></i>Chasis:</span>
+              <span class="text-white fw-bold fw-mono fs-xs">{{ vehiculo.vin }}</span>
             </div>
           </div>
 
           <div class="d-flex gap-2 mt-auto">
-            <button class="btn btn-sm btn-outline-primary flex-grow-1" (click)="abrirFicha(v)"><i class="bi bi-qr-code"></i> Ficha y QR</button>
-            <button class="btn btn-sm btn-outline-danger" *ngIf="flotaService.puedeEditarOEliminar()" (click)="eliminar(v.id)"><i class="bi bi-trash"></i></button>
+            <button class="btn btn-sm btn-dealer-primary flex-grow-1 py-2 fw-semibold" (click)="abrirFicha(vehiculo)">
+              <i class="bi bi-qr-code-scan me-1"></i> Ficha y QR
+            </button>
+            <button class="btn btn-sm btn-outline-danger px-3" *ngIf="flotaService.puedeEditarOEliminar()" (click)="eliminar(vehiculo.id)" title="Eliminar vehículo">
+              <i class="bi bi-trash"></i>
+            </button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Modal Ficha Técnica y QR -->
-  <div class="modal d-block bg-dark bg-opacity-75" tabindex="-1" *ngIf="vehiculoSeleccionado">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content bg-custom-card border-custom text-white">
-        <div class="modal-header border-custom">
-          <h5 class="modal-title fw-bold">Ficha Técnica: {{ vehiculoSeleccionado.placa }}</h5>
-          <button type="button" class="btn-close btn-close-white" (click)="cerrarFicha()"></button>
+  <!-- ==========================================
+       MODAL REGISTRAR NUEVO VEHÍCULO
+  =========================================== -->
+  <div class="modal d-block dealer-modal-backdrop" tabindex="-1" *ngIf="mostrarModalNuevo">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content dealer-modal-content border-0 text-white shadow-2xl">
+        
+        <div class="modal-header border-bottom border-dark-subtle p-3 px-4">
+          <h5 class="modal-title fw-bold fs-sm d-flex align-items-center gap-2">
+            <i class="bi bi-plus-circle-fill text-primary"></i> Alta de Nueva Unidad Vehicular
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="cerrarModalNuevo()"></button>
         </div>
-        <div class="modal-body text-center">
-          <div class="bg-white p-3 rounded d-inline-block mb-3">
-            <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}" alt="QR">
-          </div>
-          <p class="text-custom-muted small">Escanee para verificar documentación y VIN</p>
-          <div class="text-start bg-dark p-3 rounded border border-custom small">
-            <div><strong>VIN:</strong> {{ vehiculoSeleccionado.vin }}</div>
-            <div><strong>Último Servicio:</strong> {{ vehiculoSeleccionado.ultimoServicio || 'N/A' }}</div>
-            <div><strong>Póliza RCV:</strong> <span class="text-success fw-bold">Vigente</span></div>
+
+        <div class="modal-body p-4">
+          <div class="row g-3">
+            
+            <div class="col-12 col-md-4">
+              <label class="form-label text-secondary fs-xs fw-semibold">Placa Vehicular *</label>
+              <input type="text" class="form-control dealer-control text-uppercase" [(ngModel)]="nuevoVehiculo.placa" maxlength="7" placeholder="Ej: A12BC3D">
+              <div class="form-text fs-xs text-muted">Máximo 7 caracteres</div>
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label text-secondary fs-xs fw-semibold">Identificador / Código *</label>
+              <input type="text" class="form-control dealer-control" [(ngModel)]="nuevoVehiculo.identificador" placeholder="Ej: TRUCK-08">
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label text-secondary fs-xs fw-semibold">Año *</label>
+              <select class="form-select dealer-control" [(ngModel)]="nuevoVehiculo.anio">
+                <option [ngValue]="null" disabled selected>Seleccionar año...</option>
+                <option *ngFor="let anio of aniosDisponibles" [value]="anio">{{ anio }}</option>
+              </select>
+              <div class="form-text fs-xs text-muted">1980 - 2026</div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label text-secondary fs-xs fw-semibold">Marca y Modelo *</label>
+              <input type="text" class="form-control dealer-control" [(ngModel)]="nuevoVehiculo.marcaModelo" maxlength="25" placeholder="Ej: Mack Granite 400">
+              <div class="form-text fs-xs text-muted">Máximo 25 caracteres</div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label text-secondary fs-xs fw-semibold">Número de Chasis (VIN) *</label>
+              <input type="text" class="form-control dealer-control fw-mono" [(ngModel)]="nuevoVehiculo.vin" maxlength="17" (input)="validarSoloNumeros($event, 'vin')" placeholder="Solo números (máx. 17)">
+              <div class="form-text fs-xs text-muted">17 dígitos numéricos</div>
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label text-secondary fs-xs fw-semibold">Kilometraje Inicial *</label>
+              <input type="text" inputmode="numeric" class="form-control dealer-control no-spinners" [(ngModel)]="nuevoVehiculo.kilometraje" (input)="validarKilometraje($event)" placeholder="Ej: 120000">
+              <div class="form-text fs-xs text-muted">Máx. 350,000 Km (6 dígitos)</div>
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label text-secondary fs-xs fw-semibold">Estado Operativo</label>
+              <select class="form-select dealer-control" [(ngModel)]="nuevoVehiculo.estado">
+                <option value="OPERATIVO">OPERATIVO</option>
+                <option value="TALLER">EN TALLER</option>
+                <option value="INACTIVO">INACTIVO / DESINCORPORADO</option>
+              </select>
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label text-secondary fs-xs fw-semibold">Conductor Asignado</label>
+              <select class="form-select dealer-control" [(ngModel)]="nuevoVehiculo.conductorId">
+                <option [ngValue]="null">Sin Asignar</option>
+                <option *ngFor="let c of conductores" [value]="c.id">{{ c.nombre }}</option>
+              </select>
+            </div>
+
+            <div class="col-12 mt-3">
+              <label class="form-label text-secondary fs-xs fw-semibold d-flex justify-content-between">
+                <span>Fotografías de la Unidad</span>
+                <span class="text-primary">{{ nuevoVehiculo.fotos.length }}/10 cargadas</span>
+              </label>
+              
+              <div class="custom-dropzone position-relative text-center p-4 rounded-4" *ngIf="nuevoVehiculo.fotos.length < 10">
+                <input type="file" multiple accept="image/png, image/jpeg, image/jpg" capture="environment" class="dropzone-input" (change)="cargarFotosNuevoVehiculo($event)">
+                
+                <div class="dropzone-content">
+                  <div class="dropzone-icon-wrapper mb-2">
+                    <i class="bi bi-cloud-arrow-up-fill fs-2 text-primary"></i>
+                  </div>
+                  <h6 class="fw-bold text-white mb-1">Arrastra tus fotos aquí o <span class="text-primary text-decoration-underline">explora</span></h6>
+                  <p class="text-secondary fs-xs mb-0">Formatos admitidos: JPG, PNG • Máximo 10 archivos</p>
+                </div>
+              </div>
+
+              <div class="d-flex flex-wrap gap-2 mt-3" *ngIf="nuevoVehiculo.fotos.length > 0">
+                <div *ngFor="let foto of nuevoVehiculo.fotos; let i = index" class="position-relative thumb-preview-box rounded-3 overflow-hidden border border-secondary border-opacity-25 shadow-sm">
+                  <img [src]="foto" class="w-100 h-100 object-fit-cover" alt="Previsualización">
+                  <button type="button" class="btn btn-danger btn-sm thumb-delete-btn p-0" (click)="eliminarFotoNueva(i)" title="Eliminar foto">
+                    <i class="bi bi-x-lg fs-xs"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
+
+        <div class="modal-footer border-top border-dark-subtle p-3 px-4">
+          <button type="button" class="btn btn-outline-dealer-light btn-sm px-3" (click)="cerrarModalNuevo()">Cancelar</button>
+          <button type="button" class="btn btn-dealer-primary btn-sm px-4 fw-bold" (click)="guardarNuevoVehiculo()">
+            <i class="bi bi-check-lg me-1"></i> Guardar Unidad
+          </button>
+        </div>
+
       </div>
     </div>
   </div>
+
+  <!-- ==========================================
+       MODAL FICHA TÉCNICA + QR IMPRESO
+  =========================================== -->
+  <div class="modal d-block dealer-modal-backdrop" tabindex="-1" *ngIf="vehiculoSeleccionado">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content dealer-modal-content border-0 text-white shadow-2xl">
+        
+        <div class="modal-header border-bottom border-dark-subtle p-3 px-4 d-print-none">
+          <h5 class="modal-title fw-bold fs-sm d-flex align-items-center gap-2">
+            <i class="bi bi-shield-check text-primary"></i> Ficha Técnica e Identificación QR
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="cerrarFicha()"></button>
+        </div>
+
+        <div class="modal-body p-4 text-center printable-area">
+          <div class="brand-header-print d-none d-print-block text-center mb-3">
+            <h2 class="fw-bold text-black mb-1">SMU LOGÍSTICA • GERENCIA DE TRANSPORTE</h2>
+            <p class="small text-muted mb-0">ETIQUETA OFICIAL DE IDENTIFICACIÓN VEHICULAR</p>
+            <hr class="my-2 border-dark">
+          </div>
+
+          <div class="row align-items-center justify-content-center g-4">
+            <div class="col-12 col-md-5 text-center">
+              <div class="qr-code-container p-3 rounded-4 bg-white d-inline-block shadow-lg">
+                <img [src]="'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + vehiculoSeleccionado.placa + '|' + vehiculoSeleccionado.vin" alt="Código QR" class="img-fluid">
+              </div>
+              <h3 class="text-white fw-bold mt-2 mb-0 print-black">{{ vehiculoSeleccionado.placa }}</h3>
+              <span class="badge dealer-status-badge print-black" [ngClass]="'status-' + vehiculoSeleccionado.estado.toLowerCase()">
+                {{ vehiculoSeleccionado.estado }}
+              </span>
+            </div>
+
+            <div class="col-12 col-md-7 text-start d-print-none">
+              <div class="ficha-gallery-box position-relative rounded-3 overflow-hidden bg-black mb-3">
+                <img [src]="vehiculoSeleccionado.fotos[fotoFichaIndex] || 'assets/images/default-truck.jpg'" class="w-100 h-100 object-fit-contain" style="max-height: 200px;" alt="Foto Ficha">
+                
+                <div *ngIf="vehiculoSeleccionado.fotos.length > 1" class="d-flex justify-content-between position-absolute w-100 top-50 translate-middle-y px-2">
+                  <button class="btn btn-sm btn-dark bg-opacity-75 text-white rounded-circle p-1" (click)="anteriorFotoFicha()">
+                    <i class="bi bi-chevron-left"></i>
+                  </button>
+                  <button class="btn btn-sm btn-dark bg-opacity-75 text-white rounded-circle p-1" (click)="siguienteFotoFicha()">
+                    <i class="bi bi-chevron-right"></i>
+                  </button>
+                </div>
+
+                <span class="position-absolute bottom-0 end-0 m-2 badge bg-dark text-white fs-xs" *ngIf="vehiculoSeleccionado.fotos.length > 1">
+                  {{ fotoFichaIndex + 1 }} / {{ vehiculoSeleccionado.fotos.length }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="text-start vehicle-specs-box p-3 rounded-3 fs-xs mt-3">
+            <div class="row g-2">
+              <div class="col-6"><strong>Identificador:</strong> {{ vehiculoSeleccionado.identificador }}</div>
+              <div class="col-6"><strong>Marca/Modelo:</strong> {{ vehiculoSeleccionado.marcaModelo }} ({{ vehiculoSeleccionado.anio }})</div>
+              <div class="col-6"><strong>Número de Chasis:</strong> {{ vehiculoSeleccionado.vin }}</div>
+              <div class="col-6"><strong>Kilometraje:</strong> {{ vehiculoSeleccionado.kilometraje | number }} Km</div>
+              <div class="col-6"><strong>Último Servicio:</strong> {{ vehiculoSeleccionado.ultimoServicio || 'N/A' }}</div>
+              <div class="col-6"><strong>Póliza RCV:</strong> <span class="text-success fw-bold">Vigente</span></div>
+              <div class="col-12"><strong>Conductor Asignado:</strong> {{ obtenerNombreConductor(vehiculoSeleccionado.conductorId, conductores) }}</div>
+            </div>
+          </div>
+
+          <p class="text-secondary fs-xs mt-3 mb-0 print-muted">
+            <i class="bi bi-info-circle me-1"></i>Escanee este código QR con el dispositivo corporativo para verificar la documentación completa.
+          </p>
+        </div>
+
+        <div class="modal-footer border-top border-dark-subtle p-3 px-4 d-print-none">
+          <button class="btn btn-outline-dealer-light btn-sm px-3" (click)="cerrarFicha()">Cerrar</button>
+          <button class="btn btn-dealer-primary btn-sm px-4 fw-bold" (click)="imprimirFicha()">
+            <i class="bi bi-printer-fill me-1"></i> Imprimir Etiqueta QR
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       VISOR DE GALERÍA DE HASTA 10 FOTOS
+  =========================================== -->
+  <div class="modal d-block dealer-modal-backdrop" tabindex="-1" *ngIf="mostrarCarrusel" (click)="cerrarCarrusel()">
+    <div class="modal-dialog modal-lg modal-dialog-centered" (click)="$event.stopPropagation()">
+      <div class="modal-content dealer-modal-content border-0 text-white overflow-hidden position-relative">
+        
+        <button type="button" class="btn btn-close-custom" (click)="cerrarCarrusel()" title="Cerrar Galería">
+          <i class="bi bi-x-lg fs-5"></i>
+        </button>
+
+        <div class="modal-header border-bottom border-dark-subtle p-3 px-4 pe-5">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge dealer-placa-badge">{{ vehiculoCarrusel?.placa }}</span>
+            <span class="text-white fw-bold fs-sm">{{ vehiculoCarrusel?.marcaModelo }}</span>
+          </div>
+          <span class="text-secondary fs-xs ms-auto me-3">Imagen {{ indiceFotoActual + 1 }} de {{ fotosCarrusel.length }}</span>
+        </div>
+
+        <div class="modal-body p-0 position-relative bg-black d-flex align-items-center justify-content-center" style="min-height: 420px; max-height: 560px;">
+          <img [src]="fotosCarrusel[indiceFotoActual]" class="img-fluid mh-100 object-fit-contain" alt="Imagen Ampliada">
+
+          <button class="btn carousel-control-btn start-0 ms-3" (click)="anteriorFoto()" *ngIf="fotosCarrusel.length > 1">
+            <i class="bi bi-chevron-left fs-4"></i>
+          </button>
+          <button class="btn carousel-control-btn end-0 me-3" (click)="siguienteFoto()" *ngIf="fotosCarrusel.length > 1">
+            <i class="bi bi-chevron-right fs-4"></i>
+          </button>
+        </div>
+
+        <div class="modal-footer border-top border-dark-subtle p-3 justify-content-center gap-2 overflow-x-auto" *ngIf="fotosCarrusel.length > 1">
+          <div 
+            *ngFor="let foto of fotosCarrusel; let i = index" 
+            class="carousel-thumbnail rounded-2 overflow-hidden" 
+            [class.active]="i === indiceFotoActual"
+            (click)="seleccionarFoto(i)">
+            <img [src]="foto" class="w-100 h-100 object-fit-cover" alt="Miniatura">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
 </div>

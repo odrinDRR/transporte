@@ -4,6 +4,9 @@ import { Vehiculo, Conductor, RolUsuario, RegistroCombustible } from '../models/
 
 @Injectable({ providedIn: 'root' })
 export class FlotaService {
+  agregarVehiculo(arg0: { placa: string; identificador: string; marcaModelo: string; anio: number; vin: string; kilometraje: number; estado: "OPERATIVO" | "TALLER" | "INACTIVO"; conductorId: number | null; ultimoServicio: string; fotos: string[]; }) {
+    throw new Error('Method not implemented.');
+  }
 private rolActualSubject = new BehaviorSubject<RolUsuario | null>(null);
   public rolActual$ = this.rolActualSubject.asObservable();
 
