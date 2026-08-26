@@ -1,26 +1,31 @@
 import { Component, OnInit } from '@angular/core';
-import { FlotaService } from '../../core/services/flota.service';
-import { RolUsuario } from '../../core/models/fleet.models';
+import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-aprobaciones',
   templateUrl: './aprobaciones.component.html'
 })
 export class AprobacionesComponent implements OnInit {
-  solicitudesPendientes = [
-    { id: 1, nombre: 'María', apellido: 'Gómez', cedula: 'V-22334455', cargo: 'EMPLEADO', fecha: '21-08-2026' },
-    { id: 2, nombre: 'José', apellido: 'Rojas', cedula: 'V-19887766', cargo: 'COORDINADOR', fecha: '21-08-2026' },
-    { id: 3, nombre: 'Ana', apellido: 'Silva', cedula: 'V-17654321', cargo: 'SUPERVISOR', fecha: '20-08-2026' }
-  ];
-
+  solicitudesPendientes: any[] = [];
   solicitudesVisibles: any[] = [];
-  rolActual: RolUsuario | null = null;
+  rolActual: string | null = null;
+  apiUrl = `${environment.apiUrl}/usuarios`;
 
-  constructor(public flotaService: FlotaService) {}
+  constructor(private http: HttpClient, public authService: AuthService) {}
 
   ngOnInit(): void {
-    this.flotaService.rolActual$.subscribe(rol => {
-      this.rolActual = rol;
+    this.authService.usuarioActual$.subscribe(user => {
+      this.rolActual = user?.rol || null;
+      this.cargarUsuarios();
+    });
+  }
+
+  cargarUsuarios(): void {
+    this.http.get<any[]>(this.apiUrl).subscribe(usuarios => {
+      // Filtrar los que están PENDIENTES
+      this.solicitudesPendientes = usuarios.filter(u => u.estado === 'PENDIENTE');
       this.filtrarPorNivelDeAcceso();
     });
   }
@@ -37,16 +42,22 @@ export class AprobacionesComponent implements OnInit {
 
   aprobar(id: number, nombre: string): void {
     if (confirm(`¿Estás seguro de APROBAR el acceso para ${nombre}?`)) {
-      this.solicitudesPendientes = this.solicitudesPendientes.filter(s => s.id !== id);
-      this.filtrarPorNivelDeAcceso();
-      alert('Usuario aprobado y notificado. Ya puede iniciar sesión.');
+      this.http.put(`${this.apiUrl}/aprobar/${id}`, {}).subscribe({
+        next: () => {
+          this.cargarUsuarios();
+          alert('Usuario aprobado y notificado. Ya puede iniciar sesión.');
+        },
+        error: (err) => console.error('Error al aprobar', err)
+      });
     }
   }
 
   rechazar(id: number): void {
     if (confirm('¿Deseas RECHAZAR y eliminar esta solicitud?')) {
-      this.solicitudesPendientes = this.solicitudesPendientes.filter(s => s.id !== id);
-      this.filtrarPorNivelDeAcceso();
+      this.http.delete(`${this.apiUrl}/${id}`).subscribe({
+        next: () => this.cargarUsuarios(),
+        error: (err) => console.error('Error al rechazar', err)
+      });
     }
   }
 }

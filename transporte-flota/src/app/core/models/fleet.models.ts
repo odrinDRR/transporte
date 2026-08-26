@@ -5,17 +5,21 @@ export type EstadoVehiculo = 'OPERATIVO' | 'TALLER' | 'INACTIVO';
 export interface Vehiculo {
   id: number;
   placa: string;
-  identificador: string;
-  marcaModelo: string;
+  identificador?: string;
+  marca?: string;
+  modelo?: string;
+  marcaModelo?: string; // Mantenido para retrocompatibilidad
+  tipo?: string;
   anio: number;
   estado: EstadoVehiculo;
   conductorId: number | null;
   vin: string;
   kilometraje: number;
-  fotos: string[];
+  fotos?: string[];
+  urlFotoPerfil?: string; // Agregado para almacenar la foto principal
   ultimoServicio?: string;
   proximoMantenimiento?: string;
-  seguroRcvVigente: boolean;
+  seguroRcvVigente?: boolean;
 }
 
 export interface Conductor {
@@ -39,4 +43,51 @@ export interface RegistroCombustible {
   litros: number;
   kilometraje: number;
   costo: number;
+}
+
+export interface Inspeccion {
+  id?: number;
+  fecha: string;
+  kilometraje: number | null;
+  carroceriaOk: boolean;
+  lucesOk: boolean;
+  cinturonesOk: boolean;
+  tableroOk: boolean;
+  extintorVigente: boolean;
+  nivelAceiteOk: boolean;
+  refrigeranteOk: boolean;
+  liquidoFrenosOk: boolean;
+  dictamen: string;
+  serialOk: boolean;
+  vidriosOk: boolean;
+  latoneriaOk: boolean;
+  pinturaOk: boolean;
+  parabrisasOk: boolean;
+  cauchosOk: boolean;
+  observaciones: string;
+  inspectorFirma: string; // Puede ser ficha o id del conductor
+  tipo?: string; // INICIO o CIERRE
+  vehiculoId?: number;
+}
+
+export interface Mantenimiento {
+  id?: number;
+  vehiculoId: number;
+  fecha: string;
+  tipo: 'PREVENTIVO' | 'CORRECTIVO';
+  descripcion: string;
+  costo?: number;
+  taller?: string;
+  kilometraje: number;
+}
+
+export interface Documento {
+  id?: number;
+  vehiculoId?: number;
+  conductorId?: number;
+  tipoDocumento: string; // Licencia, Certificado Médico, RCV, etc.
+  numero: string;
+  fechaEmision?: string;
+  fechaVencimiento: string;
+  archivoUrl?: string; // Para el frontend descargar/ver el PDF/IMG
 }

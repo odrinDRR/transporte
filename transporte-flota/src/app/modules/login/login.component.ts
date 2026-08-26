@@ -1,6 +1,8 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { RolUsuario } from '../../core/models/fleet.models';
 import { FlotaService } from '../../core/services/flota.service';
+import { AuthService } from '../../services/auth.service';
+import { ArchivoService } from '../../services/archivo.service';
 
 @Component({
   selector: 'app-login',
@@ -32,12 +34,17 @@ export class LoginComponent {
     edad: null as number | null,
     cargo: '' as RolUsuario | '',
     categoriaLicencia: '2da',
+    username: '',
     correo: '',
     password: '',
     estado: 'PENDIENTE'
   };
 
-  constructor(private flotaService: FlotaService) {}
+  constructor(
+    private flotaService: FlotaService, 
+    private authService: AuthService,
+    private archivoService: ArchivoService
+  ) {}
 
   getRoleName(rol: RolUsuario | string | null): string {
     switch (rol) {
@@ -115,11 +122,19 @@ export class LoginComponent {
   }
 
   ingresar(): void {
-    if (this.usuario.trim() !== '' && this.clave.trim() !== '' && this.rolSeleccionado) {
-      this.flotaService.iniciarSesion(this.rolSeleccionado);
-      this.loginCompletado.emit();
+    if (this.usuario.trim() !== '' && this.clave.trim() !== '') {
+      this.authService.login(this.usuario.trim(), this.clave.trim()).subscribe({
+        next: (res) => {
+          this.flotaService.iniciarSesion(res.rol); // Mantenemos compatibilidad con flotaService
+          this.loginCompletado.emit();
+        },
+        error: (err) => {
+          console.error(err);
+          alert(err.error || 'Credenciales inválidas o usuario inactivo');
+        }
+      });
     } else {
-      alert('Por favor, selecciona un perfil e ingresa tus credenciales.');
+      alert('Por favor, ingresa tu correo y contraseña.');
     }
   }
 
@@ -140,6 +155,7 @@ export class LoginComponent {
         edad: null,
         cargo: '',
         categoriaLicencia: '2da',
+        username: '',
         correo: '',
         password: '',
         estado: 'PENDIENTE'
@@ -184,8 +200,8 @@ export class LoginComponent {
     }
   }
 
-  enviarParaAprobacion(): void {
-    if (!this.nuevoUsuario.correo || !this.nuevoUsuario.password) {
+  async enviarParaAprobacion(): Promise<void> {
+    if (!this.nuevoUsuario.username || !this.nuevoUsuario.password) {
       alert('Indica un usuario y contraseña válidos.');
       return;
     }
@@ -196,8 +212,39 @@ export class LoginComponent {
       return;
     }
 
-    alert(`Solicitud registrada para ${this.nuevoUsuario.nombre}. La documentación en PDF/Foto fue enviada a revisión.`);
-    this.alternarRegistro();
+    try {
+      let urlLicencia = null;
+      let urlMedico = null;
+
+      if (this.archivoLicencia) {
+        const resLicencia = await this.archivoService.subirArchivo(this.archivoLicencia).toPromise();
+        urlLicencia = resLicencia?.url;
+      }
+
+      if (this.archivoMedico) {
+        const resMedico = await this.archivoService.subirArchivo(this.archivoMedico).toPromise();
+        urlMedico = resMedico?.url;
+      }
+
+      const payload = {
+        ...this.nuevoUsuario,
+        urlLicencia,
+        urlCertificadoMedico: urlMedico
+      };
+
+      this.authService.register(payload).subscribe({
+        next: (res) => {
+          alert(res || 'Solicitud registrada. La documentación en PDF/Foto fue enviada a revisión.');
+          this.alternarRegistro();
+        },
+        error: (err) => {
+          alert(err.error || 'Ocurrió un error al registrarse.');
+        }
+      });
+    } catch (error) {
+      console.error('Error subiendo archivos', error);
+      alert('Hubo un problema subiendo los documentos. Inténtalo de nuevo.');
+    }
   }
 
   get tieneLongitudCorrecta(): boolean {

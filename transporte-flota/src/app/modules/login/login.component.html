@@ -22,41 +22,7 @@
             <p class="text-secondary small mb-0">Seleccione su perfil de gestión vehicular</p>
           </div>
 
-          <div *ngIf="!rolSeleccionado" class="role-grid mb-3">
-            <div class="row g-2">
-              <div class="col-6" *ngFor="let rol of roles">
-                <button 
-                  type="button" 
-                  class="btn role-card-btn w-100 p-3 text-start d-flex flex-column justify-content-between"
-                  [ngClass]="getRoleButtonClass(rol)"
-                  (click)="seleccionarRol(rol)">
-                  <div class="d-flex align-items-center justify-content-between w-100 mb-2">
-                    <i class="bi {{ getRoleIcon(rol) }} role-icon"></i>
-                    <i class="bi bi-chevron-right arrow-icon"></i>
-                  </div>
-                  <div>
-                    <span class="d-block text-white fw-semibold small text-truncate">{{ getRoleName(rol) }}</span>
-                    <small class="text-muted fs-xs">{{ getRoleDescription(rol) }}</small>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div *ngIf="rolSeleccionado" class="credentials-form">
-            <div class="selected-role-bar d-flex justify-content-between align-items-center p-2 px-3 rounded-3 mb-4">
-              <div class="d-flex align-items-center gap-2">
-                <i class="bi {{ getRoleIcon(rolSeleccionado) }} text-primary fs-5"></i>
-                <div>
-                  <small class="d-block text-muted fs-xs text-uppercase fw-bold">Perfil Activo</small>
-                  <span class="text-white fw-bold small">{{ getRoleName(rolSeleccionado) }}</span>
-                </div>
-              </div>
-              <button class="btn btn-sm btn-link text-secondary text-decoration-none p-0 fs-xs" (click)="volverRoles()">
-                <i class="bi bi-arrow-repeat me-1"></i>Cambiar
-              </button>
-            </div>
-
+          <div class="credentials-form mt-4">
             <form (ngSubmit)="ingresar()">
               <div class="mb-3">
                 <label class="form-label text-secondary fs-xs fw-semibold">USUARIO / EMAIL</label>
@@ -190,7 +156,10 @@
           <div *ngIf="pasoRegistro === 3">
             <h6 class="text-white fw-bold mb-3 fs-sm">Creación de Usuario</h6>
             <div class="mb-2">
-              <input type="text" class="form-control dealer-control" [(ngModel)]="nuevoUsuario.correo" placeholder="Usuario o Correo Institucional">
+              <input type="text" class="form-control dealer-control" [(ngModel)]="nuevoUsuario.username" placeholder="Usuario (Ej. admin, perezj)">
+            </div>
+            <div class="mb-2">
+              <input type="email" class="form-control dealer-control" [(ngModel)]="nuevoUsuario.correo" placeholder="Correo Institucional">
             </div>
             <div class="mb-3">
               <input type="password" class="form-control dealer-control" [(ngModel)]="nuevoUsuario.password" placeholder="Contraseña">

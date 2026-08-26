@@ -290,3 +290,33 @@ $dealer-input-bg: rgba(255, 255, 255, 0.04);
 }
   }
 }
+
+/* ESTILOS COPIADOS DE LOGIN PARA SUBIDA DE ARCHIVOS */
+.border-dashed {
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+}
+
+.file-upload-box {
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 102, 255, 0.08);
+    border-color: rgba(0, 102, 255, 0.4);
+  }
+
+  &.has-file {
+    border-color: rgba(25, 135, 84, 0.5);
+    background: rgba(25, 135, 84, 0.08);
+  }
+
+  .file-input-hidden {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+}

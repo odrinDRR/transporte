@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { Observable, combineLatest, BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { FlotaService } from '../../core/services/flota.service';
+import { VehiculoService } from '../../services/vehiculo.service';
+import { ConductorService } from '../../services/conductor.service';
+import { ArchivoService } from '../../services/archivo.service';
 import { Vehiculo, Conductor } from '../../core/models/fleet.models';
 
 @Component({
@@ -10,81 +13,144 @@ import { Vehiculo, Conductor } from '../../core/models/fleet.models';
   styleUrls: ['./flota.component.scss']
 })
 export class FlotaComponent implements OnInit {
-// En flota.component.ts
+  // Subjects locales para almacenar la data real de la BD
+  private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([]);
+  public vehiculos$ = this.vehiculosSubject.asObservable();
 
-validarSoloNumeros(event: Event, campo: string): void {
-  const input = event.target as HTMLInputElement;
-  const valorLimpio = input.value.replace(/[^0-9]/g, '');
-  input.value = valorLimpio;
-  
-  if (this.nuevoVehiculo) {
-    (this.nuevoVehiculo as any)[campo] = valorLimpio;
-  }
-}
+  private conductoresSubject = new BehaviorSubject<Conductor[]>([]);
+  public conductores$ = this.conductoresSubject.asObservable();
+
   filtroTexto$ = new BehaviorSubject<string>('');
   filtroEstado$ = new BehaviorSubject<string>('TODOS');
   vehiculosFiltrados$!: Observable<Vehiculo[]>;
-  conductores$!: Observable<Conductor[]>;
-  
-  // Ficha Técnica y QR
-  vehiculoSeleccionado: Vehiculo | null = null;
-  fotoFichaIndex: number = 0;
 
-  // Galería / Carrusel Modal Ampliado
+  // Variables de UI (Modales, Galería, etc.)
+  vehiculoSeleccionado: Vehiculo | null = null;
   mostrarCarrusel: boolean = false;
   fotosCarrusel: string[] = [];
   indiceFotoActual: number = 0;
   vehiculoCarrusel: Vehiculo | null = null;
-
-
-
-  // Controles de Registro de Vehículo
   mostrarRegistro: boolean = false;
   fotoPerfilVehiculo: File | null = null;
   fotosVehiculo: File[] = [];
+
+  // ⚠️ ATENCIÓN: Ajusté "marca" y "modelo" para que coincidan con la tabla de PostgreSQL
   nuevoVehiculo = {
     placa: '',
     identificador: '',
-    marcaModelo: '',
+    marca: '', 
+    modelo: '',
     anio: new Date().getFullYear(),
     vin: '',
     kilometraje: 0,
-    estado: 'OPERATIVO' as any,
-    conductorId: null,
-    fotos: [] as string[],
-    seguroRcvVigente: true,
-    ultimoServicio: ''
+    estado: 'OPERATIVO',
+    tipo: 'CARGA', // Agregado según tu base de datos
+    conductorId: null
   };
 
-  constructor(public flotaService: FlotaService) {}
+  constructor(
+    public flotaService: FlotaService, // Mantenemos para validación de roles
+    private vehiculoService: VehiculoService,
+    private conductorService: ConductorService,
+    private archivoService: ArchivoService
+  ) {}
 
   ngOnInit(): void {
-    this.conductores$ = this.flotaService.conductores$;
+    this.cargarDatosBackend();
+
     this.vehiculosFiltrados$ = combineLatest([
-      this.flotaService.vehiculos$,
+      this.vehiculos$,
       this.filtroTexto$,
       this.filtroEstado$
     ]).pipe(
       map(([vehiculos, texto, estado]) => {
         let resultado = vehiculos;
-
         if (estado !== 'TODOS') {
           resultado = resultado.filter(v => v.estado === estado);
         }
-
         if (texto) {
           const term = texto.toLowerCase();
           resultado = resultado.filter(v => 
             v.placa.toLowerCase().includes(term) ||
-            v.identificador.toLowerCase().includes(term)
+            (v.marca && v.marca.toLowerCase().includes(term))
           );
         }
-
         return resultado;
       })
     );
   }
-  
+
+  // --- MÉTODOS HTTP (CONEXIÓN A SPRING BOOT) ---
+  cargarDatosBackend(): void {
+    this.vehiculoService.obtenerVehiculos().subscribe({
+      next: (data) => this.vehiculosSubject.next(data),
+      error: (err) => console.error('Error al cargar vehículos', err)
+    });
+
+    this.conductorService.obtenerConductores().subscribe({
+      next: (data) => this.conductoresSubject.next(data),
+      error: (err) => console.error('Error al cargar conductores', err)
+    });
+  }
+
+  guardarVehiculo(): void {
+    if (!this.nuevoVehiculo.placa || !this.nuevoVehiculo.identificador || !this.nuevoVehiculo.modelo) {
+      alert('Por favor, completa los datos básicos.');
+      return;
+    }
+
+    if (!this.fotoPerfilVehiculo) {
+      alert('Debes adjuntar la foto de perfil.');
+      return;
+    }
+
+    // 1. Subir la foto primero
+    this.archivoService.subirArchivo(this.fotoPerfilVehiculo).subscribe({
+      next: (res) => {
+        // 2. Construir el payload del vehículo con la URL devuelta por el servidor
+        const payload = {
+          ...this.nuevoVehiculo,
+          urlFotoPerfil: res.url,
+          marcaModelo: `${this.nuevoVehiculo.marca} ${this.nuevoVehiculo.modelo}`.trim()
+        };
+        
+        // 3. Guardar el vehículo en la base de datos
+        this.vehiculoService.crearVehiculo(payload as any).subscribe({
+          next: (vehiculoDb) => {
+            alert(`¡Vehículo ${vehiculoDb.placa} registrado con éxito en la base de datos!`);
+            this.cargarDatosBackend(); // Refrescar la grilla
+            this.alternarRegistro();
+            this.resetearFormulario();
+          },
+          error: (err) => {
+            console.error('Error guardando en BD', err);
+            alert('Ocurrió un error al intentar guardar el vehículo.');
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error subiendo foto', err);
+        alert('Ocurrió un error al intentar subir la foto de perfil.');
+      }
+    });
+  }
+
+  eliminar(id: number): void {
+    if (confirm('¿Eliminar definitivamente esta unidad de la base de datos?')) {
+      this.vehiculoService.eliminarVehiculo(id).subscribe({
+        next: () => {
+          alert('Vehículo eliminado');
+          this.cargarDatosBackend(); // Refrescar la grilla
+        },
+        error: (err) => console.error('Error al eliminar', err)
+      });
+    }
+  }
+
+  // --- MÉTODOS DE UTILIDAD Y UI (Mantienen tu lógica original) ---
+  resetearFormulario(): void {
+    this.nuevoVehiculo = { placa: '', identificador: '', marca: '', modelo: '', anio: new Date().getFullYear(), vin: '', kilometraje: 0, estado: 'OPERATIVO', tipo: 'CARGA', conductorId: null };
+  }
 
   aplicarFiltroBuscador(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -98,67 +164,41 @@ validarSoloNumeros(event: Event, campo: string): void {
   obtenerNombreConductor(id: number | null, conductores: Conductor[]): string {
     if (!id) return 'Sin Asignar';
     const c = conductores.find(item => item.id === id);
-    return c ? c.nombre : 'Sin Asignar';
+    return c ? `${c.nombre}` : 'Sin Asignar';
   }
 
-  abrirFicha(v: Vehiculo): void { this.vehiculoSeleccionado = v; }
-  cerrarFicha(): void { this.vehiculoSeleccionado = null; }
-  
-  eliminar(id: number): void {
-    if (confirm('¿Eliminar esta unidad de la flota?')) {
-      this.flotaService.eliminarVehiculo(id);
-    }
-  }
-
-  // --- MÉTODOS DE REGISTRO ---
   alternarRegistro(): void {
     this.mostrarRegistro = !this.mostrarRegistro;
     this.fotosVehiculo = [];
-    this.fotoPerfilVehiculo = null; // Limpiamos al salir
+    this.fotoPerfilVehiculo = null;
   }
 
+  validarAlfanumerico(event: Event, campo: string): void {
+    const input = event.target as HTMLInputElement;
+    const valorLimpio = input.value.replace(/[^a-zA-Z0-9-]/g, '').toUpperCase();
+    input.value = valorLimpio;
+    if (this.nuevoVehiculo) (this.nuevoVehiculo as any)[campo] = valorLimpio;
+  }
+
+  validarSoloNumeros(event: Event, campo: string): void {
+    const input = event.target as HTMLInputElement;
+    const valorLimpio = input.value.replace(/[^0-9]/g, '');
+    input.value = valorLimpio;
+    if (this.nuevoVehiculo) (this.nuevoVehiculo as any)[campo] = valorLimpio;
+  }
+
+  // (Mantén aquí el resto de tus métodos visuales como cargarFotoPerfil, abrirFicha, cerrarCarrusel, etc.)
   cargarFotoPerfil(event: any): void {
     if (event.target.files && event.target.files.length > 0) {
       this.fotoPerfilVehiculo = event.target.files[0];
     }
   }
-
   cargarFotos(event: any): void {
-    if (event.target.files) {
-      this.fotosVehiculo = Array.from(event.target.files);
-    }
+    if (event.target.files) this.fotosVehiculo = Array.from(event.target.files);
   }
-
- guardarVehiculo(): void {
-    if (!this.nuevoVehiculo.placa || !this.nuevoVehiculo.identificador || !this.nuevoVehiculo.marcaModelo) {
-      alert('Por favor, completa los datos básicos (Placa, Nombre y Marca/Modelo).');
-      return;
-    }
-
-    if (!this.fotoPerfilVehiculo) {
-      alert('Debe subir la Foto de Perfil principal del vehículo.');
-      return;
-    }
-
-    if (this.fotosVehiculo.length !== 10) {
-      alert(`Debe subir exactamente 10 fotos adicionales del vehículo. Lleva ${this.fotosVehiculo.length}.`);
-      return;
-    }
-
-    // --- EL TRUCO VISUAL ---
-    // Creamos una URL temporal local para que la imagen se vea al instante en la tarjeta
-    const urlTemporal = URL.createObjectURL(this.fotoPerfilVehiculo);
-    
-    // Guardamos esa URL temporal como la foto principal del vehículo
-    this.nuevoVehiculo.fotos = [urlTemporal]; 
-    
-    this.flotaService.agregarVehiculo(this.nuevoVehiculo as any);
-    alert(`¡Vehículo ${this.nuevoVehiculo.placa} registrado con éxito!`);
-    
-    // Reseteamos el formulario
-    this.nuevoVehiculo = { placa: '', identificador: '', marcaModelo: '', anio: new Date().getFullYear(), vin: '', kilometraje: 0, estado: 'OPERATIVO', conductorId: null, ultimoServicio: '', fotos: [], seguroRcvVigente: true };
-    this.alternarRegistro();
-  }
+  abrirFicha(v: Vehiculo): void { this.vehiculoSeleccionado = v; }
+  cerrarFicha(): void { this.vehiculoSeleccionado = null; }
+  imprimirFicha(): void { window.print(); }
 
   // --- CARRUSEL FULLSCREEN ---
   abrirCarrusel(v: Vehiculo, indexInicial: number = 0): void {
@@ -173,7 +213,6 @@ validarSoloNumeros(event: Event, campo: string): void {
     this.mostrarCarrusel = false;
     this.fotosCarrusel = [];
     this.indiceFotoActual = 0;
-    this.vehiculoCarrusel = null;
   }
 
   siguienteFoto(): void {
@@ -184,13 +223,5 @@ validarSoloNumeros(event: Event, campo: string): void {
   anteriorFoto(): void {
     if (this.fotosCarrusel.length === 0) return;
     this.indiceFotoActual = (this.indiceFotoActual - 1 + this.fotosCarrusel.length) % this.fotosCarrusel.length;
-  }
-
-  seleccionarFoto(index: number): void {
-    this.indiceFotoActual = index;
-  }
-
-  imprimirFicha(): void {
-    window.print();
   }
 }
