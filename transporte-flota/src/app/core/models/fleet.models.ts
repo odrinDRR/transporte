@@ -1,6 +1,5 @@
-// Actualizamos los roles según la nueva lógica de negocio
-export type RolUsuario = 'ADMIN' | 'COORDINADOR' | 'EMPLEADO' | 'SUPERVISOR';
-export type EstadoVehiculo = 'OPERATIVO' | 'TALLER' | 'INACTIVO';
+// Reemplaza tu RolUsuario actual por este:
+export type RolUsuario = 'ADMIN' | 'COORDINADOR' | 'SUPERVISOR' | 'EMPLEADO' | null;
 
 export interface Vehiculo {
   id: number;
@@ -8,26 +7,35 @@ export interface Vehiculo {
   identificador: string;
   marcaModelo: string;
   anio: number;
-  estado: EstadoVehiculo;
-  conductorId: number | null;
   vin: string;
   kilometraje: number;
+  estado: 'OPERATIVO' | 'TALLER' | 'INACTIVO';
+  conductorId: number | null;
   fotos: string[];
+  
+  // --- Campos opcionales agregados ---
+  color?: string;
+  tipoVehiculo?: string;
+  capacidadCarga?: number;
+  seguroRcvVigente?: boolean;
   ultimoServicio?: string;
-  proximoMantenimiento?: string;
-  seguroRcvVigente: boolean;
+  
+  // ¡Esta es la propiedad que resolvía tu error de compilación actual!
+  proximoMantenimiento?: string; 
 }
 
 export interface Conductor {
   id: number;
   nombre: string;
-  cedula: string;
-  fichaNumerica: string;
-  vencimientoLicencia: string;
-  vencimientoMedico: string;
-  fotoUrl: string;
-  vehiculoAsignadoId: number | null;
-  activo: boolean;
+  cedula?: string;
+  fichaNumerica?: string;
+  telefono?: string;
+  licenciaVigente?: boolean;
+  vencimientoLicencia?: string;
+  vencimientoMedico?: string;
+  fotoUrl?: string;
+  vehiculoAsignadoId?: number | null;
+  activo?: boolean;
   inspeccionAbierta?: boolean;
 }
 
