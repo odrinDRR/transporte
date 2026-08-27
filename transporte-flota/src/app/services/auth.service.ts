@@ -61,7 +61,11 @@ export class AuthService {
   }
 
   getUsuarioId(): string | null {
-    return localStorage.getItem('smu_id');
+    const id = localStorage.getItem('smu_id');
+    if (!id || id === 'undefined' || id === 'null') {
+      return null;
+    }
+    return id;
   }
 
   // Obtener Token para el interceptor
