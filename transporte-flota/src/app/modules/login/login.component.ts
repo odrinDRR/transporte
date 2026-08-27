@@ -1,6 +1,8 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { RolUsuario } from '../../core/models/fleet.models';
 import { FlotaService } from '../../core/services/flota.service';
+import { AuthService } from '../../services/auth.service';
+import { ArchivoService } from '../../services/archivo.service';
 
 @Component({
   selector: 'app-login',
@@ -10,7 +12,7 @@ import { FlotaService } from '../../core/services/flota.service';
 export class LoginComponent {
   @Output() loginCompletado = new EventEmitter<void>();
 
-  roles: RolUsuario[] = ['ADMIN', 'COORDINADOR', 'SUPERVISOR', 'EMPLEADO'];
+  roles: RolUsuario[] = ['ADMIN', 'COORDINADOR', 'SUPERVISOR', 'EMPLEADO', 'CONDUCTOR'];
 
   rolSeleccionado: RolUsuario | null = null;
   usuario: string = '';
@@ -32,19 +34,25 @@ export class LoginComponent {
     edad: null as number | null,
     cargo: '' as RolUsuario | '',
     categoriaLicencia: '2da',
+    username: '',
     correo: '',
     password: '',
     estado: 'PENDIENTE'
   };
 
-  constructor(private flotaService: FlotaService) {}
+  constructor(
+    private flotaService: FlotaService, 
+    private authService: AuthService,
+    private archivoService: ArchivoService
+  ) {}
 
   getRoleName(rol: RolUsuario | string | null): string {
     switch (rol) {
       case 'ADMIN': return 'Gerencia Exec';
       case 'COORDINADOR': return 'Coordinador';
       case 'SUPERVISOR': return 'Supervisor Patio';
-      case 'EMPLEADO': return 'Conductor / Flota';
+      case 'EMPLEADO': return 'Empleado Base';
+      case 'CONDUCTOR': return 'Conductor de Flota';
       default: return '';
     }
   }
@@ -54,7 +62,8 @@ export class LoginComponent {
       case 'ADMIN': return 'Control Total';
       case 'COORDINADOR': return 'Logística';
       case 'SUPERVISOR': return 'Auditoría';
-      case 'EMPLEADO': return 'Operativo';
+      case 'EMPLEADO': return 'Inspección y Consulta';
+      case 'CONDUCTOR': return 'Gestión Documental Operativa';
       default: return '';
     }
   }
@@ -64,7 +73,8 @@ export class LoginComponent {
       case 'ADMIN': return 'bi-shield-lock-fill';
       case 'COORDINADOR': return 'bi-diagram-3-fill';
       case 'SUPERVISOR': return 'bi-speedometer2';
-      case 'EMPLEADO': return 'bi-truck-front-fill';
+      case 'EMPLEADO': return 'bi-tools';
+      case 'CONDUCTOR': return 'bi-truck-front-fill';
       default: return 'bi-person-badge';
     }
   }
@@ -118,11 +128,19 @@ export class LoginComponent {
   }
 
   ingresar(): void {
-    if (this.usuario.trim() !== '' && this.clave.trim() !== '' && this.rolSeleccionado) {
-      this.flotaService.iniciarSesion(this.rolSeleccionado);
-      this.loginCompletado.emit();
+    if (this.usuario.trim() !== '' && this.clave.trim() !== '') {
+      this.authService.login(this.usuario.trim(), this.clave.trim()).subscribe({
+        next: (res) => {
+          this.flotaService.iniciarSesion(res.rol); // Mantenemos compatibilidad con flotaService
+          this.loginCompletado.emit();
+        },
+        error: (err) => {
+          console.error(err);
+          alert(err.error || 'Credenciales inválidas o usuario inactivo');
+        }
+      });
     } else {
-      alert('Por favor, selecciona un perfil e ingresa tus credenciales.');
+      alert('Por favor, ingresa tu correo y contraseña.');
     }
   }
 
@@ -143,6 +161,7 @@ export class LoginComponent {
         edad: null,
         cargo: '',
         categoriaLicencia: '2da',
+        username: '',
         correo: '',
         password: '',
         estado: 'PENDIENTE'
@@ -167,7 +186,7 @@ export class LoginComponent {
       return;
     }
 
-    const requiereDocumentos = this.nuevoUsuario.cargo === 'EMPLEADO';
+    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR';
     this.pasoRegistro = requiereDocumentos ? 2 : 3;
   } else if (this.pasoRegistro === 2) {
     if (!this.archivoLicencia || !this.archivoMedico) {
@@ -179,7 +198,7 @@ export class LoginComponent {
 }
 
   retrocederRegistro(): void {
-    const requiereDocumentos = this.nuevoUsuario.cargo === 'EMPLEADO';
+    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR';
     if (this.pasoRegistro === 3 && !requiereDocumentos) {
       this.pasoRegistro = 1;
     } else {
@@ -187,8 +206,8 @@ export class LoginComponent {
     }
   }
 
-  enviarParaAprobacion(): void {
-    if (!this.nuevoUsuario.correo || !this.nuevoUsuario.password) {
+  async enviarParaAprobacion(): Promise<void> {
+    if (!this.nuevoUsuario.username || !this.nuevoUsuario.password) {
       alert('Indica un usuario y contraseña válidos.');
       return;
     }
@@ -199,8 +218,39 @@ export class LoginComponent {
       return;
     }
 
-    alert(`Solicitud registrada para ${this.nuevoUsuario.nombre}. La documentación en PDF/Foto fue enviada a revisión.`);
-    this.alternarRegistro();
+    try {
+      let urlLicencia = null;
+      let urlMedico = null;
+
+      if (this.archivoLicencia) {
+        const resLicencia = await this.archivoService.subirArchivo(this.archivoLicencia).toPromise();
+        urlLicencia = resLicencia?.url;
+      }
+
+      if (this.archivoMedico) {
+        const resMedico = await this.archivoService.subirArchivo(this.archivoMedico).toPromise();
+        urlMedico = resMedico?.url;
+      }
+
+      const payload = {
+        ...this.nuevoUsuario,
+        urlLicencia,
+        urlCertificadoMedico: urlMedico
+      };
+
+      this.authService.register(payload).subscribe({
+        next: (res) => {
+          alert(res || 'Solicitud registrada. La documentación en PDF/Foto fue enviada a revisión.');
+          this.alternarRegistro();
+        },
+        error: (err) => {
+          alert(err.error || 'Ocurrió un error al registrarse.');
+        }
+      });
+    } catch (error) {
+      console.error('Error subiendo archivos', error);
+      alert('Hubo un problema subiendo los documentos. Inténtalo de nuevo.');
+    }
   }
 
   get tieneLongitudCorrecta(): boolean {

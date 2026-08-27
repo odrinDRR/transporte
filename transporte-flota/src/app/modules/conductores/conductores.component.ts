@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { FlotaService } from '../../core/services/flota.service';
+import { ConductorService } from '../../services/conductor.service';
+import { VehiculoService } from '../../services/vehiculo.service';
 import { Conductor, Vehiculo } from '../../core/models/fleet.models';
 
 @Component({
@@ -16,13 +18,19 @@ export class ConductoresComponent implements OnInit {
   conductorSeleccionado: Conductor | null = null;
   vehiculoSeleccionadoId: number | null = null;
   mensajeAsignacion: string = '';
+  vehiculos$!: Observable<Vehiculo[]>;
 
-  constructor(public flotaService: FlotaService) {}
+  constructor(
+    public flotaService: FlotaService,
+    private conductorService: ConductorService,
+    private vehiculoService: VehiculoService
+  ) {}
 
   ngOnInit(): void {
+    this.vehiculos$ = this.vehiculoService.obtenerVehiculos();
     // Filtro reactivo en tiempo real con comprobación de nulidad segura
     this.conductoresFiltrados$ = combineLatest([
-      this.flotaService.conductores$,
+      this.conductorService.obtenerConductores(),
       this.filtroBusqueda$
     ]).pipe(
       map(([conductores, texto]) => {
@@ -62,17 +70,19 @@ export class ConductoresComponent implements OnInit {
 
   confirmarAsignacion(): void {
     if (this.vehiculoSeleccionadoId && this.conductorSeleccionado) {
-      const ficha = this.conductorSeleccionado.fichaNumerica || '';
-      const resultado = this.flotaService.asignarUnidad(
+      // Usamos la función del servicio pasándole la ficha del conductor seleccionado
+      this.flotaService.asignarUnidad(
         Number(this.vehiculoSeleccionadoId), 
-        ficha
-      );
-      
-      this.mensajeAsignacion = resultado;
-      
-      if (resultado.includes('ÉXITO')) {
-        setTimeout(() => this.cerrarAsignacion(), 2000);
-      }
+        this.conductorSeleccionado.fichaNumerica || ''
+      ).subscribe({
+        next: (res) => {
+          this.mensajeAsignacion = 'ÉXITO: Unidad asignada correctamente.';
+          setTimeout(() => this.cerrarAsignacion(), 2000);
+        },
+        error: (err) => {
+          this.mensajeAsignacion = 'ERROR: No se pudo asignar la unidad.';
+        }
+      });
     } else {
       this.mensajeAsignacion = 'ERROR: Debe seleccionar un vehículo de la lista.';
     }

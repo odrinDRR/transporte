@@ -17,7 +17,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let v of flotaService.vehiculos$ | async">
+        <tr *ngFor="let v of vehiculos$ | async">
           <td>
             <div class="fw-bold text-white">{{ v.placa }}</div>
             <small class="text-custom-muted">{{ v.identificador }}</small>

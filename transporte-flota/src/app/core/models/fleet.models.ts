@@ -1,27 +1,28 @@
-// Reemplaza tu RolUsuario actual por este:
-export type RolUsuario = 'ADMIN' | 'COORDINADOR' | 'SUPERVISOR' | 'EMPLEADO' | null;
+// Actualizamos los roles según la nueva lógica de negocio
+export type RolUsuario = 'ADMIN' | 'COORDINADOR' | 'EMPLEADO' | 'SUPERVISOR' | 'CONDUCTOR' | null;
+export type EstadoVehiculo = 'OPERATIVO' | 'TALLER' | 'INACTIVO';
 
 export interface Vehiculo {
   id: number;
   placa: string;
-  identificador: string;
-  marcaModelo: string;
+  identificador?: string;
+  marca?: string;
+  modelo?: string;
+  marcaModelo?: string; // Mantenido para retrocompatibilidad
+  tipo?: string;
   anio: number;
   vin: string;
   kilometraje: number;
-  estado: 'OPERATIVO' | 'TALLER' | 'INACTIVO';
-  conductorId: number | null;
-  fotos: string[];
-  
-  // --- Campos opcionales agregados ---
+  estado: EstadoVehiculo;
+  conductorId?: number | null;
+  fotos?: string[];
+  urlFotoPerfil?: string; // Agregado para almacenar la foto principal
+  ultimoServicio?: string;
+  proximoMantenimiento?: string;
+  seguroRcvVigente?: boolean;
   color?: string;
   tipoVehiculo?: string;
   capacidadCarga?: number;
-  seguroRcvVigente?: boolean;
-  ultimoServicio?: string;
-  
-  // ¡Esta es la propiedad que resolvía tu error de compilación actual!
-  proximoMantenimiento?: string; 
 }
 
 export interface Conductor {
@@ -47,4 +48,51 @@ export interface RegistroCombustible {
   litros: number;
   kilometraje: number;
   costo: number;
+}
+
+export interface Inspeccion {
+  id?: number;
+  fecha: string;
+  kilometraje: number | null;
+  carroceriaOk: boolean;
+  lucesOk: boolean;
+  cinturonesOk: boolean;
+  tableroOk: boolean;
+  extintorVigente: boolean;
+  nivelAceiteOk: boolean;
+  refrigeranteOk: boolean;
+  liquidoFrenosOk: boolean;
+  dictamen: string;
+  serialOk: boolean;
+  vidriosOk: boolean;
+  latoneriaOk: boolean;
+  pinturaOk: boolean;
+  parabrisasOk: boolean;
+  cauchosOk: boolean;
+  observaciones: string;
+  inspectorFirma: string; // Puede ser ficha o id del conductor
+  tipo?: string; // INICIO o CIERRE
+  vehiculoId?: number;
+}
+
+export interface Mantenimiento {
+  id?: number;
+  vehiculoId: number;
+  fecha: string;
+  tipo: 'PREVENTIVO' | 'CORRECTIVO';
+  descripcion: string;
+  costo?: number;
+  taller?: string;
+  kilometraje: number;
+}
+
+export interface Documento {
+  id?: number;
+  vehiculoId?: number;
+  conductorId?: number;
+  tipoDocumento: string; // Licencia, Certificado Médico, RCV, etc.
+  numero: string;
+  fechaEmision?: string;
+  fechaVencimiento: string;
+  archivoUrl?: string; // Para el frontend descargar/ver el PDF/IMG
 }

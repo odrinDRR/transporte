@@ -61,6 +61,11 @@
             <i class="bi bi-person-lines-fill"></i> Aprobaciones
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'perfil'" (click)="cambiarModulo('perfil')" href="javascript:void(0)">
+            <i class="bi bi-person-circle"></i> Mi Perfil
+          </a>
+        </li>
       </ng-container>
 
       <!-- 2. EMPLEADO: Solo ve la Flota (Lectura) y envía Inspecciones -->
@@ -73,6 +78,25 @@
         <li class="nav-item">
           <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'inspeccion'" (click)="cambiarModulo('inspeccion')" href="javascript:void(0)">
             <i class="bi bi-clipboard-check"></i> Enviar Inspección
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'perfil'" (click)="cambiarModulo('perfil')" href="javascript:void(0)">
+            <i class="bi bi-person-circle"></i> Mi Perfil y Documentos
+          </a>
+        </li>
+      </ng-container>
+
+      <!-- 3. CONDUCTOR: Consulta de flota y Perfil (Documentos) -->
+      <ng-container *ngIf="rolActual === 'CONDUCTOR'">
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
+            <i class="bi bi-truck"></i> Consulta de Flota
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'perfil'" (click)="cambiarModulo('perfil')" href="javascript:void(0)">
+            <i class="bi bi-person-circle"></i> Mi Perfil y Documentos
           </a>
         </li>
       </ng-container>
@@ -92,6 +116,11 @@
         <li class="nav-item">
           <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'aprobaciones'" (click)="cambiarModulo('aprobaciones')" href="javascript:void(0)">
             <i class="bi bi-person-check"></i> Aprobar Empleados
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'perfil'" (click)="cambiarModulo('perfil')" href="javascript:void(0)">
+            <i class="bi bi-person-circle"></i> Mi Perfil
           </a>
         </li>
       </ng-container>
@@ -132,6 +161,7 @@
       <app-inspeccion *ngSwitchCase="'inspeccion'"></app-inspeccion>
       <app-auditoria *ngSwitchCase="'auditoria'"></app-auditoria>
       <app-aprobaciones *ngSwitchCase="'aprobaciones'"></app-aprobaciones>
+      <app-perfil *ngSwitchCase="'perfil'"></app-perfil>
     </div>
   </main>
 </div>

@@ -1,5 +1,8 @@
 import { Component } from '@angular/core';
 import { FlotaService } from '../../core/services/flota.service';
+import { InspeccionService } from '../../services/inspeccion.service';
+import { ConductorService } from '../../services/conductor.service';
+import { Inspeccion } from '../../core/models/fleet.models';
 
 interface ZonaCarroceria {
   id: string;
@@ -42,8 +45,8 @@ export class InspeccionComponent {
     { id: 'cauchos', nombre: 'Cauchos / Neumáticos', estado: 'OK', icono: 'bi-disc' }
   ];
 
-  inspeccion = {
-    kilometraje: null as number | null,
+  inspeccion: Partial<Inspeccion> = {
+    kilometraje: null,
     fecha: new Date().toISOString().substring(0, 10),
     carroceriaOk: true,
     lucesOk: true,
@@ -64,7 +67,11 @@ export class InspeccionComponent {
     inspectorFirma: ''
   };
 
-  constructor(private flotaService: FlotaService) {}
+  constructor(
+    private flotaService: FlotaService,
+    private inspeccionService: InspeccionService,
+    private conductorService: ConductorService
+  ) {}
 
   // --- PASO 1: VALIDAR CÉDULA O FICHA ---
   verificarCedula(): void {
@@ -75,25 +82,28 @@ export class InspeccionComponent {
       return;
     }
 
-    this.flotaService.conductores$.subscribe(conductores => {
+    // Buscamos si el conductor existe coincidiendo Cédula o Ficha usando el servicio real
+    this.conductorService.obtenerConductores().subscribe(conductores => {
       const conductor = conductores.find(c => 
         (c.cedula || '').includes(input) || (c.fichaNumerica || '') === input
       );
       
       if (conductor) {
         this.nombreConductorActual = conductor.nombre;
-        this.inspeccion.inspectorFirma = conductor.fichaNumerica || input;
+        this.inspeccion.inspectorFirma = conductor.fichaNumerica || input; // Guardamos su ficha como firma
+        this.inspeccion.vehiculoId = conductor.vehiculoAsignadoId || undefined; // Asignamos el ID del vehículo
         this.tieneInspeccionAbierta = conductor.inspeccionAbierta || false;
         this.fasePrincipal = 'SELECCION_TIPO';
       } else {
         alert('Cédula o Ficha no encontrada. Verifica el número o contacta a Recursos Humanos.');
       }
-    }).unsubscribe();
+    });
   }
 
   // --- PASO 2: ELEGIR TIPO DE RUTA ---
   seleccionarRuta(tipo: 'INICIO' | 'CIERRE'): void {
     this.tipoInspeccionActual = tipo;
+    this.inspeccion.tipo = tipo; // Guardamos el tipo de inspeccion en el payload
     this.fasePrincipal = 'FORMULARIO';
     this.etapaActual = 1;
   }
@@ -154,11 +164,26 @@ export class InspeccionComponent {
   }
   
   finalizar(): void {
-    alert(`Inspección de ${this.tipoInspeccionActual} finalizada con éxito.`);
-    this.fasePrincipal = 'INGRESO_CEDULA';
-    this.cedulaInput = '';
-    this.etapaActual = 1;
-    this.fotosExterior = [];
-    this.fotosInterior = [];
+    if (!this.inspeccion.vehiculoId) {
+       alert('Error: El conductor no tiene un vehículo asignado.');
+       return;
+    }
+
+    // Enviamos el objeto inspeccion al backend
+    this.inspeccionService.crearInspeccion(this.inspeccion as any).subscribe({
+      next: (res) => {
+        alert(`Inspección de ${this.tipoInspeccionActual} guardada en base de datos correctamente.`);
+        // Reseteamos el sistema completo para el próximo conductor
+        this.fasePrincipal = 'INGRESO_CEDULA';
+        this.cedulaInput = '';
+        this.etapaActual = 1;
+        this.fotosExterior = [];
+        this.fotosInterior = [];
+      },
+      error: (err) => {
+        console.error('Error al crear inspección', err);
+        alert('Ocurrió un error de red al intentar guardar la inspección.');
+      }
+    });
   }
 }
