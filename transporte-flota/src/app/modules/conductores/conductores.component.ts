@@ -20,7 +20,7 @@ export class ConductoresComponent implements OnInit {
   constructor(public flotaService: FlotaService) {}
 
   ngOnInit(): void {
-    // Filtro reactivo en tiempo real
+    // Filtro reactivo en tiempo real con comprobación de nulidad segura
     this.conductoresFiltrados$ = combineLatest([
       this.flotaService.conductores$,
       this.filtroBusqueda$
@@ -29,9 +29,9 @@ export class ConductoresComponent implements OnInit {
         if (!texto) return conductores;
         const term = texto.toLowerCase();
         return conductores.filter(c => 
-          c.cedula.toLowerCase().includes(term) || 
-          c.fichaNumerica.toLowerCase().includes(term) ||
-          c.nombre.toLowerCase().includes(term)
+          (c.cedula || '').toLowerCase().includes(term) || 
+          (c.fichaNumerica || '').toLowerCase().includes(term) ||
+          (c.nombre || '').toLowerCase().includes(term)
         );
       })
     );
@@ -51,7 +51,7 @@ export class ConductoresComponent implements OnInit {
   // --- CONTROL DEL MODAL DE ASIGNACIÓN ---
   abrirAsignacion(conductor: Conductor): void {
     this.conductorSeleccionado = conductor;
-    this.vehiculoSeleccionadoId = conductor.vehiculoAsignadoId; // Muestra la unidad actual si la tiene
+    this.vehiculoSeleccionadoId = conductor.vehiculoAsignadoId ?? null;
     this.mensajeAsignacion = '';
   }
 
@@ -62,15 +62,14 @@ export class ConductoresComponent implements OnInit {
 
   confirmarAsignacion(): void {
     if (this.vehiculoSeleccionadoId && this.conductorSeleccionado) {
-      // Usamos la función del servicio pasándole la ficha del conductor seleccionado
+      const ficha = this.conductorSeleccionado.fichaNumerica || '';
       const resultado = this.flotaService.asignarUnidad(
         Number(this.vehiculoSeleccionadoId), 
-        this.conductorSeleccionado.fichaNumerica
+        ficha
       );
       
       this.mensajeAsignacion = resultado;
       
-      // Si fue un éxito, cerramos el modal automáticamente después de 2 segundos
       if (resultado.includes('ÉXITO')) {
         setTimeout(() => this.cerrarAsignacion(), 2000);
       }
