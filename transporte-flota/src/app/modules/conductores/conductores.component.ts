@@ -28,7 +28,7 @@ export class ConductoresComponent implements OnInit {
 
   ngOnInit(): void {
     this.vehiculos$ = this.vehiculoService.obtenerVehiculos();
-    // Filtro reactivo en tiempo real
+    // Filtro reactivo en tiempo real con comprobación de nulidad segura
     this.conductoresFiltrados$ = combineLatest([
       this.conductorService.obtenerConductores(),
       this.filtroBusqueda$
@@ -37,9 +37,9 @@ export class ConductoresComponent implements OnInit {
         if (!texto) return conductores;
         const term = texto.toLowerCase();
         return conductores.filter(c => 
-          c.cedula.toLowerCase().includes(term) || 
-          c.fichaNumerica.toLowerCase().includes(term) ||
-          c.nombre.toLowerCase().includes(term)
+          (c.cedula || '').toLowerCase().includes(term) || 
+          (c.fichaNumerica || '').toLowerCase().includes(term) ||
+          (c.nombre || '').toLowerCase().includes(term)
         );
       })
     );
@@ -59,7 +59,7 @@ export class ConductoresComponent implements OnInit {
   // --- CONTROL DEL MODAL DE ASIGNACIÓN ---
   abrirAsignacion(conductor: Conductor): void {
     this.conductorSeleccionado = conductor;
-    this.vehiculoSeleccionadoId = conductor.vehiculoAsignadoId; // Muestra la unidad actual si la tiene
+    this.vehiculoSeleccionadoId = conductor.vehiculoAsignadoId ?? null;
     this.mensajeAsignacion = '';
   }
 
@@ -73,7 +73,7 @@ export class ConductoresComponent implements OnInit {
       // Usamos la función del servicio pasándole la ficha del conductor seleccionado
       this.flotaService.asignarUnidad(
         Number(this.vehiculoSeleccionadoId), 
-        this.conductorSeleccionado.fichaNumerica
+        this.conductorSeleccionado.fichaNumerica || ''
       ).subscribe({
         next: (res) => {
           this.mensajeAsignacion = 'ÉXITO: Unidad asignada correctamente.';

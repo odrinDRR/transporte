@@ -1,5 +1,5 @@
 // Actualizamos los roles según la nueva lógica de negocio
-export type RolUsuario = 'ADMIN' | 'COORDINADOR' | 'EMPLEADO' | 'SUPERVISOR' | 'CONDUCTOR';
+export type RolUsuario = 'ADMIN' | 'COORDINADOR' | 'EMPLEADO' | 'SUPERVISOR' | 'CONDUCTOR' | null;
 export type EstadoVehiculo = 'OPERATIVO' | 'TALLER' | 'INACTIVO';
 
 export interface Vehiculo {
@@ -11,27 +11,32 @@ export interface Vehiculo {
   marcaModelo?: string; // Mantenido para retrocompatibilidad
   tipo?: string;
   anio: number;
-  estado: EstadoVehiculo;
-  conductorId: number | null;
   vin: string;
   kilometraje: number;
+  estado: EstadoVehiculo;
+  conductorId?: number | null;
   fotos?: string[];
   urlFotoPerfil?: string; // Agregado para almacenar la foto principal
   ultimoServicio?: string;
   proximoMantenimiento?: string;
   seguroRcvVigente?: boolean;
+  color?: string;
+  tipoVehiculo?: string;
+  capacidadCarga?: number;
 }
 
 export interface Conductor {
   id: number;
   nombre: string;
-  cedula: string;
-  fichaNumerica: string;
-  vencimientoLicencia: string;
-  vencimientoMedico: string;
-  fotoUrl: string;
-  vehiculoAsignadoId: number | null;
-  activo: boolean;
+  cedula?: string;
+  fichaNumerica?: string;
+  telefono?: string;
+  licenciaVigente?: boolean;
+  vencimientoLicencia?: string;
+  vencimientoMedico?: string;
+  fotoUrl?: string;
+  vehiculoAsignadoId?: number | null;
+  activo?: boolean;
   inspeccionAbierta?: boolean;
 }
 
