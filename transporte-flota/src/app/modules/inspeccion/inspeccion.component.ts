@@ -33,10 +33,6 @@ export class InspeccionComponent {
   fotosExterior: File[] = [];
   fotosInterior: File[] = [];
 
-<<<<<<< HEAD
-  inspeccion: Partial<Inspeccion> = {
-    kilometraje: null,
-=======
   // INSPECTOR VISUAL 360° / CARCHECK TECH: Puntos táctiles de carrocería
   zonasCarroceria: ZonaCarroceria[] = [
     { id: 'frontal', nombre: 'Parachoques Frontal', estado: 'OK', icono: 'bi-front' },
@@ -49,9 +45,8 @@ export class InspeccionComponent {
     { id: 'cauchos', nombre: 'Cauchos / Neumáticos', estado: 'OK', icono: 'bi-disc' }
   ];
 
-  inspeccion = {
-    kilometraje: null as number | null,
->>>>>>> origin/diego
+  inspeccion: Partial<Inspeccion> = {
+    kilometraje: null,
     fecha: new Date().toISOString().substring(0, 10),
     carroceriaOk: true,
     lucesOk: true,
@@ -87,24 +82,16 @@ export class InspeccionComponent {
       return;
     }
 
-<<<<<<< HEAD
     // Buscamos si el conductor existe coincidiendo Cédula o Ficha usando el servicio real
     this.conductorService.obtenerConductores().subscribe(conductores => {
-=======
-    this.flotaService.conductores$.subscribe(conductores => {
->>>>>>> origin/diego
       const conductor = conductores.find(c => 
         (c.cedula || '').includes(input) || (c.fichaNumerica || '') === input
       );
       
       if (conductor) {
         this.nombreConductorActual = conductor.nombre;
-<<<<<<< HEAD
-        this.inspeccion.inspectorFirma = conductor.fichaNumerica; // Guardamos su ficha como firma
+        this.inspeccion.inspectorFirma = conductor.fichaNumerica || input; // Guardamos su ficha como firma
         this.inspeccion.vehiculoId = conductor.vehiculoAsignadoId || undefined; // Asignamos el ID del vehículo
-=======
-        this.inspeccion.inspectorFirma = conductor.fichaNumerica || input;
->>>>>>> origin/diego
         this.tieneInspeccionAbierta = conductor.inspeccionAbierta || false;
         this.fasePrincipal = 'SELECCION_TIPO';
       } else {
@@ -177,7 +164,6 @@ export class InspeccionComponent {
   }
   
   finalizar(): void {
-<<<<<<< HEAD
     if (!this.inspeccion.vehiculoId) {
        alert('Error: El conductor no tiene un vehículo asignado.');
        return;
@@ -199,13 +185,5 @@ export class InspeccionComponent {
         alert('Ocurrió un error de red al intentar guardar la inspección.');
       }
     });
-=======
-    alert(`Inspección de ${this.tipoInspeccionActual} finalizada con éxito.`);
-    this.fasePrincipal = 'INGRESO_CEDULA';
-    this.cedulaInput = '';
-    this.etapaActual = 1;
-    this.fotosExterior = [];
-    this.fotosInterior = [];
->>>>>>> origin/diego
   }
 }
