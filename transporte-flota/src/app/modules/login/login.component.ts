@@ -12,7 +12,7 @@ import { ArchivoService } from '../../services/archivo.service';
 export class LoginComponent {
   @Output() loginCompletado = new EventEmitter<void>();
 
-  roles: RolUsuario[] = ['ADMIN', 'COORDINADOR', 'SUPERVISOR', 'EMPLEADO'];
+  roles: RolUsuario[] = ['ADMIN', 'COORDINADOR', 'SUPERVISOR', 'EMPLEADO', 'CONDUCTOR'];
 
   rolSeleccionado: RolUsuario | null = null;
   usuario: string = '';
@@ -51,7 +51,8 @@ export class LoginComponent {
       case 'ADMIN': return 'Gerencia Exec';
       case 'COORDINADOR': return 'Coordinador';
       case 'SUPERVISOR': return 'Supervisor Patio';
-      case 'EMPLEADO': return 'Conductor / Flota';
+      case 'EMPLEADO': return 'Empleado Base';
+      case 'CONDUCTOR': return 'Conductor de Flota';
       default: return '';
     }
   }
@@ -61,7 +62,8 @@ export class LoginComponent {
       case 'ADMIN': return 'Control Total';
       case 'COORDINADOR': return 'Logística';
       case 'SUPERVISOR': return 'Auditoría';
-      case 'EMPLEADO': return 'Operativo';
+      case 'EMPLEADO': return 'Inspección y Consulta';
+      case 'CONDUCTOR': return 'Gestión Documental Operativa';
       default: return '';
     }
   }
@@ -71,7 +73,8 @@ export class LoginComponent {
       case 'ADMIN': return 'bi-shield-lock-fill';
       case 'COORDINADOR': return 'bi-diagram-3-fill';
       case 'SUPERVISOR': return 'bi-speedometer2';
-      case 'EMPLEADO': return 'bi-truck-front-fill';
+      case 'EMPLEADO': return 'bi-tools';
+      case 'CONDUCTOR': return 'bi-truck-front-fill';
       default: return 'bi-person-badge';
     }
   }
@@ -180,7 +183,7 @@ export class LoginComponent {
       return;
     }
 
-    const requiereDocumentos = this.nuevoUsuario.cargo === 'EMPLEADO';
+    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR';
     this.pasoRegistro = requiereDocumentos ? 2 : 3;
   } else if (this.pasoRegistro === 2) {
     if (!this.archivoLicencia || !this.archivoMedico) {
@@ -192,7 +195,7 @@ export class LoginComponent {
 }
 
   retrocederRegistro(): void {
-    const requiereDocumentos = this.nuevoUsuario.cargo === 'EMPLEADO';
+    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR';
     if (this.pasoRegistro === 3 && !requiereDocumentos) {
       this.pasoRegistro = 1;
     } else {

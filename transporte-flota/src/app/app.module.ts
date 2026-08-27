@@ -16,6 +16,7 @@ import { LoginComponent } from './modules/login/login.component';
 import { AuditoriaComponent } from './modules/auditoria/auditoria.component';
 import { OnlyNumbersDirective } from './shared/directives/only-numbers.directive';
 import { AprobacionesComponent } from './modules/aprobaciones/aprobaciones.component';
+import { PerfilComponent } from './modules/perfil/perfil.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,8 @@ import { AprobacionesComponent } from './modules/aprobaciones/aprobaciones.compo
     LoginComponent,
     AuditoriaComponent,
     OnlyNumbersDirective,
-    AprobacionesComponent
+    AprobacionesComponent,
+    PerfilComponent
   ],
   imports: [
     BrowserModule,

@@ -63,12 +63,12 @@
             <button class="btn btn-sm text-secondary p-0" (click)="retrocederRegistro()" *ngIf="pasoRegistro > 1">
               <i class="bi bi-chevron-left me-1"></i>Atrás
             </button>
-            <span class="text-white fw-bold small mx-auto">Paso {{ pasoRegistro }} de {{ nuevoUsuario.cargo === 'EMPLEADO' ? 3 : 2 }}</span>
+            <span class="text-white fw-bold small mx-auto">Paso {{ pasoRegistro }} de {{ nuevoUsuario.cargo === 'CONDUCTOR' ? 3 : 2 }}</span>
             <button class="btn-close btn-close-white btn-sm" (click)="alternarRegistro()"></button>
           </div>
 
           <div class="progress dealer-progress mb-4" style="height: 4px;">
-            <div class="progress-bar bg-primary" [style.width]="(pasoRegistro / (nuevoUsuario.cargo === 'EMPLEADO' ? 3 : 2) * 100) + '%'"></div>
+            <div class="progress-bar bg-primary" [style.width]="(pasoRegistro / (nuevoUsuario.cargo === 'CONDUCTOR' ? 3 : 2) * 100) + '%'"></div>
           </div>
 
           <!-- PASO 1 -->
@@ -106,7 +106,8 @@
                   <option value="" disabled selected>Seleccione Cargo Operativo</option>
                   <option value="COORDINADOR">Coordinador de Flota</option>
                   <option value="SUPERVISOR">Supervisor de Patio</option>
-                  <option value="EMPLEADO">Conductor de Unidad</option>
+                  <option value="EMPLEADO">Empleado Base (Inspección / Flota)</option>
+                  <option value="CONDUCTOR">Conductor de Unidad</option>
                 </select>
               </div>
             </div>

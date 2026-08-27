@@ -1,5 +1,5 @@
 // Actualizamos los roles según la nueva lógica de negocio
-export type RolUsuario = 'ADMIN' | 'COORDINADOR' | 'EMPLEADO' | 'SUPERVISOR';
+export type RolUsuario = 'ADMIN' | 'COORDINADOR' | 'EMPLEADO' | 'SUPERVISOR' | 'CONDUCTOR';
 export type EstadoVehiculo = 'OPERATIVO' | 'TALLER' | 'INACTIVO';
 
 export interface Vehiculo {

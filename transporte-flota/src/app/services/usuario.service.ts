@@ -17,6 +17,8 @@ export class UsuarioService {
   // --- MÉTODOS HTTP (CRUD) ---
   obtenerUsuarios(): Observable<any[]> { return this.http.get<any[]>(this.apiUrl); }
   crearUsuario(usuario: any): Observable<any> { return this.http.post<any>(this.apiUrl, usuario); }
+  obtenerPorId(id: string | number): Observable<any> { return this.http.get<any>(`${this.apiUrl}/${id}`); }
+  actualizarUsuario(id: string | number, usuario: any): Observable<any> { return this.http.put<any>(`${this.apiUrl}/${id}`, usuario); }
 
   // --- MÉTODOS DE ESTADO DE SESIÓN ---
   iniciarSesion(rol: string): void { this.rolActualSubject.next(rol); }

@@ -18,13 +18,14 @@ export class AuthService {
 
   // Cargar desde localStorage al iniciar la app
   private cargarUsuarioDesdeStorage() {
+    const id = localStorage.getItem('smu_id');
     const token = localStorage.getItem('smu_token');
     const rol = localStorage.getItem('smu_rol');
     const nombre = localStorage.getItem('smu_nombre');
     const correo = localStorage.getItem('smu_correo');
 
     if (token) {
-      this.usuarioActualSubject.next({ token, rol, nombre, correo });
+      this.usuarioActualSubject.next({ id, token, rol, nombre, correo });
     }
   }
 
@@ -33,6 +34,7 @@ export class AuthService {
     return this.http.post<any>(`${this.apiUrl}/login`, { username, password }).pipe(
       tap(res => {
         // Guardar la respuesta del servidor en el Storage
+        localStorage.setItem('smu_id', res.id);
         localStorage.setItem('smu_token', res.token);
         localStorage.setItem('smu_rol', res.rol);
         localStorage.setItem('smu_nombre', res.nombre);
@@ -50,11 +52,16 @@ export class AuthService {
 
   // Cerrar sesión
   logout(): void {
+    localStorage.removeItem('smu_id');
     localStorage.removeItem('smu_token');
     localStorage.removeItem('smu_rol');
     localStorage.removeItem('smu_nombre');
     localStorage.removeItem('smu_correo');
     this.usuarioActualSubject.next(null);
+  }
+
+  getUsuarioId(): string | null {
+    return localStorage.getItem('smu_id');
   }
 
   // Obtener Token para el interceptor

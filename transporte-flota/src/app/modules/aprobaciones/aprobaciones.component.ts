@@ -34,7 +34,7 @@ export class AprobacionesComponent implements OnInit {
     if (this.rolActual === 'ADMIN' || this.rolActual === 'COORDINADOR') {
       this.solicitudesVisibles = [...this.solicitudesPendientes];
     } else if (this.rolActual === 'SUPERVISOR') {
-      this.solicitudesVisibles = this.solicitudesPendientes.filter(s => s.cargo === 'EMPLEADO');
+      this.solicitudesVisibles = this.solicitudesPendientes.filter(s => s.cargo === 'EMPLEADO' || s.cargo === 'CONDUCTOR');
     } else {
       this.solicitudesVisibles = [];
     }
