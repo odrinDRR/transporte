@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable, combineLatest, BehaviorSubject } from 'rxjs';
+import { Observable, combineLatest, BehaviorSubject, forkJoin, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { FlotaService } from '../../core/services/flota.service';
 import { VehiculoService } from '../../services/vehiculo.service';
@@ -117,13 +117,28 @@ export class FlotaComponent implements OnInit {
       return;
     }
 
-    // 1. Subir la foto primero
-    this.archivoService.subirArchivo(this.fotoPerfilVehiculo).subscribe({
-      next: (res) => {
-        // 2. Construir el payload del vehículo con la URL devuelta por el servidor
+    if (this.fotosVehiculo.length !== 10) {
+      alert('Debes adjuntar exactamente 10 fotos para la galería.');
+      return;
+    }
+
+    // 1. Subir foto de perfil y las 10 de la galería en paralelo
+    const uploads = [
+      this.archivoService.subirArchivo(this.fotoPerfilVehiculo),
+      ...this.fotosVehiculo.map(f => this.archivoService.subirArchivo(f))
+    ];
+
+    forkJoin(uploads).subscribe({
+      next: (resultados) => {
+        // 2. Construir el payload del vehículo con las URLs devueltas por el servidor
+        const urlPerfil = resultados[0].url;
+        const urlsGaleria = resultados.slice(1).map(r => r.url);
+
         const payload = {
           ...this.nuevoVehiculo,
-          urlFotoPerfil: res.url,
+          urlFotoPerfil: urlPerfil,
+          fotos: urlsGaleria,
+          capacidadCarga: this.nuevoVehiculo.capacidadCarga ? Number(this.nuevoVehiculo.capacidadCarga) : undefined,
           marcaModelo: `${this.nuevoVehiculo.marca || ''} ${this.nuevoVehiculo.modelo || ''}`.trim()
         };
         
@@ -142,8 +157,8 @@ export class FlotaComponent implements OnInit {
         });
       },
       error: (err) => {
-        console.error('Error subiendo foto', err);
-        alert('Ocurrió un error al intentar subir la foto de perfil.');
+        console.error('Error subiendo fotos', err);
+        alert('Ocurrió un error al intentar subir las fotos. Verifica la conexión.');
       }
     });
   }
@@ -236,7 +251,7 @@ export class FlotaComponent implements OnInit {
   abrirCarrusel(v: Vehiculo, indexInicial: number = 0): void {
     if (!v.fotos || v.fotos.length === 0) return;
     this.vehiculoCarrusel = v;
-    this.fotosCarrusel = v.fotos.slice(0, 10);
+    this.fotosCarrusel = v.fotos.map(f => f.startsWith('http') ? f : 'http://localhost:8080' + f).slice(0, 10);
     this.indiceFotoActual = indexInicial;
     this.mostrarCarrusel = true;
   }
