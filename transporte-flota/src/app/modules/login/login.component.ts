@@ -1,43 +1,88 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { RolUsuario } from '../../core/models/fleet.models';
 import { FlotaService } from '../../core/services/flota.service';
+import { AuthService } from '../../services/auth.service';
+import { ArchivoService } from '../../services/archivo.service';
 
 @Component({
   selector: 'app-login',
-  templateUrl: './login.component.html'
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.scss']
 })
 export class LoginComponent {
   @Output() loginCompletado = new EventEmitter<void>();
-  
-  // Variables del Login
+
+  roles: RolUsuario[] = ['ADMIN', 'COORDINADOR', 'SUPERVISOR', 'EMPLEADO', 'CONDUCTOR'];
+
   rolSeleccionado: RolUsuario | null = null;
   usuario: string = '';
   clave: string = '';
+  mostrarPassword: boolean = false;
 
-  // Variables del Registro 
   mostrarRegistro: boolean = false;
-  pasoRegistro: number = 1; 
-  
+  pasoRegistro: number = 1;
+
+  archivoLicencia: File | null = null;
+  archivoLicenciaNombre: string = '';
+  archivoMedico: File | null = null;
+  archivoMedicoNombre: string = '';
+
   nuevoUsuario = {
     nombre: '',
     apellido: '',
     cedula: '',
-    edad: null,
-    cargo: '',
-    // Campos Conductor
-    licencia: '',
-    categoriaLicencia: '',
-    vencimientoLicencia: '',
-    vencimientoMedico: '',
-    // Credenciales (Paso Final)
+    edad: null as number | null,
+    cargo: '' as RolUsuario | '',
+    categoriaLicencia: '2da',
+    username: '',
     correo: '',
     password: '',
-    estado: 'PENDIENTE' // Clave para la lógica de aprobación
+    estado: 'PENDIENTE'
   };
 
-  constructor(private flotaService: FlotaService) {}
+  constructor(
+    private flotaService: FlotaService, 
+    private authService: AuthService,
+    private archivoService: ArchivoService
+  ) {}
 
-  // --- MÉTODOS DE LOGIN ---
+  getRoleName(rol: RolUsuario | string | null): string {
+    switch (rol) {
+      case 'ADMIN': return 'Gerencia Exec';
+      case 'COORDINADOR': return 'Coordinador';
+      case 'SUPERVISOR': return 'Supervisor Patio';
+      case 'EMPLEADO': return 'Empleado Base';
+      case 'CONDUCTOR': return 'Conductor de Flota';
+      default: return '';
+    }
+  }
+
+  getRoleDescription(rol: RolUsuario | string): string {
+    switch (rol) {
+      case 'ADMIN': return 'Control Total';
+      case 'COORDINADOR': return 'Logística';
+      case 'SUPERVISOR': return 'Auditoría';
+      case 'EMPLEADO': return 'Inspección y Consulta';
+      case 'CONDUCTOR': return 'Gestión Documental Operativa';
+      default: return '';
+    }
+  }
+
+  getRoleIcon(rol: RolUsuario | string): string {
+    switch (rol) {
+      case 'ADMIN': return 'bi-shield-lock-fill';
+      case 'COORDINADOR': return 'bi-diagram-3-fill';
+      case 'SUPERVISOR': return 'bi-speedometer2';
+      case 'EMPLEADO': return 'bi-tools';
+      case 'CONDUCTOR': return 'bi-truck-front-fill';
+      default: return 'bi-person-badge';
+    }
+  }
+
+  getRoleButtonClass(rol: RolUsuario): string {
+    return this.rolSeleccionado === rol ? 'active-role' : '';
+  }
+
   seleccionarRol(rol: RolUsuario): void {
     this.rolSeleccionado = rol;
     this.usuario = `${rol.toLowerCase()}@empresa.com`;
@@ -50,33 +95,70 @@ export class LoginComponent {
     this.clave = '';
   }
 
-  ingresar(): void {
-    if (this.usuario.trim() !== '' && this.clave.trim() !== '' && this.rolSeleccionado) {
-      this.flotaService.iniciarSesion(this.rolSeleccionado);
-      this.loginCompletado.emit();
-    } else {
-      alert('Por favor, ingrese credenciales válidas.');
+  togglePasswordVisibility(): void {
+    this.mostrarPassword = !this.mostrarPassword;
+  }
+
+  // Sanitizar entrada de Cédula (Solo números)
+ validarCedulaInput(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  let valor = input.value.replace(/\D/g, '');
+  if (valor.length > 8) {
+    valor = valor.substring(0, 8);
+  }
+  input.value = valor;
+  this.nuevoUsuario.cedula = valor;
+}
+
+  onFileSelected(event: Event, tipo: 'licencia' | 'medico'): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      if (tipo === 'licencia') {
+        this.archivoLicencia = file;
+        this.archivoLicenciaNombre = file.name;
+      } else {
+        this.archivoMedico = file;
+        this.archivoMedicoNombre = file.name;
+      }
     }
   }
 
-  // --- MÉTODOS DE REGISTRO PASO A PASO ---
+  ingresar(): void {
+    if (this.usuario.trim() !== '' && this.clave.trim() !== '') {
+      this.authService.login(this.usuario.trim(), this.clave.trim()).subscribe({
+        next: (res) => {
+          this.flotaService.iniciarSesion(res.rol); // Mantenemos compatibilidad con flotaService
+          this.loginCompletado.emit();
+        },
+        error: (err) => {
+          console.error(err);
+          alert(err.error || 'Credenciales inválidas o usuario inactivo');
+        }
+      });
+    } else {
+      alert('Por favor, ingresa tu correo y contraseña.');
+    }
+  }
+
   alternarRegistro(): void {
     this.mostrarRegistro = !this.mostrarRegistro;
     this.pasoRegistro = 1;
     this.volverRoles();
-    
-    // Limpia los datos si se cancela el registro
+
     if (!this.mostrarRegistro) {
+      this.archivoLicencia = null;
+      this.archivoLicenciaNombre = '';
+      this.archivoMedico = null;
+      this.archivoMedicoNombre = '';
       this.nuevoUsuario = {
         nombre: '',
         apellido: '',
         cedula: '',
         edad: null,
         cargo: '',
-        licencia: '',
-        categoriaLicencia: '',
-        vencimientoLicencia: '',
-        vencimientoMedico: '',
+        categoriaLicencia: '2da',
+        username: '',
         correo: '',
         password: '',
         estado: 'PENDIENTE'
@@ -84,72 +166,90 @@ export class LoginComponent {
     }
   }
 
- // --- MÉTODOS DE REGISTRO PASO A PASO ---
-  
-  avanzarRegistro(): void {
-    if (this.pasoRegistro === 1) {
-      if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.cedula || !this.nuevoUsuario.cargo) {
-        alert('Por favor, completa tus datos básicos e indica tu cargo.');
-        return;
-      }
-      
-      // Validamos si el cargo requiere documentos de manejo
-      const requiereDocumentos = this.nuevoUsuario.cargo === 'EMPLEADO';
-      
-      // Si los requiere, va al Paso 2. Si es Admin o Coordinador, salta directo al Paso 3.
-      this.pasoRegistro = requiereDocumentos ? 2 : 3;
-      
-    } else if (this.pasoRegistro === 2) {
-      this.pasoRegistro = 3;
+ avanzarRegistro(): void {
+  if (this.pasoRegistro === 1) {
+    if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.apellido || !this.nuevoUsuario.cedula || !this.nuevoUsuario.cargo) {
+      alert('Por favor completa todos los datos obligatorios.');
+      return;
     }
+
+    if (this.nuevoUsuario.cedula.length > 8) {
+      alert('La cédula no puede exceder los 8 dígitos.');
+      return;
+    }
+
+    if (this.nuevoUsuario.edad === null || this.nuevoUsuario.edad < 18 || this.nuevoUsuario.edad > 80) {
+      alert('La edad permitida debe estar comprendida entre 18 y 80 años.');
+      return;
+    }
+
+    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR';
+    this.pasoRegistro = requiereDocumentos ? 2 : 3;
+  } else if (this.pasoRegistro === 2) {
+    if (!this.archivoLicencia || !this.archivoMedico) {
+      alert('Debes adjuntar el documento de tu Licencia y tu Certificado Médico para continuar.');
+      return;
+    }
+    this.pasoRegistro = 3;
   }
+}
 
   retrocederRegistro(): void {
-    const requiereDocumentos = this.nuevoUsuario.cargo === 'EMPLEADO';
-    
-    // Si estamos en el paso final y el rol NO requiere documentos, al retroceder debe saltar al paso 1
+    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR';
     if (this.pasoRegistro === 3 && !requiereDocumentos) {
-      this.pasoRegistro = 1; 
+      this.pasoRegistro = 1;
     } else {
       this.pasoRegistro--;
     }
   }
 
-  enviarParaAprobacion(): void {
-    if (!this.nuevoUsuario.correo || !this.nuevoUsuario.password) {
-      alert('Debes crear un usuario y contraseña para acceder al sistema.');
+  async enviarParaAprobacion(): Promise<void> {
+    if (!this.nuevoUsuario.username || !this.nuevoUsuario.password) {
+      alert('Indica un usuario y contraseña válidos.');
       return;
     }
-    
-    if (this.nuevoUsuario.correo.length < 5 || this.nuevoUsuario.correo.length > 15) {
-      alert('❌ El nombre de usuario o correo debe tener entre 5 y 15 caracteres.');
-      return;
-    }
-    
-    // --- NUEVO: VALIDACIÓN ESTRICTA DE CONTRASEÑA ---
-    // Expresión regular: 
-    // (?=.*[A-Z]) -> Al menos una mayúscula
-    // (?=.*\d)    -> Al menos un número
-    // (?=.*[^a-zA-Z0-9]) -> Al menos un carácter especial
-    // .{8,14}     -> Entre 8 y 14 caracteres de longitud
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,14}$/;
-    
-    if (!passwordRegex.test(this.nuevoUsuario.password)) {
-      alert('❌ La contraseña no es válida. Asegúrate de cumplir con los requisitos mínimos de seguridad indicados en la pantalla.');
-      return;
-    }
-    // ------------------------------------------------
 
-    // Simulación de envío al backend
-    console.log('Usuario enviado para aprobación:', this.nuevoUsuario);
-    
-    alert(`¡Listo ${this.nuevoUsuario.nombre}! Tu solicitud fue enviada.\n\nRecuerda que un Coordinador o Supervisor debe aprobar tu perfil antes de que puedas iniciar sesión.`);
-    
-    // Reset y vuelta al inicio
-    this.alternarRegistro();
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,14}$/;
+    if (!passwordRegex.test(this.nuevoUsuario.password)) {
+      alert('La contraseña debe cumplir las reglas de seguridad requeridas.');
+      return;
+    }
+
+    try {
+      let urlLicencia = null;
+      let urlMedico = null;
+
+      if (this.archivoLicencia) {
+        const resLicencia = await this.archivoService.subirArchivo(this.archivoLicencia).toPromise();
+        urlLicencia = resLicencia?.url;
+      }
+
+      if (this.archivoMedico) {
+        const resMedico = await this.archivoService.subirArchivo(this.archivoMedico).toPromise();
+        urlMedico = resMedico?.url;
+      }
+
+      const payload = {
+        ...this.nuevoUsuario,
+        urlLicencia,
+        urlCertificadoMedico: urlMedico
+      };
+
+      this.authService.register(payload).subscribe({
+        next: (res) => {
+          alert(res || 'Solicitud registrada. La documentación en PDF/Foto fue enviada a revisión.');
+          this.alternarRegistro();
+        },
+        error: (err) => {
+          alert(err.error || 'Ocurrió un error al registrarse.');
+        }
+      });
+    } catch (error) {
+      console.error('Error subiendo archivos', error);
+      alert('Hubo un problema subiendo los documentos. Inténtalo de nuevo.');
+    }
   }
 
-  // --- VALIDACIONES DE CONTRASEÑA EN TIEMPO REAL ---
   get tieneLongitudCorrecta(): boolean {
     const pw = this.nuevoUsuario.password || '';
     return pw.length >= 8 && pw.length <= 14;
