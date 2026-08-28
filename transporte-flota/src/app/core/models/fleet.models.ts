@@ -20,6 +20,8 @@ export interface Vehiculo {
   ultimoServicio?: string;
   proximoMantenimiento?: string;
   seguroRcvVigente?: boolean;
+  color?: string;
+  capacidadCarga?: number;
 }
 
 export interface Conductor {

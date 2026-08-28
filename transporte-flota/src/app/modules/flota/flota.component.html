@@ -221,8 +221,27 @@
         <label class="form-label text-custom-muted fw-bold small ms-1">Kilometraje Inicial</label>
         <input type="text" class="form-control form-control-lg bg-dark text-white border-custom" 
                [(ngModel)]="nuevoVehiculo.kilometraje" 
-               (input)="validarSoloNumeros($event, 'kilometraje')"
+               (input)="validarKilometraje($event)"
                maxlength="7" placeholder="Km actuales">
+      </div>
+
+      <!-- COLOR -->
+      <div class="col-md-6">
+        <label class="form-label text-custom-muted fw-bold small ms-1">Color</label>
+        <input type="text" class="form-control form-control-lg bg-dark text-white border-custom" 
+               [(ngModel)]="nuevoVehiculo.color" 
+               maxlength="15" placeholder="Ej: Blanco">
+      </div>
+
+      <!-- CARGA -->
+      <div class="col-md-6">
+        <label class="form-label text-custom-muted fw-bold small ms-1">Carga (Kg)</label>
+        <select class="form-select form-control-lg bg-dark text-white border-custom" [(ngModel)]="nuevoVehiculo.capacidadCarga">
+          <option value="" disabled selected>Seleccione...</option>
+          <option *ngFor="let c of cargasKg" [value]="c">
+            {{ c | number }} Kg {{ c >= 1000 ? '(' + (c / 1000) + ' Ton)' : '' }}
+          </option>
+        </select>
       </div>
 
       <div class="col-12 mt-5 pt-3 border-top border-custom d-flex justify-content-between">
@@ -257,14 +276,33 @@
           </p>
 
           <div class="text-start vehicle-specs-box p-3 rounded-3 fs-xs mt-3">
-            <div class="row g-2">
-              <div class="col-6"><strong>Identificador:</strong> {{ vehiculoSeleccionado.identificador }}</div>
-              <div class="col-6"><strong>Marca/Modelo:</strong> {{ vehiculoSeleccionado.marcaModelo }} ({{ vehiculoSeleccionado.anio }})</div>
-              <div class="col-6"><strong>Número de Chasis:</strong> {{ vehiculoSeleccionado.vin }}</div>
-              <div class="col-6"><strong>Kilometraje:</strong> {{ vehiculoSeleccionado.kilometraje | number }} Km</div>
-              <div class="col-6"><strong>Último Servicio:</strong> {{ vehiculoSeleccionado.ultimoServicio || 'N/A' }}</div>
-              <div class="col-6"><strong>Póliza RCV:</strong> <span class="text-success fw-bold">Vigente</span></div>
-              <div class="col-12"><strong>Conductor Asignado:</strong> {{ obtenerNombreConductor(vehiculoSeleccionado.conductorId, conductores) }}</div>
+            <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
+              <span class="text-white-50 small fw-bold">RIF/Identificador:</span>
+              <span class="text-white small fw-bold">{{ vehiculoSeleccionado.identificador }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
+              <span class="text-white-50 small fw-bold">Marca/Modelo:</span>
+              <span class="text-white small fw-bold">{{ vehiculoSeleccionado.marcaModelo || vehiculoSeleccionado.marca }} ({{ vehiculoSeleccionado.anio }})</span>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
+              <span class="text-white-50 small fw-bold">VIN:</span>
+              <span class="text-white font-monospace small fw-bold">{{ vehiculoSeleccionado.vin || 'N/A' }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
+              <span class="text-white-50 small fw-bold">Carga Max:</span>
+              <span class="text-white small fw-bold">{{ vehiculoSeleccionado.capacidadCarga || 'N/A' }} <span class="text-success" *ngIf="vehiculoSeleccionado.capacidadCarga">Kg</span></span>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
+              <span class="text-white-50 small fw-bold">Kilometraje:</span>
+              <span class="text-white small fw-bold">{{ vehiculoSeleccionado.kilometraje | number }} Km</span>
+            </div>
+            <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
+              <span class="text-white-50 small fw-bold">Conductor:</span>
+              <span class="text-white small fw-bold text-end">{{ obtenerNombreConductor(vehiculoSeleccionado.conductorId, conductores) }}</span>
+            </div>
+            <div class="d-flex justify-content-between py-2">
+              <span class="text-white-50 small fw-bold">Estado RCV:</span>
+              <span class="badge bg-success text-white">VIGENTE <i class="bi bi-check-circle ms-1"></i></span>
             </div>
           </div>
         </div>
