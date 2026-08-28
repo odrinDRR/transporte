@@ -5,8 +5,8 @@
   z-index: 1045;
 }
 
-/* En dispositivos móviles, lo ocultamos transformándolo fuera de la pantalla */
-@media (max-width: 767.98px) {
+/* En dispositivos móviles y tablets, lo ocultamos transformándolo fuera de la pantalla */
+@media (max-width: 991.98px) {
   .app-sidebar {
     position: fixed;
     top: 0;
@@ -22,8 +22,8 @@
   }
 }
 
-/* En pantallas medianas y grandes, siempre es visible */
-@media (min-width: 768px) {
+/* En pantallas grandes (desktops), siempre es visible */
+@media (min-width: 992px) {
   .app-sidebar {
     transform: translateX(0);
     position: relative; 
