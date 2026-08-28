@@ -1,28 +1,55 @@
-// Actualizamos los roles según la nueva lógica de negocio
+// Roles según lógica de negocio
 export type RolUsuario = 'ADMIN' | 'COORDINADOR' | 'EMPLEADO' | 'SUPERVISOR' | 'CONDUCTOR' | null;
-export type EstadoVehiculo = 'OPERATIVO' | 'TALLER' | 'INACTIVO';
 
+// Estados de vehículo unificados
+export type EstadoVehiculo = 'OPERATIVO' | 'TALLER' | 'INACTIVO' | 'INOPERATIVO';
+
+export interface Responsable {
+  nombre: string;
+  ci: string;
+  telefono: string;
+}
+
+export interface FotosFichaTecnica {
+  vistaFrontal?: string;
+  vistaTrasera?: string;
+  vistaLateralDerecha?: string;
+  vistaLateralIzquierda?: string;
+  vistaSerialCarroceria?: string;
+  vistaNumeroBien?: string;
+  [key: string]: string | undefined; // Permite indexación dinámica segura
+}
+
+// Declaración única y consolidada de Vehiculo
 export interface Vehiculo {
   id: number;
   placa: string;
   identificador?: string;
   marca?: string;
   modelo?: string;
-  marcaModelo?: string; // Mantenido para retrocompatibilidad
+  marcaModelo?: string;
   tipo?: string;
-  anio: number;
-  vin: string;
-  kilometraje: number;
+  tipoVehiculo?: string;
+  anio?: number;
+  vin?: string; // Serial de Carrocería
+  kilometraje?: number;
   estado: EstadoVehiculo;
   conductorId?: number | null;
   fotos?: string[];
-  urlFotoPerfil?: string; // Agregado para almacenar la foto principal
+  fotosEstructuradas?: FotosFichaTecnica;
+  urlFotoPerfil?: string;
   ultimoServicio?: string;
   proximoMantenimiento?: string;
   seguroRcvVigente?: boolean;
   color?: string;
-  tipoVehiculo?: string;
   capacidadCarga?: number;
+  numeroBien?: string; // N° Bien Nacional
+  dependencia?: string;
+  observaciones?: string;
+  responsableVerificacion?: Responsable;
+  responsableVehiculo?: Responsable;
+  fechaRegistro?: string;
+  horaRegistro?: string;
 }
 
 export interface Conductor {
@@ -70,8 +97,8 @@ export interface Inspeccion {
   parabrisasOk: boolean;
   cauchosOk: boolean;
   observaciones: string;
-  inspectorFirma: string; // Puede ser ficha o id del conductor
-  tipo?: string; // INICIO o CIERRE
+  inspectorFirma: string;
+  tipo?: string;
   vehiculoId?: number;
   fotosExterior?: string[];
   fotosInterior?: string[];
@@ -92,9 +119,9 @@ export interface Documento {
   id?: number;
   vehiculoId?: number;
   conductorId?: number;
-  tipoDocumento: string; // Licencia, Certificado Médico, RCV, etc.
+  tipoDocumento: string;
   numero: string;
   fechaEmision?: string;
   fechaVencimiento: string;
-  archivoUrl?: string; // Para el frontend descargar/ver el PDF/IMG
+  archivoUrl?: string;
 }

@@ -1,8 +1,6 @@
 <div *ngIf="conductores$ | async as conductores" class="fleet-mobile-container p-2 p-md-4 min-vh-100">
   
-  <!-- ==========================================
-       INDICADORES CLAVE (TOUCH KPI BAR)
-       ========================================== -->
+  <!-- KPI BAR -->
   <section class="row g-2 mb-4" *ngIf="vehiculos$ | async as vehiculos">
     <div class="col-6 col-lg-3">
       <div class="kpi-card glass-panel p-3 border-start border-4 border-success animate-fade-in">
@@ -61,9 +59,7 @@
     </div>
   </section>
 
-  <!-- ==========================================
-       VISTA A: DASHBOARD PRINCIPAL
-       ========================================== -->
+  <!-- DASHBOARD PRINCIPAL -->
   <div *ngIf="!mostrarRegistro" class="animate-fade-in">
     
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -73,7 +69,7 @@
         </h4>
         <small class="text-white-50">Inspección técnica y estado operativo</small>
       </div>
-      <button class="btn btn-primary-neon rounded-pill px-4 py-2 fw-bold shadow-lg text-nowrap d-flex align-items-center gap-2" (click)="alternarRegistro()" *ngIf="flotaService.puedeRegistrarOAsignar()">
+      <button class="btn btn-primary-neon rounded-pill px-4 py-2 fw-bold shadow-lg text-nowrap d-flex align-items-center gap-2" (click)="alternarRegistro()" *ngIf="flotaService.puedeEditarOEliminar()">
         <i class="bi bi-plus-circle-fill fs-5"></i> <span>Nueva Unidad</span>
       </button>
     </div>
@@ -97,7 +93,7 @@
       </div>
     </div>
 
-    <!-- Rejilla de Vehículos: col-xl-3 ajusta exactamente a 4 por fila en pantallas anchas -->
+    <!-- TARJETAS DE VEHÍCULOS -->
     <div class="row g-3" *ngIf="vehiculosFiltrados$ | async as vehiculos">
       <div class="col-12 col-sm-6 col-lg-4 col-xl-3" *ngFor="let v of vehiculos">
         <div class="card hud-vehicle-card h-100 overflow-hidden shadow-lg">
@@ -136,7 +132,7 @@
                 </div>
                 <div class="metric-box">
                   <span class="label">RECORRIDO</span>
-                  <span class="value text-primary font-monospace">{{ v.kilometraje | number }} Km</span>
+                  <span class="value text-primary font-monospace">{{ (v.kilometraje || 0) | number }} Km</span>
                 </div>
                 <div class="metric-box" style="grid-column: span 2;">
                   <span class="label">CONDUCTOR ASIGNADO</span>
@@ -149,7 +145,7 @@
               <button class="btn btn-outline-light flex-grow-1 fw-bold rounded-3 btn-touch-action" (click)="abrirFicha(v)">
                 <i class="bi bi-qr-code-scan text-primary me-1"></i> Ficha QR
               </button>
-              <button class="btn btn-outline-danger px-3 rounded-3 btn-touch-action" *ngIf="flotaService.puedeRegistrarOAsignar()" (click)="eliminar(v.id)">
+              <button class="btn btn-outline-danger px-3 rounded-3 btn-touch-action" *ngIf="flotaService.puedeEditarOEliminar()" (click)="eliminar(v.id)">
                 <i class="bi bi-trash3-fill"></i>
               </button>
             </div>
@@ -158,43 +154,142 @@
       </div>
     </div>
 
-    <!-- MODAL FICHA TÉCNICA QR -->
+    <!-- MODAL FICHA TÉCNICA Y QR COMPLETA (IMPRESIÓN / CONSULTA) -->
     <div class="modal d-block modal-backdrop-glass" tabindex="-1" *ngIf="vehiculoSeleccionado">
-      <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content glass-card-modal shadow-lg overflow-hidden animate-pop-in">
-          <div class="bg-dark p-3 text-center border-bottom border-primary border-2">
-            <h5 class="text-white fw-bold mb-0 tracking-wide text-uppercase">Credencial de Unidad</h5>
-            <small class="text-primary">Acceso e Inspección</small>
+      <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content glass-card-modal shadow-lg overflow-hidden animate-pop-in printable-area">
+          
+          <div class="bg-dark p-3 d-flex justify-content-between align-items-center border-bottom border-primary border-2">
+            <div>
+              <h5 class="text-white fw-bold mb-0 tracking-wide text-uppercase">Ficha Técnica Vehicular</h5>
+              <small class="text-primary">{{ vehiculoSeleccionado.dependencia || 'GERENCIA DE TRANSPORTE' }}</small>
+            </div>
+            <button class="btn btn-sm btn-outline-light rounded-circle no-print" (click)="cerrarFicha()"><i class="bi bi-x-lg"></i></button>
           </div>
           
-          <div class="modal-body text-center p-4">
-            <div class="p-3 bg-white rounded-4 d-inline-block shadow-lg mb-3 border border-4 border-light">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}" alt="Código QR" class="img-fluid" style="width: 150px; height: 150px;">
-            </div>
+          <div class="modal-body p-4 text-white">
             
-            <h3 class="text-white fw-extrabold mb-0 font-monospace tracking-widest text-uppercase">{{ vehiculoSeleccionado.placa }}</h3>
-            <p class="text-white-50 small fw-semibold mb-4">{{ vehiculoSeleccionado.identificador }} • {{ vehiculoSeleccionado.marcaModelo }}</p>
-            
-            <div class="text-start hud-specs-list rounded-3 p-3">
-              <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
-                <span class="text-white-50 small fw-bold">VIN:</span>
-                <span class="text-white font-monospace small fw-bold">{{ vehiculoSeleccionado.vin || 'N/A' }}</span>
+            <!-- Encabezado con QR y Placa -->
+            <div class="row align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+              <div class="col-12 col-md-4 text-center mb-3 mb-md-0">
+                <div class="p-2 bg-white rounded-4 d-inline-block shadow-lg border border-4 border-light">
+                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}" alt="Código QR" class="img-fluid" style="width: 130px; height: 130px;">
+                </div>
               </div>
-              <div class="d-flex justify-content-between py-2 border-bottom border-secondary border-opacity-25">
-                <span class="text-white-50 small fw-bold">Carga Max:</span>
-                <span class="text-white small fw-bold">{{ vehiculoSeleccionado.capacidadCarga }} <span class="text-primary">Kg</span></span>
-              </div>
-              <div class="d-flex justify-content-between py-2">
-                <span class="text-white-50 small fw-bold">Estado RCV:</span>
-                <span class="badge bg-success text-white">VIGENTE <i class="bi bi-check-circle ms-1"></i></span>
+              <div class="col-12 col-md-8 text-center text-md-start">
+                <span class="badge bg-primary text-uppercase px-3 py-1 mb-2">Unidad Inspeccionada</span>
+                <h2 class="fw-extrabold mb-1 font-monospace text-primary tracking-widest">{{ vehiculoSeleccionado.placa }}</h2>
+                <h5 class="fw-bold text-white mb-2">{{ vehiculoSeleccionado.identificador }} • {{ vehiculoSeleccionado.marcaModelo }}</h5>
+                <p class="text-white-50 fs-xs mb-0">N° BIEN NACIONAL: <strong class="text-white">{{ vehiculoSeleccionado.numeroBien || 'S/N' }}</strong></p>
               </div>
             </div>
+
+            <!-- Matriz de Datos Técnicos -->
+            <div class="hud-specs-list rounded-3 p-3 mb-4 bg-dark bg-opacity-50 border border-secondary border-opacity-25">
+              <h6 class="text-primary fw-bold mb-3 fs-xs text-uppercase tracking-wider"><i class="bi bi-info-circle me-1"></i> Especificaciones de la Unidad</h6>
+              <div class="row g-2">
+                <div class="col-6 col-md-4">
+                  <span class="text-white-50 fs-xs d-block">SERIAL VIN / CARROCERÍA:</span>
+                  <strong class="font-monospace text-white fs-sm">{{ vehiculoSeleccionado.vin || 'N/A' }}</strong>
+                </div>
+                <div class="col-6 col-md-4">
+                  <span class="text-white-50 fs-xs d-block">AÑO / COLOR:</span>
+                  <strong class="text-white fs-sm">{{ vehiculoSeleccionado.anio }} / {{ vehiculoSeleccionado.color || 'N/A' }}</strong>
+                </div>
+                <div class="col-6 col-md-4">
+                  <span class="text-white-50 fs-xs d-block">TIPO DE VEHÍCULO:</span>
+                  <strong class="text-white fs-sm">{{ vehiculoSeleccionado.tipoVehiculo || 'N/A' }}</strong>
+                </div>
+                <div class="col-6 col-md-4 mt-2">
+                  <span class="text-white-50 fs-xs d-block">CAPACIDAD DE CARGA:</span>
+                  <strong class="text-white fs-sm">{{ vehiculoSeleccionado.capacidadCarga }} Kg</strong>
+                </div>
+                <div class="col-6 col-md-4 mt-2">
+                  <span class="text-white-50 fs-xs d-block">KILOMETRAJE:</span>
+                  <strong class="text-white fs-sm font-monospace">{{ (vehiculoSeleccionado.kilometraje || 0) | number }} Km</strong>
+                </div>
+                <div class="col-6 col-md-4 mt-2">
+                  <span class="text-white-50 fs-xs d-block">ESTADO OPERATIVO:</span>
+                  <span class="badge" [ngClass]="{'bg-success': vehiculoSeleccionado.estado === 'OPERATIVO', 'bg-warning text-dark': vehiculoSeleccionado.estado === 'TALLER', 'bg-danger': vehiculoSeleccionado.estado === 'INACTIVO'}">{{ vehiculoSeleccionado.estado }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Memoria Fotográfica de Inspección (6 Vistas) -->
+            <div class="mb-4">
+              <h6 class="text-primary fw-bold mb-3 fs-xs text-uppercase tracking-wider"><i class="bi bi-camera-fill me-1"></i> Memoria Fotográfica de Inspección</h6>
+              <div class="row g-2">
+                <div class="col-4 col-md-2 text-center">
+                  <div class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black">
+                    <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaFrontal || vehiculoSeleccionado.fotos?.[0] || 'assets/images/placeholder.png'" class="object-fit-cover" alt="Frontal">
+                  </div>
+                  <span class="fs-2xs text-white-50 d-block">1. FRONTAL</span>
+                </div>
+                <div class="col-4 col-md-2 text-center">
+                  <div class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black">
+                    <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaTrasera || vehiculoSeleccionado.fotos?.[1] || 'assets/images/placeholder.png'" class="object-fit-cover" alt="Trasera">
+                  </div>
+                  <span class="fs-2xs text-white-50 d-block">2. TRASERA</span>
+                </div>
+                <div class="col-4 col-md-2 text-center">
+                  <div class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black">
+                    <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralDerecha || vehiculoSeleccionado.fotos?.[2] || 'assets/images/placeholder.png'" class="object-fit-cover" alt="Lat. Der">
+                  </div>
+                  <span class="fs-2xs text-white-50 d-block">3. LAT. DER.</span>
+                </div>
+                <div class="col-4 col-md-2 text-center">
+                  <div class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black">
+                    <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralIzquierda || vehiculoSeleccionado.fotos?.[3] || 'assets/images/placeholder.png'" class="object-fit-cover" alt="Lat. Izq">
+                  </div>
+                  <span class="fs-2xs text-white-50 d-block">4. LAT. IZQ.</span>
+                </div>
+                <div class="col-4 col-md-2 text-center">
+                  <div class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black">
+                    <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaSerialCarroceria || vehiculoSeleccionado.fotos?.[4] || 'assets/images/placeholder.png'" class="object-fit-cover" alt="Serial">
+                  </div>
+                  <span class="fs-2xs text-white-50 d-block">5. SERIAL</span>
+                </div>
+                <div class="col-4 col-md-2 text-center">
+                  <div class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black">
+                    <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaNumeroBien || vehiculoSeleccionado.fotos?.[5] || 'assets/images/placeholder.png'" class="object-fit-cover" alt="Bien Noc">
+                  </div>
+                  <span class="fs-2xs text-white-50 d-block">6. BIEN NAC.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Observaciones Técnicas -->
+            <div class="p-3 bg-dark rounded-3 border border-secondary border-opacity-25 mb-4">
+              <span class="text-white-50 fs-xs fw-bold d-block mb-1">OBSERVACIONES TÉCNICO / LEGALES:</span>
+              <p class="text-white fs-sm mb-0">{{ vehiculoSeleccionado.observaciones || 'Unidad en condiciones operativas según inspección técnica.' }}</p>
+            </div>
+
+            <!-- Responsables y Custodios -->
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <div class="p-3 border border-secondary border-opacity-50 rounded-3 bg-dark bg-opacity-25">
+                  <span class="text-primary fw-bold fs-xs d-block mb-2 border-bottom border-secondary pb-1">RESPONSABLE VERIFICACIÓN TÉCNICA</span>
+                  <p class="mb-1 fs-sm"><strong>Nombre:</strong> {{ vehiculoSeleccionado.responsableVerificacion?.nombre || 'N/A' }}</p>
+                  <p class="mb-1 fs-sm"><strong>C.I.:</strong> {{ vehiculoSeleccionado.responsableVerificacion?.ci || 'N/A' }}</p>
+                  <p class="mb-0 fs-sm"><strong>Teléfono:</strong> {{ vehiculoSeleccionado.responsableVerificacion?.telefono || 'N/A' }}</p>
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <div class="p-3 border border-secondary border-opacity-50 rounded-3 bg-dark bg-opacity-25">
+                  <span class="text-primary fw-bold fs-xs d-block mb-2 border-bottom border-secondary pb-1">RESPONSABLE DEL VEHÍCULO (CUSTODIO)</span>
+                  <p class="mb-1 fs-sm"><strong>Nombre:</strong> {{ vehiculoSeleccionado.responsableVehiculo?.nombre || 'N/A' }}</p>
+                  <p class="mb-1 fs-sm"><strong>C.I.:</strong> {{ vehiculoSeleccionado.responsableVehiculo?.ci || 'N/A' }}</p>
+                  <p class="mb-0 fs-sm"><strong>Teléfono:</strong> {{ vehiculoSeleccionado.responsableVehiculo?.telefono || 'N/A' }}</p>
+                </div>
+              </div>
+            </div>
+
           </div>
           
-          <div class="p-3 bg-dark d-flex gap-2">
-            <button class="btn btn-outline-light w-50 rounded-pill fw-bold" (click)="cerrarFicha()">Cerrar</button>
-            <button class="btn btn-primary-neon text-white w-50 fw-bold rounded-pill btn-touch-action" (click)="imprimirFicha()">
-              <i class="bi bi-printer-fill me-1"></i> Imprimir
+          <div class="p-3 bg-dark d-flex gap-2 justify-content-end border-top border-secondary border-opacity-25 no-print">
+            <button class="btn btn-outline-light px-4 rounded-pill fw-bold" (click)="cerrarFicha()">Cerrar</button>
+            <button class="btn btn-primary-neon text-white px-4 fw-bold rounded-pill btn-touch-action" (click)="imprimirFicha()">
+              <i class="bi bi-printer-fill me-1"></i> Imprimir Ficha
             </button>
           </div>
         </div>
@@ -203,21 +298,19 @@
 
   </div>
 
-  <!-- ==========================================
-       VISTA B: REGISTRO DE VEHÍCULO 
-       ========================================== -->
+  <!-- REGISTRO DE VEHÍCULO CON TODOS LOS CAMPOS NUEVOS -->
   <div *ngIf="mostrarRegistro" class="animate-fade-in">
     <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
       <div>
-        <h4 class="text-white fw-bold mb-0"><i class="bi bi-journal-plus text-primary me-2"></i>Alta de Unidad</h4>
-        <small class="text-white-50">Complete el formulario técnico de la flota</small>
+        <h4 class="text-white fw-bold mb-0"><i class="bi bi-journal-plus text-primary me-2"></i>Alta de Unidad y Ficha Técnica</h4>
+        <small class="text-white-50">Complete el registro técnico vehicular e inspección fotográfica</small>
       </div>
       <button class="btn btn-outline-light rounded-circle" (click)="alternarRegistro()"><i class="bi bi-x-lg"></i></button>
     </div>
 
-    <div class="row g-4 mx-auto" style="max-width: 900px;">
+    <div class="row g-4 mx-auto" style="max-width: 950px;">
       
-      <!-- Carga de Medios -->
+      <!-- Carga de Archivos Principales -->
       <div class="col-12 col-md-6">
         <label class="form-label text-white-50 fw-bold fs-xs tracking-wide text-uppercase mb-2">FOTO DE PORTADA <span class="text-danger">*</span></label>
         <div class="upload-drop-zone p-4 rounded-3 text-center position-relative cursor-pointer transition-all" 
@@ -229,40 +322,69 @@
               <i class="bi bi-check-lg fs-5" *ngIf="fotoPerfilVehiculo"></i>
             </div>
             <p class="text-white mb-1 fw-semibold fs-sm">{{ fotoPerfilVehiculo ? 'Archivo seleccionado' : 'Haz clic para seleccionar Imagen' }}</p>
-            <span class="text-white-50 fs-xs">Principal para la tarjeta.</span>
+            <span class="text-white-50 fs-xs">Principal para la tarjeta del dashboard.</span>
           </div>
         </div>
       </div>
+      
 
-      <div class="col-12 col-md-6">
-        <div class="d-flex justify-content-between mb-2">
-          <label class="form-label text-white-50 fw-bold fs-xs tracking-wide text-uppercase mb-0">GALERÍA (10 FOTOS) <span class="text-danger">*</span></label>
-          <span class="badge fs-xs" [ngClass]="fotosVehiculo.length === 10 ? 'bg-primary' : 'bg-dark text-white-50'">{{ fotosVehiculo.length }} / 10</span>
-        </div>
-        <div class="upload-drop-zone p-4 rounded-3 text-center position-relative cursor-pointer transition-all" 
-             [ngClass]="fotosVehiculo.length === 10 ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'">
-          <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" multiple (change)="cargarFotos($event)">
-          <div class="d-flex flex-column align-items-center justify-content-center z-1 position-relative">
-            <div class="upload-icon-circle bg-primary-neon text-white d-flex align-items-center justify-content-center mb-2 shadow">
-              <i class="bi bi-images fs-5" *ngIf="fotosVehiculo.length < 10"></i>
-              <i class="bi bi-check-all fs-5" *ngIf="fotosVehiculo.length === 10"></i>
-            </div>
-            <p class="text-white mb-1 fw-semibold fs-sm">{{ fotosVehiculo.length > 0 ? fotosVehiculo.length + ' archivos listos' : 'Haz clic para seleccionar Fotos' }}</p>
-            <span class="text-white-50 fs-xs">Requerido para auditoría.</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Formulario de Especificaciones Técnicas -->
+      <!-- Memoria Fotográfica Estructurada (6 Tomas del Formato Pequiven) -->
       <div class="col-12">
-        <div class="glass-panel p-4 rounded-4 mt-2">
+        <div class="glass-panel p-4 rounded-4">
+          <h6 class="text-white fw-bold mb-3 border-bottom border-secondary border-opacity-25 pb-2">
+            <i class="bi bi-camera text-primary me-2"></i>Memoria Fotográfica Requerida (6 Tomas Obligatorias)
+          </h6>
+          <div class="row g-3">
+            <div class="col-6 col-md-2 text-center">
+              <label class="form-label text-white-50 fs-2xs fw-bold text-uppercase">1. Frontal</label>
+              <input type="file" class="form-control form-control-sm bg-dark text-white border-secondary" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaFrontal')">
+            </div>
+            <div class="col-6 col-md-2 text-center">
+              <label class="form-label text-white-50 fs-2xs fw-bold text-uppercase">2. Trasera</label>
+              <input type="file" class="form-control form-control-sm bg-dark text-white border-secondary" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaTrasera')">
+            </div>
+            <div class="col-6 col-md-2 text-center">
+              <label class="form-label text-white-50 fs-2xs fw-bold text-uppercase">3. Lat. Derecha</label>
+              <input type="file" class="form-control form-control-sm bg-dark text-white border-secondary" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaLateralDerecha')">
+            </div>
+            <div class="col-6 col-md-2 text-center">
+              <label class="form-label text-white-50 fs-2xs fw-bold text-uppercase">4. Lat. Izquierda</label>
+              <input type="file" class="form-control form-control-sm bg-dark text-white border-secondary" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaLateralIzquierda')">
+            </div>
+            <div class="col-6 col-md-2 text-center">
+              <label class="form-label text-white-50 fs-2xs fw-bold text-uppercase">5. Serial Carrocería</label>
+              <input type="file" class="form-control form-control-sm bg-dark text-white border-secondary" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaSerialCarroceria')">
+            </div>
+            <div class="col-6 col-md-2 text-center">
+              <label class="form-label text-white-50 fs-2xs fw-bold text-uppercase">6. Bien Nacional</label>
+              <input type="file" class="form-control form-control-sm bg-dark text-white border-secondary" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaNumeroBien')">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulario de Datos Identificativos y Especificaciones -->
+      <div class="col-12">
+        <div class="glass-panel p-4 rounded-4">
           <h6 class="text-white fw-bold mb-4 border-bottom border-secondary border-opacity-25 pb-2">
-            <i class="bi bi-sliders text-primary me-2"></i>Especificaciones Técnicas
+            <i class="bi bi-sliders text-primary me-2"></i>Especificaciones Técnicas e Institucionales
           </h6>
           
-          <div class="row g-4">
-            <div class="col-6 col-md-4">
-              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">PLACA (MÁX 7) <span class="text-danger">*</span></label>
+          <div class="row g-3">
+          <div class="col-12 col-md-6">
+              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">DEPENDENCIA / ÁREA <span class="text-danger">*</span></label>
+              <input type="text" class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input" 
+                     [(ngModel)]="nuevoVehiculo.dependencia" name="dependencia" maxlength="30" placeholder="Ej: Gerencia de Logística">
+            </div>
+
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">N° BIEN NACIONAL</label>
+              <input type="text" class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input" 
+                     [(ngModel)]="nuevoVehiculo.numeroBien" name="numeroBien" maxlength="9" (keypress)="soloNumeros($event)" placeholder="Ej: 123456789">
+            </div>
+
+            <div class="col-6 col-md-3">
+              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">PLACA <span class="text-danger">*</span></label>
               <input type="text" class="form-control bg-dark text-white border-secondary border-opacity-50 text-uppercase font-monospace touch-input" [(ngModel)]="nuevoVehiculo.placa" (input)="validarAlfanumerico($event, 'placa')" maxlength="7" placeholder="Ej: A82BC3">
             </div>
 
@@ -280,7 +402,7 @@
               </select>
             </div>
 
-            <div class="col-12 col-md-4">
+            <div class="col-6 col-md-4">
               <div class="d-flex justify-content-between">
                 <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">IDENTIFICADOR <span class="text-danger">*</span></label>
                 <span class="text-primary fs-xs">{{ nuevoVehiculo.identificador?.length || 0 }}/30</span>
@@ -288,7 +410,7 @@
               <input type="text" class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input" [(ngModel)]="nuevoVehiculo.identificador" maxlength="30" placeholder="Ej: Plataforma 01">
             </div>
 
-            <div class="col-12 col-md-6">
+            <div class="col-12 col-md-4">
               <div class="d-flex justify-content-between">
                 <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">MARCA Y MODELO <span class="text-danger">*</span></label>
                 <span class="text-primary fs-xs">{{ nuevoVehiculo.marcaModelo?.length || 0 }}/30</span>
@@ -296,7 +418,6 @@
               <input type="text" class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input" [(ngModel)]="nuevoVehiculo.marcaModelo" maxlength="30" placeholder="Ej: Ford Triton V8">
             </div>
 
-            <!-- AÑO (Ciclado dinámicamente desde 2026 a 1980) -->
             <div class="col-6 col-md-3">
               <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">AÑO <span class="text-danger">*</span></label>
               <select class="form-select bg-dark text-white border-secondary border-opacity-50 touch-input" [(ngModel)]="nuevoVehiculo.anio">
@@ -314,11 +435,10 @@
             </div>
 
             <div class="col-12 col-md-6">
-              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">SERIAL VIN</label>
+              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">SERIAL VIN (CARROCERÍA)</label>
               <input type="text" class="form-control bg-dark text-white border-secondary border-opacity-50 font-monospace touch-input" [(ngModel)]="nuevoVehiculo.vin" (input)="validarAlfanumerico($event, 'vin')" maxlength="17" placeholder="Solo dígitos o letras">
             </div>
 
-            <!-- CARGA (Ciclada dinámicamente de 500 Kg a 8.000 Kg / 8 Ton) -->
             <div class="col-6 col-md-3">
               <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">CARGA (KG) <span class="text-danger">*</span></label>
               <select class="form-select bg-dark text-white border-secondary border-opacity-50 touch-input" [(ngModel)]="nuevoVehiculo.capacidadCarga">
@@ -329,7 +449,6 @@
               </select>
             </div>
 
-            <!-- KILÓMETROS (Entrada Manual, numérico estricto, tope 400.000 Km) -->
             <div class="col-6 col-md-3">
               <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">KILÓMETROS <span class="text-danger">*</span></label>
               <input 
@@ -341,11 +460,71 @@
                 (input)="validarKilometraje($event)" 
                 placeholder="Ej: 45000">
             </div>
+
+            <div class="col-12">
+              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">OBSERVACIONES TÉCNICO / LEGALES</label>
+              <textarea class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input" rows="2" [(ngModel)]="nuevoVehiculo.observaciones" placeholder="Detalles de carrocería, estado mecánico o de documentación..."></textarea>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Botones de Acción -->
+      <!-- Datos de Responsables e Inspección -->
+     <!-- Datos de Responsables e Inspección -->
+      <div class="col-12" *ngIf="nuevoVehiculo.responsableVerificacion && nuevoVehiculo.responsableVehiculo">
+        <div class="glass-panel p-4 rounded-4">
+          <h6 class="text-white fw-bold mb-4 border-bottom border-secondary border-opacity-25 pb-2">
+            <i class="bi bi-people text-primary me-2"></i>Responsables y Firmas de Inspección
+          </h6>
+
+          <div class="row g-4">
+            <!-- Verificador -->
+            <div class="col-12 col-md-6 border-end border-secondary border-opacity-25 pe-md-4">
+              <span class="text-primary fw-bold fs-xs d-block mb-3 text-uppercase">Responsable Verificación Técnica</span>
+              <div class="mb-2">
+                <label class="form-label text-white-50 fs-xs mb-1">Nombres y Apellidos</label>
+                <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" 
+                       [(ngModel)]="nuevoVehiculo.responsableVerificacion.nombre" placeholder="Nombre completo" maxlength="20">
+              </div>
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label text-white-50 fs-xs mb-1">N° C.I.</label>
+                  <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" 
+                         [(ngModel)]="nuevoVehiculo.responsableVerificacion.ci" placeholder="V-00000000" maxlength="8" (keypress)="soloNumeros($event)">
+                </div>
+                <div class="col-6">
+                  <label class="form-label text-white-50 fs-xs mb-1">Teléfono</label>
+                  <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" 
+                         [(ngModel)]="nuevoVehiculo.responsableVerificacion.telefono" placeholder="04XX-0000000" maxlength="11" (keypress)="soloNumeros($event)">
+                </div>
+              </div>
+            </div>
+
+            <!-- Custodio -->
+            <div class="col-12 col-md-6 ps-md-4">
+              <span class="text-primary fw-bold fs-xs d-block mb-3 text-uppercase">Responsable del Vehículo (Custodio)</span>
+              <div class="mb-2">
+                <label class="form-label text-white-50 fs-xs mb-1">Nombres y Apellidos</label>
+                <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" 
+                       [(ngModel)]="nuevoVehiculo.responsableVehiculo.nombre" placeholder="Nombre completo" maxlength="20">
+              </div>
+              <div class="row g-2">
+                <div class="col-6">
+                  <label class="form-label text-white-50 fs-xs mb-1">N° C.I.</label>
+                  <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" 
+                         [(ngModel)]="nuevoVehiculo.responsableVehiculo.ci" placeholder="V-00000000" maxlength="8" (keypress)="soloNumeros($event)">
+                </div>
+                <div class="col-6">
+                  <label class="form-label text-white-50 fs-xs mb-1">Teléfono</label>
+                  <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" 
+                         [(ngModel)]="nuevoVehiculo.responsableVehiculo.telefono" placeholder="04XX-0000000" maxlength="11" (keypress)="soloNumeros($event)">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="col-12 d-flex justify-content-end gap-3 mt-4">
         <button class="btn btn-outline-light px-4 py-2 rounded-pill fw-bold btn-touch-action" (click)="alternarRegistro()">Cancelar</button>
         <button class="btn btn-success-neon px-5 py-2 rounded-pill fw-bold shadow-lg text-white d-flex align-items-center gap-2 btn-touch-action" (click)="guardarVehiculo()" [disabled]="!fotoPerfilVehiculo">
@@ -355,8 +534,6 @@
       </div>
     </div>
   </div>
-
-
 
   <!-- ==========================================
        MODAL 2: VISOR DE GALERÍA (CARRUSEL)

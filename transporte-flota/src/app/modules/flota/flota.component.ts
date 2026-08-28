@@ -1,12 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable, combineLatest, BehaviorSubject, forkJoin, of } from 'rxjs';
+import { Observable, combineLatest, BehaviorSubject, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { FlotaService } from '../../core/services/flota.service';
 import { VehiculoService } from '../../services/vehiculo.service';
 import { ConductorService } from '../../services/conductor.service';
 import { ArchivoService } from '../../services/archivo.service';
 import { SupabaseStorageService } from '../../services/supabase-storage.service';
-import { Vehiculo, Conductor } from '../../core/models/fleet.models';
+import { Vehiculo, Conductor, FotosFichaTecnica } from '../../core/models/fleet.models';
 
 @Component({
   selector: 'app-flota',
@@ -14,34 +14,38 @@ import { Vehiculo, Conductor } from '../../core/models/fleet.models';
   styleUrls: ['./flota.component.scss']
 })
 export class FlotaComponent implements OnInit {
-  // Subjects locales para almacenar la data real de la BD
-  private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([]);
-  public vehiculos$ = this.vehiculosSubject.asObservable();
 
-  private conductoresSubject = new BehaviorSubject<Conductor[]>([]);
-  public conductores$ = this.conductoresSubject.asObservable();
-
-  filtroTexto$ = new BehaviorSubject<string>('');
-  filtroEstado$ = new BehaviorSubject<string>('TODOS');
-  vehiculosFiltrados$!: Observable<Vehiculo[]>;
-
-  // Variables de UI (Modales, Galería, etc.)
-  vehiculoSeleccionado: Vehiculo | null = null;
+  // ==========================================
+  // ESTADOS Y PROPIEDADES DEL COMPONENTE
+  // ==========================================
+  mostrarRegistro: boolean = false;
   mostrarCarrusel: boolean = false;
+  vehiculoSeleccionado: Vehiculo | null = null;
+  
+  // Gestión de Galería/Carrusel (Se mantiene para ver fotos en la ficha)
   fotosCarrusel: string[] = [];
   indiceFotoActual: number = 0;
-  vehiculoCarrusel: Vehiculo | null = null;
-  mostrarRegistro: boolean = false;
-  
+
   // Carga de Archivos
-  fotoPerfilVehiculo: File | null = null; 
-  fotosVehiculo: File[] = []; 
-  
+  fotoPerfilVehiculo: File | null = null;
+  fotosEstructuradasArchivos: { [key: string]: File } = {};
+
   // Arrays Dinámicos para Selects
   anios: number[] = Array.from({ length: 2026 - 1980 + 1 }, (_, i) => 2026 - i);
   cargasKg: number[] = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000, 7000, 8000];
 
+  // Modelo de Formulario
   nuevoVehiculo: Partial<Vehiculo> = this.inicializarFormulario();
+
+  private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([]);
+  public vehiculos$: Observable<Vehiculo[]> = this.vehiculosSubject.asObservable();
+
+  private conductoresSubject = new BehaviorSubject<Conductor[]>([]);
+  public conductores$: Observable<Conductor[]> = this.conductoresSubject.asObservable();
+
+  filtroTexto$ = new BehaviorSubject<string>('');
+  filtroEstado$ = new BehaviorSubject<string>('TODOS');
+  vehiculosFiltrados$!: Observable<Vehiculo[]>;
 
   constructor(
     public flotaService: FlotaService, 
@@ -90,6 +94,10 @@ export class FlotaComponent implements OnInit {
     });
   }
 
+  // ==========================================
+  // LÓGICA Y VALIDACIONES DE FORMULARIO
+  // ==========================================
+
   private inicializarFormulario(): Partial<Vehiculo> {
     return {
       placa: '',
@@ -98,13 +106,18 @@ export class FlotaComponent implements OnInit {
       marca: '',
       modelo: '',
       marcaModelo: '',
-      anio: new Date().getFullYear(),
+      anio: undefined,
       color: '',
       vin: '',
+      numeroBien: '',
+      dependencia: '',
       capacidadCarga: undefined,
-      kilometraje: 0,
+      kilometraje: undefined,
       estado: 'OPERATIVO',
-      conductorId: null
+      observaciones: '',
+      responsableVerificacion: { nombre: '', ci: '', telefono: '' },
+      responsableVehiculo: { nombre: '', ci: '', telefono: '' },
+      fotosEstructuradas: {}
     };
   }
 
@@ -119,11 +132,6 @@ export class FlotaComponent implements OnInit {
       return;
     }
 
-    if (this.fotosVehiculo.length !== 10) {
-      alert('Debes adjuntar exactamente 10 fotos para la galería.');
-      return;
-    }
-
     try {
       // 1. Subir Foto de Perfil a Supabase
       const urlPerfil = await this.supabaseStorage.uploadFile(
@@ -132,23 +140,26 @@ export class FlotaComponent implements OnInit {
         'vehiculos/perfiles'
       );
 
-      // 2. Subir Fotos Adicionales (hasta 10) a Supabase
-      const urlsGaleria: string[] = [];
-      const fotosParaSubir = this.fotosVehiculo.slice(0, 10); // Limitar a 10
-      for (const foto of fotosParaSubir) {
-        const urlAdicional = await this.supabaseStorage.uploadFile(
-          foto,
-          'flota_archivos',
-          'vehiculos/galeria'
-        );
-        urlsGaleria.push(urlAdicional);
+      // 2. Subir Fotos Estructuradas (6 vistas) a Supabase
+      const urlsEstructuradas: FotosFichaTecnica = {};
+      for (const [llave, archivo] of Object.entries(this.fotosEstructuradasArchivos)) {
+        if (archivo) {
+          const urlSubida = await this.supabaseStorage.uploadFile(
+            archivo,
+            'flota_archivos',
+            'vehiculos/ficha_tecnica'
+          );
+          urlsEstructuradas[llave] = urlSubida;
+        }
       }
 
       // 3. Construir Payload
       const payload = {
         ...this.nuevoVehiculo,
         urlFotoPerfil: urlPerfil,
-        fotos: urlsGaleria,
+        fotosEstructuradas: urlsEstructuradas,
+        // Construimos el array de fotos simple para el carrusel y compatibilidad
+        fotos: Object.values(urlsEstructuradas).filter(url => url !== undefined),
         capacidadCarga: this.nuevoVehiculo.capacidadCarga ? Number(this.nuevoVehiculo.capacidadCarga) : undefined,
         marcaModelo: `${this.nuevoVehiculo.marca} ${this.nuevoVehiculo.modelo}`.trim()
       };
@@ -207,7 +218,7 @@ export class FlotaComponent implements OnInit {
 
   alternarRegistro(): void {
     this.mostrarRegistro = !this.mostrarRegistro;
-    this.fotosVehiculo = [];
+    this.fotosEstructuradasArchivos = {};
     this.fotoPerfilVehiculo = null;
     if (!this.mostrarRegistro) {
       this.resetearFormulario();
@@ -227,10 +238,19 @@ export class FlotaComponent implements OnInit {
     input.value = valorLimpio;
     if (this.nuevoVehiculo) (this.nuevoVehiculo as any)[campo] = valorLimpio;
   }
+
+  soloNumeros(event: KeyboardEvent): boolean {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      return false;
+    }
+    return true;
+  }
   
   validarKilometraje(event: Event): void {
     const input = event.target as HTMLInputElement;
     let valor = parseInt(input.value, 10);
+
     if (isNaN(valor) || valor < 0) {
       this.nuevoVehiculo.kilometraje = undefined;
       input.value = '';
@@ -242,6 +262,9 @@ export class FlotaComponent implements OnInit {
     }
   }
 
+  // ==========================================
+  // MANEJO DE ARCHIVOS (Ficha Técnica)
+  // ==========================================
 
   cargarFotoPerfil(event: any): void {
     if (event.target.files && event.target.files.length > 0) {
@@ -249,37 +272,65 @@ export class FlotaComponent implements OnInit {
     }
   }
 
-  cargarFotos(event: any): void {
-    if (event.target.files) this.fotosVehiculo = Array.from(event.target.files);
+  cargarFotoEspecifica(event: Event, llave: keyof FotosFichaTecnica): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      // Guardar el File original para enviarlo a Supabase
+      this.fotosEstructuradasArchivos[llave] = file;
+
+      // Crear preview en base64 para la UI
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        if (!this.nuevoVehiculo.fotosEstructuradas) {
+          this.nuevoVehiculo.fotosEstructuradas = {};
+        }
+        this.nuevoVehiculo.fotosEstructuradas[llave] = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
   }
 
-  abrirFicha(v: Vehiculo): void { this.vehiculoSeleccionado = v; }
-  cerrarFicha(): void { this.vehiculoSeleccionado = null; }
-  imprimirFicha(): void { window.print(); }
+  // ==========================================
+  // MODALES Y VISTA PREVIA
+  // ==========================================
 
-  // --- CARRUSEL FULLSCREEN ---
-  abrirCarrusel(v: Vehiculo, indexInicial: number = 0): void {
-    if (!v.fotos || v.fotos.length === 0) return;
-    this.vehiculoCarrusel = v;
-    this.fotosCarrusel = v.fotos.map(f => f.startsWith('http') ? f : 'http://localhost:8080' + f).slice(0, 10);
-    this.indiceFotoActual = indexInicial;
+  abrirFicha(v: Vehiculo): void {
+    this.vehiculoSeleccionado = v;
+  }
+
+  cerrarFicha(): void {
+    this.vehiculoSeleccionado = null;
+  }
+
+  imprimirFicha(): void {
+    window.print();
+  }
+
+  abrirCarrusel(v: Vehiculo): void {
+    this.fotosCarrusel = v.fotos || [];
+    this.indiceFotoActual = 0;
     this.mostrarCarrusel = true;
   }
 
   cerrarCarrusel(): void {
     this.mostrarCarrusel = false;
-    this.fotosCarrusel = [];
-    this.indiceFotoActual = 0;
   }
 
   siguienteFoto(): void {
-    if (this.fotosCarrusel.length === 0) return;
-    this.indiceFotoActual = (this.indiceFotoActual + 1) % this.fotosCarrusel.length;
+    if (this.indiceFotoActual < this.fotosCarrusel.length - 1) {
+      this.indiceFotoActual++;
+    } else {
+      this.indiceFotoActual = 0;
+    }
   }
 
   anteriorFoto(): void {
-    if (this.fotosCarrusel.length === 0) return;
-    this.indiceFotoActual = (this.indiceFotoActual - 1 + this.fotosCarrusel.length) % this.fotosCarrusel.length;
+    if (this.indiceFotoActual > 0) {
+      this.indiceFotoActual--;
+    } else {
+      this.indiceFotoActual = this.fotosCarrusel.length - 1;
+    }
   }
 
   seleccionarFoto(index: number): void {
