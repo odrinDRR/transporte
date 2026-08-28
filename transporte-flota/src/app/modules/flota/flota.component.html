@@ -92,7 +92,7 @@
       <div class="col-12 col-sm-6 col-md-4 col-lg-3" *ngFor="let v of vehiculos">
         <div class="card bg-custom-card border-custom h-100 overflow-hidden shadow-sm">
           <div class="position-relative bg-dark" style="aspect-ratio: 1 / 1;">
-            <img [src]="v.urlFotoPerfil ? v.urlFotoPerfil : (v.fotos && v.fotos.length > 0 ? v.fotos[0] : 'assets/placeholder.png')" class="w-100 h-100 object-fit-cover" alt="Foto">
+            <img [src]="v.urlFotoPerfil ? v.urlFotoPerfil : (v.fotos && v.fotos.length > 0 ? v.fotos[0] : 'assets/placeholder.png')" class="w-100 h-100 object-fit-cover" alt="Foto" style="cursor: pointer;" (click)="abrirCarrusel(v)">
             <span class="position-absolute top-0 start-0 m-2 badge bg-dark border border-secondary">{{ v.placa }}</span>
             <span class="position-absolute top-0 end-0 m-2 badge" [ngClass]="'badge-' + v.estado.toLowerCase()">{{ v.estado }}</span>
           </div>
@@ -256,10 +256,16 @@
             <i class="bi bi-info-circle me-1"></i>Escanee este código QR con el dispositivo corporativo para verificar la documentación completa.
           </p>
 
-          <div class="text-start bg-dark p-3 rounded border border-custom small mt-3">
-            <div><strong>VIN:</strong> {{ vehiculoSeleccionado.vin }}</div>
-            <div><strong>Último Servicio:</strong> {{ vehiculoSeleccionado.ultimoServicio || 'N/A' }}</div>
-            <div><strong>Póliza RCV:</strong> <span class="text-success fw-bold">Vigente</span></div>
+          <div class="text-start vehicle-specs-box p-3 rounded-3 fs-xs mt-3">
+            <div class="row g-2">
+              <div class="col-6"><strong>Identificador:</strong> {{ vehiculoSeleccionado.identificador }}</div>
+              <div class="col-6"><strong>Marca/Modelo:</strong> {{ vehiculoSeleccionado.marcaModelo }} ({{ vehiculoSeleccionado.anio }})</div>
+              <div class="col-6"><strong>Número de Chasis:</strong> {{ vehiculoSeleccionado.vin }}</div>
+              <div class="col-6"><strong>Kilometraje:</strong> {{ vehiculoSeleccionado.kilometraje | number }} Km</div>
+              <div class="col-6"><strong>Último Servicio:</strong> {{ vehiculoSeleccionado.ultimoServicio || 'N/A' }}</div>
+              <div class="col-6"><strong>Póliza RCV:</strong> <span class="text-success fw-bold">Vigente</span></div>
+              <div class="col-12"><strong>Conductor Asignado:</strong> {{ obtenerNombreConductor(vehiculoSeleccionado.conductorId, conductores) }}</div>
+            </div>
           </div>
         </div>
         <div class="modal-footer border-top border-dark-subtle p-3 px-4 d-print-none">
@@ -300,6 +306,16 @@
           <button class="btn carousel-control-btn end-0 me-3" (click)="siguienteFoto()" *ngIf="fotosCarrusel.length > 1">
             <i class="bi bi-chevron-right fs-4"></i>
           </button>
+        </div>
+
+        <div class="modal-footer border-top border-dark-subtle p-3 justify-content-center gap-2 overflow-x-auto" *ngIf="fotosCarrusel.length > 1">
+          <div 
+            *ngFor="let foto of fotosCarrusel; let i = index" 
+            class="carousel-thumbnail rounded-2 overflow-hidden" 
+            [class.active]="i === indiceFotoActual"
+            (click)="seleccionarFoto(i)">
+            <img [src]="foto" class="w-100 h-100 object-fit-cover" alt="Miniatura">
+          </div>
         </div>
 
       </div>

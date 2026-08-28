@@ -242,4 +242,8 @@ export class FlotaComponent implements OnInit {
     if (this.fotosCarrusel.length === 0) return;
     this.indiceFotoActual = (this.indiceFotoActual - 1 + this.fotosCarrusel.length) % this.fotosCarrusel.length;
   }
+
+  seleccionarFoto(index: number): void {
+    this.indiceFotoActual = index;
+  }
 }
