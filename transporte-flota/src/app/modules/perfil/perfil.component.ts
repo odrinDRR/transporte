@@ -45,6 +45,7 @@ export class PerfilComponent implements OnInit {
       });
     } else {
       this.cargando = false;
+      alert('Error de sesión: No se encontró el ID del usuario. Por favor, cierra sesión y vuelve a entrar.');
     }
   }
 

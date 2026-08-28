@@ -3,6 +3,8 @@ import { FlotaService } from '../../core/services/flota.service';
 import { InspeccionService } from '../../services/inspeccion.service';
 import { ConductorService } from '../../services/conductor.service';
 import { Inspeccion } from '../../core/models/fleet.models';
+import { ArchivoService } from '../../services/archivo.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-inspeccion',
@@ -51,7 +53,8 @@ export class InspeccionComponent {
   constructor(
     private flotaService: FlotaService,
     private inspeccionService: InspeccionService,
-    private conductorService: ConductorService
+    private conductorService: ConductorService,
+    private archivoService: ArchivoService
   ) {}
 
   // --- PASO 1: VALIDAR CÉDULA O FICHA ---
@@ -125,20 +128,46 @@ export class InspeccionComponent {
        return;
     }
 
-    // Enviamos el objeto inspeccion al backend
-    this.inspeccionService.crearInspeccion(this.inspeccion as any).subscribe({
-      next: (res) => {
-        alert(`Inspección de ${this.tipoInspeccionActual} guardada en base de datos correctamente.`);
-        // Reseteamos el sistema completo para el próximo conductor
-        this.fasePrincipal = 'INGRESO_CEDULA';
-        this.cedulaInput = '';
-        this.etapaActual = 1;
-        this.fotosExterior = [];
-        this.fotosInterior = [];
+    if (this.fotosExterior.length !== 10 || this.fotosInterior.length !== 10) {
+      alert('Error: Faltan fotografías por cargar.');
+      return;
+    }
+
+    // Unimos todos los archivos en un solo array para subir
+    const todosLosArchivos = [...this.fotosExterior, ...this.fotosInterior];
+    const uploads = todosLosArchivos.map(f => this.archivoService.subirArchivo(f));
+
+    forkJoin(uploads).subscribe({
+      next: (resultados) => {
+        const urls = resultados.map(r => r.url);
+        
+        // Separamos las URLs según el orden en que las unimos
+        const urlsExterior = urls.slice(0, 10);
+        const urlsInterior = urls.slice(10, 20);
+
+        this.inspeccion.fotosExterior = urlsExterior;
+        this.inspeccion.fotosInterior = urlsInterior;
+
+        // Enviamos el objeto inspeccion al backend
+        this.inspeccionService.crearInspeccion(this.inspeccion as any).subscribe({
+          next: (res) => {
+            alert(`Inspección de ${this.tipoInspeccionActual} guardada en base de datos correctamente.`);
+            // Reseteamos el sistema completo para el próximo conductor
+            this.fasePrincipal = 'INGRESO_CEDULA';
+            this.cedulaInput = '';
+            this.etapaActual = 1;
+            this.fotosExterior = [];
+            this.fotosInterior = [];
+          },
+          error: (err) => {
+            console.error('Error al crear inspección', err);
+            alert('Ocurrió un error de red al intentar guardar la inspección.');
+          }
+        });
       },
       error: (err) => {
-        console.error('Error al crear inspección', err);
-        alert('Ocurrió un error de red al intentar guardar la inspección.');
+        console.error('Error subiendo fotos de inspección', err);
+        alert('Ocurrió un error al intentar subir las fotos de la inspección. Verifica la conexión.');
       }
     });
   }

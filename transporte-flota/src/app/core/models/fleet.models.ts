@@ -68,6 +68,8 @@ export interface Inspeccion {
   inspectorFirma: string; // Puede ser ficha o id del conductor
   tipo?: string; // INICIO o CIERRE
   vehiculoId?: number;
+  fotosExterior?: string[];
+  fotosInterior?: string[];
 }
 
 export interface Mantenimiento {

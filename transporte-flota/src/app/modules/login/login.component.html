@@ -130,24 +130,28 @@
 
             <div class="mb-3">
               <label class="text-secondary fs-xs mb-1">Licencia de Conducir (PDF o Imagen)</label>
-              <div class="file-upload-box p-3 rounded-3 text-center border-dashed position-relative" [class.has-file]="archivoLicenciaNombre">
+              <div class="file-upload-box p-3 rounded-3 text-center border-dashed position-relative mb-2" [class.has-file]="archivoLicenciaNombre">
                 <input type="file" class="file-input-hidden" (change)="onFileSelected($event, 'licencia')" accept=".pdf,image/*">
                 <i class="bi" [ngClass]="archivoLicenciaNombre ? 'bi-file-earmark-check-fill text-success fs-4' : 'bi-cloud-arrow-up-fill text-primary fs-4'"></i>
                 <span class="d-block text-white fs-xs mt-1 text-truncate px-2">
                   {{ archivoLicenciaNombre || 'Haz clic para seleccionar PDF o Foto' }}
                 </span>
               </div>
+              <label class="text-secondary fs-xs mb-1">Fecha de Vencimiento de Licencia</label>
+              <input type="date" class="form-control bg-dark border-custom text-white" [(ngModel)]="nuevoUsuario.fechaVencimientoLicencia" name="vencimientoLicencia">
             </div>
 
             <div class="mb-4">
               <label class="text-secondary fs-xs mb-1">Certificado Médico de Salud (PDF o Imagen)</label>
-              <div class="file-upload-box p-3 rounded-3 text-center border-dashed position-relative" [class.has-file]="archivoMedicoNombre">
+              <div class="file-upload-box p-3 rounded-3 text-center border-dashed position-relative mb-2" [class.has-file]="archivoMedicoNombre">
                 <input type="file" class="file-input-hidden" (change)="onFileSelected($event, 'medico')" accept=".pdf,image/*">
                 <i class="bi" [ngClass]="archivoMedicoNombre ? 'bi-file-earmark-check-fill text-success fs-4' : 'bi-cloud-arrow-up-fill text-primary fs-4'"></i>
                 <span class="d-block text-white fs-xs mt-1 text-truncate px-2">
                   {{ archivoMedicoNombre || 'Haz clic para seleccionar PDF o Foto' }}
                 </span>
               </div>
+              <label class="text-secondary fs-xs mb-1">Fecha de Vencimiento Cert. Médico</label>
+              <input type="date" class="form-control bg-dark border-custom text-white" [(ngModel)]="nuevoUsuario.fechaVencimientoCertificadoMedico" name="vencimientoMedico">
             </div>
 
             <button class="btn btn-dealer-primary w-100 py-2 fw-bold rounded-3" (click)="avanzarRegistro()">Siguiente</button>
