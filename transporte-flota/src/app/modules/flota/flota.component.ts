@@ -5,6 +5,7 @@ import { FlotaService } from '../../core/services/flota.service';
 import { VehiculoService } from '../../services/vehiculo.service';
 import { ConductorService } from '../../services/conductor.service';
 import { ArchivoService } from '../../services/archivo.service';
+import { SupabaseStorageService } from '../../services/supabase-storage.service';
 import { Vehiculo, Conductor } from '../../core/models/fleet.models';
 
 @Component({
@@ -52,7 +53,8 @@ export class FlotaComponent implements OnInit {
     public flotaService: FlotaService, // Mantenemos para validación de roles
     private vehiculoService: VehiculoService,
     private conductorService: ConductorService,
-    private archivoService: ArchivoService
+    private archivoService: ArchivoService,
+    private supabaseStorage: SupabaseStorageService
   ) {}
 
   ngOnInit(): void {
@@ -93,7 +95,7 @@ export class FlotaComponent implements OnInit {
     });
   }
 
-  guardarVehiculo(): void {
+  async guardarVehiculo() {
     if (!this.nuevoVehiculo.placa || !this.nuevoVehiculo.identificador || !this.nuevoVehiculo.modelo) {
       alert('Por favor, completa los datos básicos.');
       return;
@@ -104,35 +106,51 @@ export class FlotaComponent implements OnInit {
       return;
     }
 
-    // 1. Subir la foto primero
-    this.archivoService.subirArchivo(this.fotoPerfilVehiculo).subscribe({
-      next: (res) => {
-        // 2. Construir el payload del vehículo con la URL devuelta por el servidor
-        const payload = {
-          ...this.nuevoVehiculo,
-          urlFotoPerfil: res.url,
-          marcaModelo: `${this.nuevoVehiculo.marca} ${this.nuevoVehiculo.modelo}`.trim()
-        };
-        
-        // 3. Guardar el vehículo en la base de datos
-        this.vehiculoService.crearVehiculo(payload as any).subscribe({
-          next: (vehiculoDb) => {
-            alert(`¡Vehículo ${vehiculoDb.placa} registrado con éxito en la base de datos!`);
-            this.cargarDatosBackend(); // Refrescar la grilla
-            this.alternarRegistro();
-            this.resetearFormulario();
-          },
-          error: (err) => {
-            console.error('Error guardando en BD', err);
-            alert('Ocurrió un error al intentar guardar el vehículo.');
-          }
-        });
-      },
-      error: (err) => {
-        console.error('Error subiendo foto', err);
-        alert('Ocurrió un error al intentar subir la foto de perfil.');
+    try {
+      // 1. Subir Foto de Perfil a Supabase
+      const urlFotoPerfil = await this.supabaseStorage.uploadFile(
+        this.fotoPerfilVehiculo,
+        'flota_archivos',
+        'vehiculos/perfiles'
+      );
+
+      // 2. Subir Fotos Adicionales (hasta 10) a Supabase
+      const urlsFotosAdicionales: string[] = [];
+      const fotosParaSubir = this.fotosVehiculo.slice(0, 10); // Limitar a 10
+      for (const foto of fotosParaSubir) {
+        const urlAdicional = await this.supabaseStorage.uploadFile(
+          foto,
+          'flota_archivos',
+          'vehiculos/galeria'
+        );
+        urlsFotosAdicionales.push(urlAdicional);
       }
-    });
+
+      // 3. Construir Payload
+      const payload = {
+        ...this.nuevoVehiculo,
+        urlFotoPerfil: urlFotoPerfil,
+        fotos: urlsFotosAdicionales,
+        marcaModelo: `${this.nuevoVehiculo.marca} ${this.nuevoVehiculo.modelo}`.trim()
+      };
+
+      // 4. Guardar en Backend
+      this.vehiculoService.crearVehiculo(payload as any).subscribe({
+        next: (vehiculoDb) => {
+          alert(`¡Vehículo ${vehiculoDb.placa} registrado con éxito!`);
+          this.cargarDatosBackend();
+          this.alternarRegistro();
+          this.resetearFormulario();
+        },
+        error: (err) => {
+          console.error('Error guardando en BD', err);
+          alert('Ocurrió un error al intentar guardar el vehículo.');
+        }
+      });
+    } catch (error) {
+      console.error('Error subiendo imágenes a Supabase', error);
+      alert('Error subiendo las imágenes. Por favor, intenta de nuevo.');
+    }
   }
 
   eliminar(id: number): void {

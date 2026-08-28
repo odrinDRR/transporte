@@ -2,7 +2,7 @@ import { Component, Output, EventEmitter } from '@angular/core';
 import { RolUsuario } from '../../core/models/fleet.models';
 import { FlotaService } from '../../core/services/flota.service';
 import { AuthService } from '../../services/auth.service';
-import { ArchivoService } from '../../services/archivo.service';
+import { SupabaseStorageService } from '../../services/supabase-storage.service';
 
 @Component({
   selector: 'app-login',
@@ -45,7 +45,7 @@ export class LoginComponent {
   constructor(
     private flotaService: FlotaService, 
     private authService: AuthService,
-    private archivoService: ArchivoService
+    private supabaseStorage: SupabaseStorageService
   ) {}
 
   getRoleName(rol: RolUsuario | string | null): string {
@@ -230,19 +230,29 @@ export class LoginComponent {
       let urlMedico = null;
 
       if (this.archivoLicencia) {
-        const resLicencia = await this.archivoService.subirArchivo(this.archivoLicencia).toPromise();
-        urlLicencia = resLicencia?.url;
+        const urlLicenciaSupabase = await this.supabaseStorage.uploadFile(
+          this.archivoLicencia,
+          'flota_archivos',
+          'usuarios/documentos'
+        );
+        urlLicencia = urlLicenciaSupabase;
       }
 
       if (this.archivoMedico) {
-        const resMedico = await this.archivoService.subirArchivo(this.archivoMedico).toPromise();
-        urlMedico = resMedico?.url;
+        const urlMedicoSupabase = await this.supabaseStorage.uploadFile(
+          this.archivoMedico,
+          'flota_archivos',
+          'usuarios/documentos'
+        );
+        urlMedico = urlMedicoSupabase;
       }
 
       const payload = {
         ...this.nuevoUsuario,
         urlLicencia,
-        urlCertificadoMedico: urlMedico
+        urlCertificadoMedico: urlMedico,
+        fechaVencimientoLicencia: this.nuevoUsuario.fechaVencimientoLicencia ? this.nuevoUsuario.fechaVencimientoLicencia : null,
+        fechaVencimientoCertificadoMedico: this.nuevoUsuario.fechaVencimientoCertificadoMedico ? this.nuevoUsuario.fechaVencimientoCertificadoMedico : null
       };
 
       this.authService.register(payload).subscribe({

@@ -32,6 +32,11 @@
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'empleados'" (click)="cambiarModulo('empleados')" href="javascript:void(0)">
+            <i class="bi bi-people"></i> Empleados
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'mantenimiento'" (click)="cambiarModulo('mantenimiento')" href="javascript:void(0)">
             <i class="bi bi-wrench"></i> Mantenimiento
           </a>
@@ -41,11 +46,7 @@
             <i class="bi bi-file-earmark-text"></i> Documentos / Seguros
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'combustible'" (click)="cambiarModulo('combustible')" href="javascript:void(0)">
-            <i class="bi bi-fuel-pump"></i> Combustible
-          </a>
-        </li>
+
         <li class="nav-item">
           <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'inspeccion'" (click)="cambiarModulo('inspeccion')" href="javascript:void(0)">
             <i class="bi bi-clipboard-check"></i> Inspección Vehicular
@@ -147,9 +148,10 @@
     <div [ngSwitch]="moduloActivo">
       <app-flota *ngSwitchCase="'flota'"></app-flota>
       <app-conductores *ngSwitchCase="'conductores'"></app-conductores>
+      <app-empleados *ngSwitchCase="'empleados'"></app-empleados>
       <app-mantenimiento *ngSwitchCase="'mantenimiento'"></app-mantenimiento>
       <app-documentos *ngSwitchCase="'documentos'"></app-documentos>
-      <app-combustible *ngSwitchCase="'combustible'"></app-combustible>
+
       <app-inspeccion *ngSwitchCase="'inspeccion'"></app-inspeccion>
       <app-auditoria *ngSwitchCase="'auditoria'"></app-auditoria>
       <app-aprobaciones *ngSwitchCase="'aprobaciones'"></app-aprobaciones>

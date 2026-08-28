@@ -92,7 +92,7 @@
       <div class="col-12 col-sm-6 col-md-4 col-lg-3" *ngFor="let v of vehiculos">
         <div class="card bg-custom-card border-custom h-100 overflow-hidden shadow-sm">
           <div class="position-relative bg-dark" style="aspect-ratio: 1 / 1;">
-            <img [src]="(v.urlFotoPerfil ? 'http://localhost:8080' + v.urlFotoPerfil : (v.fotos && v.fotos.length > 0 ? v.fotos[0] : 'assets/placeholder.png'))" class="w-100 h-100 object-fit-cover" alt="Foto">
+            <img [src]="v.urlFotoPerfil ? v.urlFotoPerfil : (v.fotos && v.fotos.length > 0 ? v.fotos[0] : 'assets/placeholder.png')" class="w-100 h-100 object-fit-cover" alt="Foto">
             <span class="position-absolute top-0 start-0 m-2 badge bg-dark border border-secondary">{{ v.placa }}</span>
             <span class="position-absolute top-0 end-0 m-2 badge" [ngClass]="'badge-' + v.estado.toLowerCase()">{{ v.estado }}</span>
           </div>
