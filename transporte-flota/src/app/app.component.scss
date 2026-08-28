@@ -1,0 +1,42 @@
+/* Estilos base para el sidebar */
+.app-sidebar {
+  width: 280px;
+  transition: transform 0.3s ease-in-out;
+  z-index: 1045;
+}
+
+/* En dispositivos móviles, lo ocultamos transformándolo fuera de la pantalla */
+@media (max-width: 767.98px) {
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.5);
+  }
+
+  /* Cuando tiene la clase .show, lo mostramos */
+  .app-sidebar.show {
+    transform: translateX(0);
+  }
+}
+
+/* En pantallas medianas y grandes, siempre es visible */
+@media (min-width: 768px) {
+  .app-sidebar {
+    transform: translateX(0);
+    position: relative; 
+  }
+}
+
+/* Backdrop para el móvil */
+.sidebar-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 1040;
+}

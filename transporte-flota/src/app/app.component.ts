@@ -10,6 +10,7 @@ import { RolUsuario } from './core/models/fleet.models';
 export class AppComponent implements OnInit {
   moduloActivo: string = 'flota';
   isLoggedIn: boolean = false;
+  sidebarAbierto: boolean = false;
 
   constructor(public flotaService: FlotaService) {}
 
@@ -34,6 +35,11 @@ export class AppComponent implements OnInit {
 
   cambiarModulo(modulo: string): void {
     this.moduloActivo = modulo;
+    this.sidebarAbierto = false; // Cerrar el menú al seleccionar una opción en móvil
+  }
+
+  toggleSidebar(): void {
+    this.sidebarAbierto = !this.sidebarAbierto;
   }
 
   cerrarSesion(): void {

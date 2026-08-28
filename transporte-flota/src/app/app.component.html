@@ -3,16 +3,20 @@
 
 <div class="d-flex min-vh-100" *ngIf="isLoggedIn">
   
+  <!-- Overlay para cerrar menú en móvil -->
+  <div class="sidebar-backdrop d-md-none" *ngIf="sidebarAbierto" (click)="toggleSidebar()"></div>
+
   <!-- Barra Lateral (Sidebar) -->
-  <aside class="d-none d-md-flex flex-column p-3 bg-custom-sidebar border-end border-custom" style="width: 280px;">
-    <div class="d-flex align-items-center gap-2 pb-3 mb-3 border-bottom border-custom">
-      <div class="bg-white p-1 rounded">
-        <img src="assets/images/logo.jpg" width="36" alt="Logo">
+  <aside class="app-sidebar d-flex flex-column p-3 bg-custom-sidebar border-end border-custom" [class.show]="sidebarAbierto">
+    <div class="d-flex align-items-center justify-content-between gap-2 pb-3 mb-3 border-bottom border-custom">
+      <div class="d-flex align-items-center gap-2">
+        <div class="bg-white p-1 rounded">
+          <img src="assets/images/logo.jpg" width="36" alt="Logo">
+        </div>
       </div>
-      <!-- <div>
-        <h6 class="text-white fw-bold mb-0" style="font-size: 0.85rem;">GERENCIA LOGÍSTICA</h6>
-        <small class="text-primary fw-bold text-uppercase" style="font-size: 0.68rem;">ROL: {{ (flotaService.rolActual$ | async) }}</small>
-      </div> -->
+      <button class="btn btn-sm btn-outline-light d-md-none border-0" (click)="toggleSidebar()">
+        <i class="bi bi-x-lg"></i>
+      </button>
     </div>
 
     <!-- Menú Dinámico según Rol (RBAC) -->
@@ -133,15 +137,19 @@
   <main class="flex-grow-1 p-3 p-md-4">
     <!-- Header -->
     <header class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-4 border-bottom border-custom gap-3">
-      <div>
-        <h4 class="text-white fw-bold mb-0 text-uppercase">{{ moduloActivo }}</h4>
-        <small class="text-custom-muted">Sistema Integral de Gestión de Flotas</small>
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-outline-light d-md-none bg-dark" (click)="toggleSidebar()">
+          <i class="bi bi-list fs-5"></i>
+        </button>
+        <div>
+          <h4 class="text-white fw-bold mb-0 text-uppercase">{{ moduloActivo }}</h4>
+          <small class="text-custom-muted d-none d-sm-block">Sistema Integral de Gestión de Flotas</small>
+        </div>
       </div>
 
-
       <button class="btn btn-sm btn-outline-danger" (click)="cerrarSesion()">
-  <i class="bi bi-box-arrow-right"></i> Salir
-</button>
+        <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Salir</span>
+      </button>
     </header>
 
     <!-- Contenido Dinámico -->
