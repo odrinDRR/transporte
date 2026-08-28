@@ -37,7 +37,9 @@ export class LoginComponent {
     username: '',
     correo: '',
     password: '',
-    estado: 'PENDIENTE'
+    estado: 'PENDIENTE',
+    fechaVencimientoLicencia: '',
+    fechaVencimientoCertificadoMedico: ''
   };
 
   constructor(
@@ -129,6 +131,9 @@ export class LoginComponent {
 
   ingresar(): void {
     if (this.usuario.trim() !== '' && this.clave.trim() !== '') {
+      // Limpiamos cualquier sesión previa antes de intentar el login
+      this.authService.logout();
+      
       this.authService.login(this.usuario.trim(), this.clave.trim()).subscribe({
         next: (res) => {
           this.flotaService.iniciarSesion(res.rol); // Mantenemos compatibilidad con flotaService
@@ -149,7 +154,10 @@ export class LoginComponent {
     this.pasoRegistro = 1;
     this.volverRoles();
 
-    if (!this.mostrarRegistro) {
+    if (this.mostrarRegistro) {
+      // Limpiamos la sesión para asegurarnos de que no haya un JWT viejo que interfiera al subir archivos
+      this.authService.logout();
+    } else {
       this.archivoLicencia = null;
       this.archivoLicenciaNombre = '';
       this.archivoMedico = null;
@@ -164,7 +172,9 @@ export class LoginComponent {
         username: '',
         correo: '',
         password: '',
-        estado: 'PENDIENTE'
+        estado: 'PENDIENTE',
+        fechaVencimientoLicencia: '',
+        fechaVencimientoCertificadoMedico: ''
       };
     }
   }
@@ -186,11 +196,11 @@ export class LoginComponent {
       return;
     }
 
-    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR';
+    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR' || this.nuevoUsuario.cargo === 'EMPLEADO';
     this.pasoRegistro = requiereDocumentos ? 2 : 3;
   } else if (this.pasoRegistro === 2) {
-    if (!this.archivoLicencia || !this.archivoMedico) {
-      alert('Debes adjuntar el documento de tu Licencia y tu Certificado Médico para continuar.');
+    if (!this.archivoLicencia || !this.archivoMedico || !this.nuevoUsuario.fechaVencimientoLicencia || !this.nuevoUsuario.fechaVencimientoCertificadoMedico) {
+      alert('Debes adjuntar el documento de tu Licencia, tu Certificado Médico y las fechas de vencimiento para continuar.');
       return;
     }
     this.pasoRegistro = 3;
@@ -198,7 +208,7 @@ export class LoginComponent {
 }
 
   retrocederRegistro(): void {
-    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR';
+    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR' || this.nuevoUsuario.cargo === 'EMPLEADO';
     if (this.pasoRegistro === 3 && !requiereDocumentos) {
       this.pasoRegistro = 1;
     } else {
