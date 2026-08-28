@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable, combineLatest, BehaviorSubject, forkJoin, of } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { FlotaService } from '../../core/services/flota.service';
-import { VehiculoService } from '../../services/vehiculo.service';
-import { ConductorService } from '../../services/conductor.service';
-import { ArchivoService } from '../../services/archivo.service';
-import { Vehiculo, Conductor } from '../../core/models/fleet.models';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+
+// ==========================================
+// IMPORTACIÓN DEL MODELO GLOBAL
+// ==========================================
+import { FotosFichaTecnica, Vehiculo } from 'src/app/core/models/fleet.models';
+
+export interface Conductor {
+  id: number;
+  nombre: string;
+}
 
 @Component({
   selector: 'app-flota',
@@ -13,80 +17,87 @@ import { Vehiculo, Conductor } from '../../core/models/fleet.models';
   styleUrls: ['./flota.component.scss']
 })
 export class FlotaComponent implements OnInit {
-  // Subjects locales para almacenar la data real de la BD
-  private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([]);
-  public vehiculos$ = this.vehiculosSubject.asObservable();
 
-  private conductoresSubject = new BehaviorSubject<Conductor[]>([]);
-  public conductores$ = this.conductoresSubject.asObservable();
-
-  filtroTexto$ = new BehaviorSubject<string>('');
-  filtroEstado$ = new BehaviorSubject<string>('TODOS');
-  vehiculosFiltrados$!: Observable<Vehiculo[]>;
-
-  // Variables de UI (Modales, Galería, etc.)
-  vehiculoSeleccionado: Vehiculo | null = null;
+  // ==========================================
+  // ESTADOS Y PROPIEDADES DEL COMPONENTE
+  // ==========================================
+  mostrarRegistro: boolean = false;
   mostrarCarrusel: boolean = false;
+  vehiculoSeleccionado: Vehiculo | null = null;
+  
+  // Gestión de Galería/Carrusel (Se mantiene para ver fotos en la ficha)
   fotosCarrusel: string[] = [];
   indiceFotoActual: number = 0;
-  vehiculoCarrusel: Vehiculo | null = null;
-  mostrarRegistro: boolean = false;
-  
-  // Carga de Archivos
-  fotoPerfilVehiculo: File | null = null; 
-  fotosVehiculo: File[] = []; 
-  
+
+  // Carga de Archivos (Solo foto de perfil, la galería general se eliminó)
+  fotoPerfilVehiculo: string | null = null;
+
   // Arrays Dinámicos para Selects
   anios: number[] = Array.from({ length: 2026 - 1980 + 1 }, (_, i) => 2026 - i);
   cargasKg: number[] = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000, 7000, 8000];
 
+  // Modelo de Formulario
   nuevoVehiculo: Partial<Vehiculo> = this.inicializarFormulario();
 
-  constructor(
-    public flotaService: FlotaService, 
-    private vehiculoService: VehiculoService,
-    private conductorService: ConductorService,
-    private archivoService: ArchivoService
-  ) {}
+  // Mock de Servicios y Observables para RxJS
+  conductores$: Observable<Conductor[]> = of([
+    { id: 1, nombre: 'Carlos Mendoza' },
+    { id: 2, nombre: 'José Rodríguez' },
+    { id: 3, nombre: 'Luis Alvarado' }
+  ]);
+
+  private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([
+    {
+      id: 1,
+      placa: 'A82BC3',
+      tipoVehiculo: 'Camión Ligero',
+      identificador: 'Plataforma 01',
+      marcaModelo: 'Ford Triton V8',
+      anio: 2022,
+      color: 'Blanco',
+      vin: '839201928301',
+      capacidadCarga: 3500,
+      kilometraje: 45000,
+      estado: 'OPERATIVO',
+      conductorId: 1,
+      fotos: ['https://images.unsplash.com/photo-1586191582119-940dd7e273f5?q=80&w=600']
+    },
+    {
+      id: 2,
+      placa: 'A91XY8',
+      tipoVehiculo: 'Furgón',
+      identificador: 'Reparto Zona Norte',
+      marcaModelo: 'Chevrolet N300',
+      anio: 2021,
+      color: 'Gris',
+      vin: '109283746501',
+      capacidadCarga: 1500,
+      kilometraje: 82000,
+      estado: 'TALLER',
+      conductorId: 2,
+      fotos: ['https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?q=80&w=600']
+    }
+  ]);
+
+  vehiculosFiltrados$: BehaviorSubject<Vehiculo[]> = new BehaviorSubject<Vehiculo[]>([]);
+  
+  flotaService = {
+    vehiculos$: this.vehiculosSubject.asObservable(),
+    puedeEditarOEliminar: () => true
+  };
+  
+  flota: Vehiculo[] | null = null;
+fotosVehiculo: any;
 
   ngOnInit(): void {
-    this.cargarDatosBackend();
-
-    this.vehiculosFiltrados$ = combineLatest([
-      this.vehiculos$,
-      this.filtroTexto$,
-      this.filtroEstado$
-    ]).pipe(
-      map(([vehiculos, texto, estado]) => {
-        let resultado = vehiculos;
-        if (estado !== 'TODOS') {
-          resultado = resultado.filter(v => v.estado === estado);
-        }
-        if (texto) {
-          const term = texto.toLowerCase();
-          resultado = resultado.filter(v => 
-            (v.placa && v.placa.toLowerCase().includes(term)) ||
-            (v.marcaModelo && v.marcaModelo.toLowerCase().includes(term)) ||
-            (v.identificador && v.identificador.toLowerCase().includes(term))
-          );
-        }
-        return resultado;
-      })
-    );
-  }
-
-  // --- MÉTODOS HTTP (CONEXIÓN A SPRING BOOT) ---
-  cargarDatosBackend(): void {
-    this.vehiculoService.obtenerVehiculos().subscribe({
-      next: (data) => this.vehiculosSubject.next(data),
-      error: (err) => console.error('Error al cargar vehículos', err)
-    });
-
-    this.conductorService.obtenerConductores().subscribe({
-      next: (data) => this.conductoresSubject.next(data),
-      error: (err) => console.error('Error al cargar conductores', err)
+    this.vehiculosSubject.subscribe(lista => {
+      this.vehiculosFiltrados$.next(lista);
     });
   }
+
+  // ==========================================
+  // LÓGICA Y VALIDACIONES DE FORMULARIO
+  // ==========================================
 
   private inicializarFormulario(): Partial<Vehiculo> {
     return {
@@ -96,132 +107,25 @@ export class FlotaComponent implements OnInit {
       marca: '',
       modelo: '',
       marcaModelo: '',
-      anio: new Date().getFullYear(),
+      anio: undefined,
       color: '',
       vin: '',
+      numeroBien: '',
+      dependencia: '',
       capacidadCarga: undefined,
-      kilometraje: 0,
+      kilometraje: undefined,
       estado: 'OPERATIVO',
-      conductorId: null
+      observaciones: '',
+      responsableVerificacion: { nombre: '', ci: '', telefono: '' },
+      responsableVehiculo: { nombre: '', ci: '', telefono: '' },
+      fotosEstructuradas: {}
     };
   }
 
-  guardarVehiculo(): void {
-    if (!this.nuevoVehiculo.placa || !this.nuevoVehiculo.identificador) {
-      alert('Por favor, completa los datos básicos.');
-      return;
-    }
-
-    if (!this.fotoPerfilVehiculo) {
-      alert('Debes adjuntar la foto de perfil.');
-      return;
-    }
-
-    if (this.fotosVehiculo.length !== 10) {
-      alert('Debes adjuntar exactamente 10 fotos para la galería.');
-      return;
-    }
-
-    // 1. Subir foto de perfil y las 10 de la galería en paralelo
-    const uploads = [
-      this.archivoService.subirArchivo(this.fotoPerfilVehiculo),
-      ...this.fotosVehiculo.map(f => this.archivoService.subirArchivo(f))
-    ];
-
-    forkJoin(uploads).subscribe({
-      next: (resultados) => {
-        // 2. Construir el payload del vehículo con las URLs devueltas por el servidor
-        const urlPerfil = resultados[0].url;
-        const urlsGaleria = resultados.slice(1).map(r => r.url);
-
-        const payload = {
-          ...this.nuevoVehiculo,
-          urlFotoPerfil: urlPerfil,
-          fotos: urlsGaleria,
-          capacidadCarga: this.nuevoVehiculo.capacidadCarga ? Number(this.nuevoVehiculo.capacidadCarga) : undefined,
-          marcaModelo: `${this.nuevoVehiculo.marca || ''} ${this.nuevoVehiculo.modelo || ''}`.trim()
-        };
-        
-        // 3. Guardar el vehículo en la base de datos
-        this.vehiculoService.crearVehiculo(payload as any).subscribe({
-          next: (vehiculoDb) => {
-            alert(`¡Vehículo ${vehiculoDb.placa} registrado con éxito en la base de datos!`);
-            this.cargarDatosBackend(); 
-            this.alternarRegistro();
-            this.resetearFormulario();
-          },
-          error: (err) => {
-            console.error('Error guardando en BD', err);
-            alert('Ocurrió un error al intentar guardar el vehículo.');
-          }
-        });
-      },
-      error: (err) => {
-        console.error('Error subiendo fotos', err);
-        alert('Ocurrió un error al intentar subir las fotos. Verifica la conexión.');
-      }
-    });
-  }
-
-  eliminar(id?: number): void {
-    if (!id) return;
-    if (confirm('¿Eliminar definitivamente esta unidad de la base de datos?')) {
-      this.vehiculoService.eliminarVehiculo(id).subscribe({
-        next: () => {
-          alert('Vehículo eliminado');
-          this.cargarDatosBackend(); 
-        },
-        error: (err) => console.error('Error al eliminar', err)
-      });
-    }
-  }
-
-  // --- MÉTODOS DE UTILIDAD Y UI ---
-  resetearFormulario(): void {
-    this.nuevoVehiculo = this.inicializarFormulario();
-  }
-
-  aplicarFiltroBuscador(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.filtroTexto$.next(input.value);
-  }
-
-  filtrarPorEstado(estado: string): void {
-    this.filtroEstado$.next(estado);
-  }
-
-  obtenerNombreConductor(id?: number | null, conductores?: Conductor[] | null): string {
-    if (!id || !conductores) return 'Sin Asignar';
-    const c = conductores.find(item => item.id === id);
-    return c ? `${c.nombre}` : 'Sin Asignar';
-  }
-
-  alternarRegistro(): void {
-    this.mostrarRegistro = !this.mostrarRegistro;
-    this.fotosVehiculo = [];
-    this.fotoPerfilVehiculo = null;
-    if (!this.mostrarRegistro) {
-      this.resetearFormulario();
-    }
-  }
-
-  validarAlfanumerico(event: Event, campo: keyof Vehiculo): void {
-    const input = event.target as HTMLInputElement;
-    const valorLimpio = input.value.replace(/[^a-zA-Z0-9-]/g, '').toUpperCase();
-    input.value = valorLimpio;
-    if (this.nuevoVehiculo) (this.nuevoVehiculo as any)[campo] = valorLimpio;
-  }
-
-  validarSoloNumeros(event: Event, campo: keyof Vehiculo): void {
-    const input = event.target as HTMLInputElement;
-    const valorLimpio = input.value.replace(/[^0-9]/g, '');
-    input.value = valorLimpio;
-    if (this.nuevoVehiculo) (this.nuevoVehiculo as any)[campo] = valorLimpio;
-  }
-  
   validarKilometraje(event: Event): void {
     const input = event.target as HTMLInputElement;
     let valor = parseInt(input.value, 10);
+
     if (isNaN(valor) || valor < 0) {
       this.nuevoVehiculo.kilometraje = undefined;
       input.value = '';
@@ -233,42 +137,158 @@ export class FlotaComponent implements OnInit {
     }
   }
 
-  cargarFotoPerfil(event: any): void {
-    if (event.target.files && event.target.files.length > 0) {
-      this.fotoPerfilVehiculo = event.target.files[0];
+  validarAlfanumerico(event: Event, campo: keyof Vehiculo): void {
+    const input = event.target as HTMLInputElement;
+    input.value = input.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    (this.nuevoVehiculo as any)[campo] = input.value;
+  }
+
+  validarSoloNumeros(event: Event, campo: keyof Vehiculo): void {
+    const input = event.target as HTMLInputElement;
+    input.value = input.value.replace(/[^0-9]/g, '');
+    (this.nuevoVehiculo as any)[campo] = input.value;
+  }
+
+  soloNumeros(event: KeyboardEvent): boolean {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      return false;
+    }
+    return true;
+  }
+
+  // ==========================================
+  // GESTIÓN DE BÚSQUEDA Y FILTROS
+  // ==========================================
+
+  aplicarFiltroBuscador(event: Event): void {
+    const termino = (event.target as HTMLInputElement).value.toLowerCase();
+    const listaCompleta = this.vehiculosSubject.getValue();
+
+    const filtrados = listaCompleta.filter(v =>
+      (v.placa || '').toLowerCase().includes(termino) ||
+      (v.identificador || '').toLowerCase().includes(termino) ||
+      (v.marcaModelo || '').toLowerCase().includes(termino)
+    );
+
+    this.vehiculosFiltrados$.next(filtrados);
+  }
+
+  filtrarPorEstado(estado: string): void {
+    const listaCompleta = this.vehiculosSubject.getValue();
+    if (estado === 'TODOS') {
+      this.vehiculosFiltrados$.next(listaCompleta);
+    } else {
+      this.vehiculosFiltrados$.next(listaCompleta.filter(v => v.estado === estado));
     }
   }
 
-  cargarFotos(event: any): void {
-    if (event.target.files) this.fotosVehiculo = Array.from(event.target.files);
+  // ==========================================
+  // MANEJO DE ARCHIVOS (Ficha Técnica)
+  // ==========================================
+
+  cargarFotoPerfil(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => this.fotoPerfilVehiculo = e.target.result;
+      reader.readAsDataURL(file);
+    }
   }
 
-  abrirFicha(v: Vehiculo): void { this.vehiculoSeleccionado = v; }
-  cerrarFicha(): void { this.vehiculoSeleccionado = null; }
-  imprimirFicha(): void { window.print(); }
+  cargarFotoEspecifica(event: Event, llave: keyof FotosFichaTecnica): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        if (!this.nuevoVehiculo.fotosEstructuradas) {
+          this.nuevoVehiculo.fotosEstructuradas = {};
+        }
+        this.nuevoVehiculo.fotosEstructuradas[llave] = e.target.result;
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
 
-  // --- CARRUSEL FULLSCREEN ---
-  abrirCarrusel(v: Vehiculo, indexInicial: number = 0): void {
-    if (!v.fotos || v.fotos.length === 0) return;
-    this.vehiculoCarrusel = v;
-    this.fotosCarrusel = v.fotos.map(f => f.startsWith('http') ? f : 'http://localhost:8080' + f).slice(0, 10);
-    this.indiceFotoActual = indexInicial;
+  alternarRegistro(): void {
+    this.mostrarRegistro = !this.mostrarRegistro;
+    if (!this.mostrarRegistro) {
+      this.nuevoVehiculo = this.inicializarFormulario();
+      this.fotoPerfilVehiculo = null;
+    }
+  }
+
+  guardarVehiculo(): void {
+    // Si no hay foto de perfil, detenemos el guardado
+    if (!this.fotoPerfilVehiculo) {
+      alert('La foto de perfil es obligatoria.');
+      return;
+    }
+
+    const nuevo: Vehiculo = {
+      ...(this.nuevoVehiculo as Vehiculo),
+      id: Date.now(),
+      anio: Number(this.nuevoVehiculo.anio),
+      capacidadCarga: Number(this.nuevoVehiculo.capacidadCarga),
+      fotos: [this.fotoPerfilVehiculo] // Aquí puedes agregar la lógica para integrar las 6 fotos estructuradas si lo deseas
+    };
+
+    const listaActual = this.vehiculosSubject.getValue();
+    this.vehiculosSubject.next([nuevo, ...listaActual]);
+    this.alternarRegistro();
+  }
+
+  eliminar(id?: number): void {
+    if (!id) return;
+    const listaActual = this.vehiculosSubject.getValue().filter(v => v.id !== id);
+    this.vehiculosSubject.next(listaActual);
+  }
+
+  // ==========================================
+  // MODALES Y VISTA PREVIA
+  // ==========================================
+
+  abrirFicha(v: Vehiculo): void {
+    this.vehiculoSeleccionado = v;
+  }
+
+  cerrarFicha(): void {
+    this.vehiculoSeleccionado = null;
+  }
+
+  imprimirFicha(): void {
+    window.print();
+  }
+
+  abrirCarrusel(v: Vehiculo): void {
+    this.fotosCarrusel = v.fotos || [];
+    this.indiceFotoActual = 0;
     this.mostrarCarrusel = true;
   }
 
   cerrarCarrusel(): void {
     this.mostrarCarrusel = false;
-    this.fotosCarrusel = [];
-    this.indiceFotoActual = 0;
   }
 
   siguienteFoto(): void {
-    if (this.fotosCarrusel.length === 0) return;
-    this.indiceFotoActual = (this.indiceFotoActual + 1) % this.fotosCarrusel.length;
+    if (this.indiceFotoActual < this.fotosCarrusel.length - 1) {
+      this.indiceFotoActual++;
+    } else {
+      this.indiceFotoActual = 0;
+    }
   }
 
   anteriorFoto(): void {
-    if (this.fotosCarrusel.length === 0) return;
-    this.indiceFotoActual = (this.indiceFotoActual - 1 + this.fotosCarrusel.length) % this.fotosCarrusel.length;
+    if (this.indiceFotoActual > 0) {
+      this.indiceFotoActual--;
+    } else {
+      this.indiceFotoActual = this.fotosCarrusel.length - 1;
+    }
+  }
+
+  obtenerNombreConductor(conductorId?: number | null, conductores?: Conductor[] | null): string {
+    if (!conductorId || !conductores) return 'Sin Asignar';
+    const c = conductores.find(item => item.id === conductorId);
+    return c ? c.nombre : 'Sin Asignar';
   }
 }
