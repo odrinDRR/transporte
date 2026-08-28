@@ -162,15 +162,15 @@
           
           <div class="file-upload-box p-4 rounded-3 text-center border-dashed position-relative mb-3" [class.has-file]="fotosVehiculo.length > 0">
             <input type="file" class="file-input-hidden" accept="image/*" multiple (change)="cargarFotos($event)">
-            <i class="bi" [ngClass]="fotosVehiculo.length === 10 ? 'bi-images text-success fs-1' : 'bi-cloud-arrow-up-fill text-primary fs-1'"></i>
+            <i class="bi" [ngClass]="(fotosVehiculo.length > 0 && fotosVehiculo.length <= 10) ? 'bi-images text-success fs-1' : 'bi-cloud-arrow-up-fill text-primary fs-1'"></i>
             <span class="d-block text-white fs-sm mt-2 text-truncate px-2">
               {{ fotosVehiculo.length > 0 ? (fotosVehiculo.length + ' imágenes seleccionadas') : 'Haz clic para seleccionar 10 Fotos' }}
             </span>
           </div>
 
           <div class="d-flex justify-content-between align-items-center">
-            <span class="text-custom-muted small">Seleccione exactamente 10 imágenes (Frontal, laterales, trasera, chasis, etc.)</span>
-            <span class="badge fs-5" [ngClass]="fotosVehiculo.length === 10 ? 'bg-success' : 'bg-danger'">
+            <span class="text-custom-muted small">Seleccione hasta 10 imágenes (Frontal, laterales, trasera, chasis, etc.)</span>
+            <span class="badge fs-5" [ngClass]="(fotosVehiculo.length > 0 && fotosVehiculo.length <= 10) ? 'bg-success' : 'bg-danger'">
               {{ fotosVehiculo.length }} / 10 Fotos
             </span>
           </div>
@@ -229,7 +229,7 @@
         <button class="btn btn-link text-custom-muted text-decoration-none" (click)="alternarRegistro()">Cancelar</button>
         <button class="btn btn-success btn-lg fw-bold px-5 shadow" 
                 (click)="guardarVehiculo()" 
-                [disabled]="!fotoPerfilVehiculo || fotosVehiculo.length !== 10">
+                [disabled]="!fotoPerfilVehiculo || fotosVehiculo.length === 0 || fotosVehiculo.length > 10">
           Guardar Vehículo <i class="bi bi-check-circle"></i>
         </button>
       </div>
