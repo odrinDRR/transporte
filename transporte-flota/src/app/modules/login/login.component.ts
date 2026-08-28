@@ -87,8 +87,11 @@ export class LoginComponent {
 
   seleccionarRol(rol: RolUsuario): void {
     this.rolSeleccionado = rol;
-    this.usuario = `${rol.toLowerCase()}@empresa.com`;
-    this.clave = '123456';
+    if (rol) {
+      this.usuario = `${rol.toLowerCase()}@empresa.com`;
+    } else {
+      this.usuario = '';
+    }
   }
 
   volverRoles(): void {

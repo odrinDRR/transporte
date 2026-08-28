@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Observable, combineLatest, BehaviorSubject } from 'rxjs';
+import { Observable, combineLatest, BehaviorSubject, forkJoin, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { FlotaService } from '../../core/services/flota.service';
 import { VehiculoService } from '../../services/vehiculo.service';
@@ -31,25 +31,19 @@ export class FlotaComponent implements OnInit {
   indiceFotoActual: number = 0;
   vehiculoCarrusel: Vehiculo | null = null;
   mostrarRegistro: boolean = false;
-  fotoPerfilVehiculo: File | null = null;
-  fotosVehiculo: File[] = [];
+  
+  // Carga de Archivos
+  fotoPerfilVehiculo: File | null = null; 
+  fotosVehiculo: File[] = []; 
+  
+  // Arrays Dinámicos para Selects
+  anios: number[] = Array.from({ length: 2026 - 1980 + 1 }, (_, i) => 2026 - i);
+  cargasKg: number[] = [500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 5000, 6000, 7000, 8000];
 
-  // ⚠️ ATENCIÓN: Ajusté "marca" y "modelo" para que coincidan con la tabla de PostgreSQL
-  nuevoVehiculo = {
-    placa: '',
-    identificador: '',
-    marca: '', 
-    modelo: '',
-    anio: new Date().getFullYear(),
-    vin: '',
-    kilometraje: 0,
-    estado: 'OPERATIVO',
-    tipo: 'CARGA', // Agregado según tu base de datos
-    conductorId: null
-  };
+  nuevoVehiculo: Partial<Vehiculo> = this.inicializarFormulario();
 
   constructor(
-    public flotaService: FlotaService, // Mantenemos para validación de roles
+    public flotaService: FlotaService, 
     private vehiculoService: VehiculoService,
     private conductorService: ConductorService,
     private archivoService: ArchivoService
@@ -71,8 +65,9 @@ export class FlotaComponent implements OnInit {
         if (texto) {
           const term = texto.toLowerCase();
           resultado = resultado.filter(v => 
-            v.placa.toLowerCase().includes(term) ||
-            (v.marca && v.marca.toLowerCase().includes(term))
+            (v.placa && v.placa.toLowerCase().includes(term)) ||
+            (v.marcaModelo && v.marcaModelo.toLowerCase().includes(term)) ||
+            (v.identificador && v.identificador.toLowerCase().includes(term))
           );
         }
         return resultado;
@@ -93,8 +88,26 @@ export class FlotaComponent implements OnInit {
     });
   }
 
+  private inicializarFormulario(): Partial<Vehiculo> {
+    return {
+      placa: '',
+      tipoVehiculo: '',
+      identificador: '',
+      marca: '',
+      modelo: '',
+      marcaModelo: '',
+      anio: new Date().getFullYear(),
+      color: '',
+      vin: '',
+      capacidadCarga: undefined,
+      kilometraje: 0,
+      estado: 'OPERATIVO',
+      conductorId: null
+    };
+  }
+
   guardarVehiculo(): void {
-    if (!this.nuevoVehiculo.placa || !this.nuevoVehiculo.identificador || !this.nuevoVehiculo.modelo) {
+    if (!this.nuevoVehiculo.placa || !this.nuevoVehiculo.identificador) {
       alert('Por favor, completa los datos básicos.');
       return;
     }
@@ -104,21 +117,36 @@ export class FlotaComponent implements OnInit {
       return;
     }
 
-    // 1. Subir la foto primero
-    this.archivoService.subirArchivo(this.fotoPerfilVehiculo).subscribe({
-      next: (res) => {
-        // 2. Construir el payload del vehículo con la URL devuelta por el servidor
+    if (this.fotosVehiculo.length !== 10) {
+      alert('Debes adjuntar exactamente 10 fotos para la galería.');
+      return;
+    }
+
+    // 1. Subir foto de perfil y las 10 de la galería en paralelo
+    const uploads = [
+      this.archivoService.subirArchivo(this.fotoPerfilVehiculo),
+      ...this.fotosVehiculo.map(f => this.archivoService.subirArchivo(f))
+    ];
+
+    forkJoin(uploads).subscribe({
+      next: (resultados) => {
+        // 2. Construir el payload del vehículo con las URLs devueltas por el servidor
+        const urlPerfil = resultados[0].url;
+        const urlsGaleria = resultados.slice(1).map(r => r.url);
+
         const payload = {
           ...this.nuevoVehiculo,
-          urlFotoPerfil: res.url,
-          marcaModelo: `${this.nuevoVehiculo.marca} ${this.nuevoVehiculo.modelo}`.trim()
+          urlFotoPerfil: urlPerfil,
+          fotos: urlsGaleria,
+          capacidadCarga: this.nuevoVehiculo.capacidadCarga ? Number(this.nuevoVehiculo.capacidadCarga) : undefined,
+          marcaModelo: `${this.nuevoVehiculo.marca || ''} ${this.nuevoVehiculo.modelo || ''}`.trim()
         };
         
         // 3. Guardar el vehículo en la base de datos
         this.vehiculoService.crearVehiculo(payload as any).subscribe({
           next: (vehiculoDb) => {
             alert(`¡Vehículo ${vehiculoDb.placa} registrado con éxito en la base de datos!`);
-            this.cargarDatosBackend(); // Refrescar la grilla
+            this.cargarDatosBackend(); 
             this.alternarRegistro();
             this.resetearFormulario();
           },
@@ -129,27 +157,28 @@ export class FlotaComponent implements OnInit {
         });
       },
       error: (err) => {
-        console.error('Error subiendo foto', err);
-        alert('Ocurrió un error al intentar subir la foto de perfil.');
+        console.error('Error subiendo fotos', err);
+        alert('Ocurrió un error al intentar subir las fotos. Verifica la conexión.');
       }
     });
   }
 
-  eliminar(id: number): void {
+  eliminar(id?: number): void {
+    if (!id) return;
     if (confirm('¿Eliminar definitivamente esta unidad de la base de datos?')) {
       this.vehiculoService.eliminarVehiculo(id).subscribe({
         next: () => {
           alert('Vehículo eliminado');
-          this.cargarDatosBackend(); // Refrescar la grilla
+          this.cargarDatosBackend(); 
         },
         error: (err) => console.error('Error al eliminar', err)
       });
     }
   }
 
-  // --- MÉTODOS DE UTILIDAD Y UI (Mantienen tu lógica original) ---
+  // --- MÉTODOS DE UTILIDAD Y UI ---
   resetearFormulario(): void {
-    this.nuevoVehiculo = { placa: '', identificador: '', marca: '', modelo: '', anio: new Date().getFullYear(), vin: '', kilometraje: 0, estado: 'OPERATIVO', tipo: 'CARGA', conductorId: null };
+    this.nuevoVehiculo = this.inicializarFormulario();
   }
 
   aplicarFiltroBuscador(event: Event): void {
@@ -161,8 +190,8 @@ export class FlotaComponent implements OnInit {
     this.filtroEstado$.next(estado);
   }
 
-  obtenerNombreConductor(id: number | null, conductores: Conductor[]): string {
-    if (!id) return 'Sin Asignar';
+  obtenerNombreConductor(id?: number | null, conductores?: Conductor[] | null): string {
+    if (!id || !conductores) return 'Sin Asignar';
     const c = conductores.find(item => item.id === id);
     return c ? `${c.nombre}` : 'Sin Asignar';
   }
@@ -171,31 +200,49 @@ export class FlotaComponent implements OnInit {
     this.mostrarRegistro = !this.mostrarRegistro;
     this.fotosVehiculo = [];
     this.fotoPerfilVehiculo = null;
+    if (!this.mostrarRegistro) {
+      this.resetearFormulario();
+    }
   }
 
-  validarAlfanumerico(event: Event, campo: string): void {
+  validarAlfanumerico(event: Event, campo: keyof Vehiculo): void {
     const input = event.target as HTMLInputElement;
     const valorLimpio = input.value.replace(/[^a-zA-Z0-9-]/g, '').toUpperCase();
     input.value = valorLimpio;
     if (this.nuevoVehiculo) (this.nuevoVehiculo as any)[campo] = valorLimpio;
   }
 
-  validarSoloNumeros(event: Event, campo: string): void {
+  validarSoloNumeros(event: Event, campo: keyof Vehiculo): void {
     const input = event.target as HTMLInputElement;
     const valorLimpio = input.value.replace(/[^0-9]/g, '');
     input.value = valorLimpio;
     if (this.nuevoVehiculo) (this.nuevoVehiculo as any)[campo] = valorLimpio;
   }
+  
+  validarKilometraje(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    let valor = parseInt(input.value, 10);
+    if (isNaN(valor) || valor < 0) {
+      this.nuevoVehiculo.kilometraje = undefined;
+      input.value = '';
+    } else if (valor > 400000) {
+      this.nuevoVehiculo.kilometraje = 400000;
+      input.value = '400000';
+    } else {
+      this.nuevoVehiculo.kilometraje = valor;
+    }
+  }
 
-  // (Mantén aquí el resto de tus métodos visuales como cargarFotoPerfil, abrirFicha, cerrarCarrusel, etc.)
   cargarFotoPerfil(event: any): void {
     if (event.target.files && event.target.files.length > 0) {
       this.fotoPerfilVehiculo = event.target.files[0];
     }
   }
+
   cargarFotos(event: any): void {
     if (event.target.files) this.fotosVehiculo = Array.from(event.target.files);
   }
+
   abrirFicha(v: Vehiculo): void { this.vehiculoSeleccionado = v; }
   cerrarFicha(): void { this.vehiculoSeleccionado = null; }
   imprimirFicha(): void { window.print(); }
@@ -204,7 +251,7 @@ export class FlotaComponent implements OnInit {
   abrirCarrusel(v: Vehiculo, indexInicial: number = 0): void {
     if (!v.fotos || v.fotos.length === 0) return;
     this.vehiculoCarrusel = v;
-    this.fotosCarrusel = v.fotos.slice(0, 10);
+    this.fotosCarrusel = v.fotos.map(f => f.startsWith('http') ? f : 'http://localhost:8080' + f).slice(0, 10);
     this.indiceFotoActual = indexInicial;
     this.mostrarCarrusel = true;
   }

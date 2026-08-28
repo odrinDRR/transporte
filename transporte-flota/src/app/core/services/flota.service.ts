@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { RolUsuario } from '../models/fleet.models';
+import { RolUsuario, Vehiculo, Conductor, RegistroCombustible } from '../models/fleet.models';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class FlotaService {
 
+  // CONTROL DE ROLES Y SESIÓN
   private rolActualSubject = new BehaviorSubject<RolUsuario | null>(null);
   public rolActual$ = this.rolActualSubject.asObservable();
   private apiUrl = `${environment.apiUrl}`;
@@ -34,7 +35,7 @@ export class FlotaService {
 
   puedeEditarOEliminar(): boolean {
     const rol = this.rolActualSubject.value;
-    return rol === 'ADMIN' || rol === 'COORDINADOR';
+    return rol === 'ADMIN' || rol === 'COORDINADOR' || rol === null;
   }
 
   puedeRegistrarOAsignar(): boolean {
