@@ -56,4 +56,52 @@ body {
   background: var(--status-danger-bg);
   border: 1px solid var(--status-danger-border);
   color: var(--status-danger-text);
+}/* --- MEJORAS DE VISIBILIDAD Y ALTO CONTRASTE --- */
+
+/* Etiquetas sobre los inputs */
+label, .form-label {
+  color: #cbd5e1 !important; /* Gris claro de alta legibilidad */
+  font-weight: 600 !important;
+  font-size: 0.825rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Placeholders y textos secundarios */
+input::placeholder, textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+.text-custom-muted, small, .form-text {
+  color: #94a3b8 !important;
+}
+
+/* Cajas de texto e Inputs */
+.form-control, .form-select {
+  background-color: #0d1527 !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
+  border-radius: 8px;
+
+  &:focus {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.2) !important;
+  }
+}
+
+/* Tarjetas métricas superiores (KPIs) */
+.card-stat-header {
+  .stat-label {
+    color: #94a3b8 !important;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .stat-value {
+    color: #ffffff !important;
+    font-weight: 800;
+  }
 }

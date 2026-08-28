@@ -6,6 +6,13 @@ import { Inspeccion } from '../../core/models/fleet.models';
 import { ArchivoService } from '../../services/archivo.service';
 import { forkJoin } from 'rxjs';
 
+interface ZonaCarroceria {
+  id: string;
+  nombre: string;
+  estado: 'OK' | 'LEVE' | 'GRAVE';
+  icono: string;
+}
+
 @Component({
   selector: 'app-inspeccion',
   templateUrl: './inspeccion.component.html',
@@ -15,18 +22,30 @@ export class InspeccionComponent {
   // Control de las grandes fases de la vista
   fasePrincipal: 'INGRESO_CEDULA' | 'SELECCION_TIPO' | 'FORMULARIO' = 'INGRESO_CEDULA';
   
-  // Datos temporales del conductor logueado
+  // Datos del conductor
   cedulaInput: string = '';
   nombreConductorActual: string = '';
   tipoInspeccionActual: 'INICIO' | 'CIERRE' = 'INICIO';
   tieneInspeccionAbierta: boolean = false;
 
- // Stepper del formulario
+  // Stepper del formulario
   etapaActual: number = 1;
 
-  // NUEVO: Control de Imágenes
+  // Evidencias fotográficas
   fotosExterior: File[] = [];
   fotosInterior: File[] = [];
+
+  // INSPECTOR VISUAL 360° / CARCHECK TECH: Puntos táctiles de carrocería
+  zonasCarroceria: ZonaCarroceria[] = [
+    { id: 'frontal', nombre: 'Parachoques Frontal', estado: 'OK', icono: 'bi-front' },
+    { id: 'capot', nombre: 'Capot y Motor', estado: 'OK', icono: 'bi-box-seam' },
+    { id: 'parabrisas', nombre: 'Parabrisas Frontal', estado: 'OK', icono: 'bi-shield-shaded' },
+    { id: 'lat_izq', nombre: 'Lateral Izquierdo', estado: 'OK', icono: 'bi-arrow-left-square' },
+    { id: 'lat_der', nombre: 'Lateral Derecho', estado: 'OK', icono: 'bi-arrow-right-square' },
+    { id: 'techo', nombre: 'Techo / Cabina', estado: 'OK', icono: 'bi-square text-secondary' },
+    { id: 'trasero', nombre: 'Parachoques Trasero', estado: 'OK', icono: 'bi-back' },
+    { id: 'cauchos', nombre: 'Cauchos / Neumáticos', estado: 'OK', icono: 'bi-disc' }
+  ];
 
   inspeccion: Partial<Inspeccion> = {
     kilometraje: null,
@@ -69,12 +88,12 @@ export class InspeccionComponent {
     // Buscamos si el conductor existe coincidiendo Cédula o Ficha usando el servicio real
     this.conductorService.obtenerConductores().subscribe(conductores => {
       const conductor = conductores.find(c => 
-        c.cedula.includes(input) || c.fichaNumerica === input
+        (c.cedula || '').includes(input) || (c.fichaNumerica || '') === input
       );
       
       if (conductor) {
         this.nombreConductorActual = conductor.nombre;
-        this.inspeccion.inspectorFirma = conductor.fichaNumerica; // Guardamos su ficha como firma
+        this.inspeccion.inspectorFirma = conductor.fichaNumerica || input; // Guardamos su ficha como firma
         this.inspeccion.vehiculoId = conductor.vehiculoAsignadoId || undefined; // Asignamos el ID del vehículo
         this.tieneInspeccionAbierta = conductor.inspeccionAbierta || false;
         this.fasePrincipal = 'SELECCION_TIPO';
@@ -84,7 +103,7 @@ export class InspeccionComponent {
     });
   }
 
-  // --- PASO 2: ELEGIR QUÉ HACER ---
+  // --- PASO 2: ELEGIR TIPO DE RUTA ---
   seleccionarRuta(tipo: 'INICIO' | 'CIERRE'): void {
     this.tipoInspeccionActual = tipo;
     this.inspeccion.tipo = tipo; // Guardamos el tipo de inspeccion en el payload
@@ -92,8 +111,32 @@ export class InspeccionComponent {
     this.etapaActual = 1;
   }
 
-  // --- PASO 3: NAVEGACIÓN DEL FORMULARIO ---
-  // --- NUEVO: CAPTURA DE FOTOS ---
+  // --- TECNOLOGÍA CARCHECK: CONMUTAR DAÑOS EN CARROCERÍA ---
+  toggleEstadoZona(zona: ZonaCarroceria): void {
+    if (zona.estado === 'OK') {
+      zona.estado = 'LEVE';
+    } else if (zona.estado === 'LEVE') {
+      zona.estado = 'GRAVE';
+    } else {
+      zona.estado = 'OK';
+    }
+
+    // Actualiza flag global si hay daños graves en exterior
+    const hayGraves = this.zonasCarroceria.some(z => z.estado === 'GRAVE');
+    if (hayGraves) {
+      this.inspeccion.dictamen = 'OBSERVADO';
+    }
+  }
+
+  obtenerClaseEstado(estado: 'OK' | 'LEVE' | 'GRAVE'): string {
+    switch (estado) {
+      case 'OK': return 'badge-ok';
+      case 'LEVE': return 'badge-leve';
+      case 'GRAVE': return 'badge-grave';
+    }
+  }
+
+  // --- PASO 3: ARCHIVOS Y FOTOS ---
   cargarFotosExterior(event: any): void {
     if (event.target.files) {
       this.fotosExterior = Array.from(event.target.files);
@@ -107,7 +150,6 @@ export class InspeccionComponent {
   }
 
   avanzar(): void { 
-    // Validación estricta antes de avanzar
     if (this.etapaActual === 2 && this.fotosExterior.length !== 10) {
       alert(`Debe subir exactamente 10 fotos del Exterior. Lleva ${this.fotosExterior.length}.`);
       return;
@@ -120,7 +162,9 @@ export class InspeccionComponent {
     if (this.etapaActual < 5) this.etapaActual++; 
   }
   
-  retroceder(): void { if (this.etapaActual > 1) this.etapaActual--; }
+  retroceder(): void { 
+    if (this.etapaActual > 1) this.etapaActual--; 
+  }
   
   finalizar(): void {
     if (!this.inspeccion.vehiculoId) {
