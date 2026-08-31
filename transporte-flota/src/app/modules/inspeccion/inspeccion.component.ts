@@ -1,16 +1,13 @@
-import { Component } from '@angular/core';
-import { FlotaService } from '../../core/services/flota.service';
-import { InspeccionService } from '../../services/inspeccion.service';
-import { ConductorService } from '../../services/conductor.service';
-import { Inspeccion } from '../../core/models/fleet.models';
-import { ArchivoService } from '../../services/archivo.service';
-import { forkJoin } from 'rxjs';
+import { Component, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { VehiculoService } from '../../services/vehiculo.service';
 
-interface ZonaCarroceria {
-  id: string;
-  nombre: string;
-  estado: 'OK' | 'LEVE' | 'GRAVE';
-  icono: string;
+export interface InspeccionLivianoDanoDTO {
+  codigoDano: number;
+  nombreDano: string;
+  coordX: number;
+  coordY: number;
 }
 
 @Component({
@@ -18,7 +15,7 @@ interface ZonaCarroceria {
   templateUrl: './inspeccion.component.html',
   styleUrls: ['./inspeccion.component.scss']
 })
-export class InspeccionComponent {
+export class InspeccionComponent implements AfterViewInit {
   // Control de las grandes fases de la vista
   fasePrincipal: 'INGRESO_CEDULA' | 'SELECCION_TIPO' | 'FORMULARIO' = 'INGRESO_CEDULA';
   
@@ -27,192 +24,287 @@ export class InspeccionComponent {
   nombreConductorActual: string = '';
   tipoInspeccionActual: 'INICIO' | 'CIERRE' = 'INICIO';
   tieneInspeccionAbierta: boolean = false;
+  verificando = false;
+  guardando = false;
 
   // Stepper del formulario
   etapaActual: number = 1;
 
-  // Evidencias fotográficas
-  fotosExterior: File[] = [];
-  fotosInterior: File[] = [];
+  conductorActual: any = null;
+  vehiculoActual: any = null;
 
-  // INSPECTOR VISUAL 360° / CARCHECK TECH: Puntos táctiles de carrocería
-  zonasCarroceria: ZonaCarroceria[] = [
-    { id: 'frontal', nombre: 'Parachoques Frontal', estado: 'OK', icono: 'bi-front' },
-    { id: 'capot', nombre: 'Capot y Motor', estado: 'OK', icono: 'bi-box-seam' },
-    { id: 'parabrisas', nombre: 'Parabrisas Frontal', estado: 'OK', icono: 'bi-shield-shaded' },
-    { id: 'lat_izq', nombre: 'Lateral Izquierdo', estado: 'OK', icono: 'bi-arrow-left-square' },
-    { id: 'lat_der', nombre: 'Lateral Derecho', estado: 'OK', icono: 'bi-arrow-right-square' },
-    { id: 'techo', nombre: 'Techo / Cabina', estado: 'OK', icono: 'bi-square text-secondary' },
-    { id: 'trasero', nombre: 'Parachoques Trasero', estado: 'OK', icono: 'bi-back' },
-    { id: 'cauchos', nombre: 'Cauchos / Neumáticos', estado: 'OK', icono: 'bi-disc' }
-  ];
+  // Daños Canvas
+  danos: InspeccionLivianoDanoDTO[] = [];
+  codigoDanoSeleccionado = 1;
+  tipoDanoSeleccionado = 'GOLPE';
 
-  inspeccion: Partial<Inspeccion> = {
-    kilometraje: null,
-    fecha: new Date().toISOString().substring(0, 10),
-    carroceriaOk: true,
-    lucesOk: true,
-    cinturonesOk: true,
-    tableroOk: true,
-    extintorVigente: true,
-    nivelAceiteOk: true,
-    refrigeranteOk: true,
-    liquidoFrenosOk: true,
-    dictamen: 'APTO',
-    serialOk: true,
-    vidriosOk: true,
-    latoneriaOk: true,
-    pinturaOk: true,
-    parabrisasOk: true,
-    cauchosOk: true,
-    observaciones: '',
-    inspectorFirma: ''
+  // Firmas Canvas
+  @ViewChild('sig1') sig1!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('sig2') sig2!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('sig3') sig3!: ElementRef<HTMLCanvasElement>;
+
+  drawing1 = false; drawing2 = false; drawing3 = false;
+  ctx1!: CanvasRenderingContext2D;
+  ctx2!: CanvasRenderingContext2D;
+  ctx3!: CanvasRenderingContext2D;
+
+  dto: any = {
+    // Paso 1
+    motivo: 'RUTINARIO',
+    gerenciaSolicitante: '',
+    unidadUsuaria: '',
+    centroCosto: '',
+    kilometrajeEntregado: null,
+    kilometrajeRecibido: null,
+    transmision: 'AUTOMATICO',
+
+    // Paso 2
+    nivelCombustible: 'ALTO',
+    nivelAceiteMotor: 'ALTO',
+    nivelLigaFrenos: 'ALTO',
+    nivelAceiteCaja: 'ALTO',
+    nivelRefrigerante: 'ALTO',
+    tipoCobertura: '',
+    docCarnet: true,
+    docAutorizacion: true,
+    docAsignacion: true,
+    docLicencia: true,
+    docCertificadoMedico: true,
+
+    // Paso 3
+    observacionesDanos: '',
+
+    // Paso 4: Seguridad
+    segAlarma: true,
+    segBoveda: true,
+    segExtintor: true,
+    segTrancaPalanca: true,
+
+    // Paso 4: Accesorios
+    accCables: true,
+    accCauchoRepuesto: true,
+    accCornetas: true,
+    accGato: true,
+    accHerramientas: true,
+    accLlaveCruz: true,
+    accPalancaGato: true,
+    accRadio: true,
+    accRines: true,
+    accTasa: true,
+    accTriangulo: true,
+
+    // Paso 4: Estado General
+    revAire: 'B',
+    revAntena: 'B',
+    revCauchos: 'B',
+    revFaros: 'B',
+    revFrenos: 'B',
+    revVidrios: 'B',
+    revTapiceria: 'B',
+    revTablero: 'B',
+
+    // Paso 4: Especificaciones
+    batMarca: '', batModelo: '', batCodigo: '', batVida: '',
+    cauMarca: '', cauModelo: '', cauCodigo: '', cauVida: '',
+
+    // Paso 5: Firmas
+    inspectorNombre: '', inspectorCargo: '', inspectorPersonal: '',
+    entregaNombre: '', entregaCargo: '', entregaPersonal: '',
+    recibeNombre: '', recibeCargo: '', recibePersonal: '',
+    
+    // Core relations
+    vehiculoId: null,
+    usuarioId: null
   };
 
   constructor(
-    private flotaService: FlotaService,
-    private inspeccionService: InspeccionService,
-    private conductorService: ConductorService,
-    private archivoService: ArchivoService
+    private http: HttpClient,
+    private vehiculoService: VehiculoService
   ) {}
+
+  ngAfterViewInit() {}
 
   // --- PASO 1: VALIDAR CÉDULA O FICHA ---
   verificarCedula(): void {
-    const input = this.cedulaInput.trim();
+    if(!this.cedulaInput) return;
+    this.verificando = true;
     
-    if (!input) {
-      alert('Por favor, ingresa tu número de cédula o ficha.');
-      return;
-    }
+    this.http.get<any[]>(`${environment.apiUrl}/usuarios`).subscribe({
+      next: (usuarios) => {
+        const term = this.cedulaInput.trim().toLowerCase();
+        const usuarioActual = usuarios.find(u => 
+          u.cargo === 'CONDUCTOR' && 
+          u.estado !== 'PENDIENTE' &&
+          (
+            (u.cedula && u.cedula.toLowerCase() === term) ||
+            (u.ficha && u.ficha.toLowerCase() === term) ||
+            (u.licencia && u.licencia.toLowerCase() === term)
+          )
+        );
 
-    // Buscamos si el conductor existe coincidiendo Cédula o Ficha usando el servicio real
-    this.conductorService.obtenerConductores().subscribe(conductores => {
-      const conductor = conductores.find(c => 
-        (c.cedula || '').includes(input) || (c.fichaNumerica || '') === input
-      );
-      
-      if (conductor) {
-        this.nombreConductorActual = conductor.nombre;
-        this.inspeccion.inspectorFirma = conductor.fichaNumerica || input; // Guardamos su ficha como firma
-        this.inspeccion.vehiculoId = conductor.vehiculoAsignadoId || undefined; // Asignamos el ID del vehículo
-        this.tieneInspeccionAbierta = conductor.inspeccionAbierta || false;
-        this.fasePrincipal = 'SELECCION_TIPO';
-      } else {
-        alert('Cédula o Ficha no encontrada. Verifica el número o contacta a Recursos Humanos.');
-      }
+        if (usuarioActual) {
+          this.vehiculoService.obtenerVehiculos().subscribe({
+            next: (vehs) => {
+              this.vehiculoActual = vehs.find(v => v.conductorId === usuarioActual.id) || null;
+              
+              if (this.vehiculoActual) {
+                this.nombreConductorActual = usuarioActual.nombre;
+                this.conductorActual = {
+                  id: usuarioActual.id,
+                  nombre: usuarioActual.nombre + ' ' + usuarioActual.apellido,
+                  cedula: usuarioActual.cedula,
+                  fichaNumerica: usuarioActual.ficha || usuarioActual.licencia || 'Sin ficha',
+                  vehiculoAsignadoId: this.vehiculoActual.id
+                };
+
+                this.dto.vehiculoId = Number(this.vehiculoActual.id);
+                this.dto.usuarioId = usuarioActual.id;
+                this.dto.inspectorNombre = this.conductorActual?.nombre;
+                this.dto.entregaNombre = this.conductorActual?.nombre;
+                
+                // Jump straight to the form
+                this.tipoInspeccionActual = 'INICIO';
+                this.dto.motivo = 'RUTINARIO';
+                this.fasePrincipal = 'FORMULARIO';
+                this.etapaActual = 1;
+              } else {
+                alert('El conductor fue encontrado pero no tiene un vehículo asignado.');
+              }
+              this.verificando = false;
+            },
+            error: () => { alert('Error al verificar los vehículos.'); this.verificando = false; }
+          });
+        } else {
+          alert('Conductor no encontrado. Verifica la cédula o ficha ingresada.');
+          this.verificando = false;
+        }
+      },
+      error: () => { alert('Error al verificar el conductor en el servidor.'); this.verificando = false; }
     });
   }
 
   // --- PASO 2: ELEGIR TIPO DE RUTA ---
   seleccionarRuta(tipo: 'INICIO' | 'CIERRE'): void {
     this.tipoInspeccionActual = tipo;
-    this.inspeccion.tipo = tipo; // Guardamos el tipo de inspeccion en el payload
+    this.dto.motivo = tipo === 'INICIO' ? 'RUTINARIO' : 'RUTINARIO'; // Opcional
     this.fasePrincipal = 'FORMULARIO';
     this.etapaActual = 1;
   }
 
-  // --- TECNOLOGÍA CARCHECK: CONMUTAR DAÑOS EN CARROCERÍA ---
-  toggleEstadoZona(zona: ZonaCarroceria): void {
-    if (zona.estado === 'OK') {
-      zona.estado = 'LEVE';
-    } else if (zona.estado === 'LEVE') {
-      zona.estado = 'GRAVE';
-    } else {
-      zona.estado = 'OK';
-    }
-
-    // Actualiza flag global si hay daños graves en exterior
-    const hayGraves = this.zonasCarroceria.some(z => z.estado === 'GRAVE');
-    if (hayGraves) {
-      this.inspeccion.dictamen = 'OBSERVADO';
-    }
-  }
-
-  obtenerClaseEstado(estado: 'OK' | 'LEVE' | 'GRAVE'): string {
-    switch (estado) {
-      case 'OK': return 'badge-ok';
-      case 'LEVE': return 'badge-leve';
-      case 'GRAVE': return 'badge-grave';
-    }
-  }
-
-  // --- PASO 3: ARCHIVOS Y FOTOS ---
-  cargarFotosExterior(event: any): void {
-    if (event.target.files) {
-      this.fotosExterior = Array.from(event.target.files);
-    }
-  }
-
-  cargarFotosInterior(event: any): void {
-    if (event.target.files) {
-      this.fotosInterior = Array.from(event.target.files);
-    }
-  }
-
   avanzar(): void { 
-    if (this.etapaActual === 2 && this.fotosExterior.length !== 10) {
-      alert(`Debe subir exactamente 10 fotos del Exterior. Lleva ${this.fotosExterior.length}.`);
-      return;
-    }
-    if (this.etapaActual === 3 && this.fotosInterior.length !== 10) {
-      alert(`Debe subir exactamente 10 fotos del Interior. Lleva ${this.fotosInterior.length}.`);
-      return;
-    }
-
     if (this.etapaActual < 5) this.etapaActual++; 
+    if (this.etapaActual === 5) setTimeout(() => this.initCanvasFirmas(), 300);
   }
   
   retroceder(): void { 
     if (this.etapaActual > 1) this.etapaActual--; 
   }
-  
-  finalizar(): void {
-    if (!this.inspeccion.vehiculoId) {
-       alert('Error: El conductor no tiene un vehículo asignado.');
-       return;
+
+  seleccionarDano(codigo: number, nombre: string) {
+    this.codigoDanoSeleccionado = codigo;
+    this.tipoDanoSeleccionado = nombre;
+  }
+
+  agregarDano(event: MouseEvent) {
+    const container = event.currentTarget as HTMLElement;
+    const rect = container.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    
+    this.danos.push({
+      codigoDano: this.codigoDanoSeleccionado,
+      nombreDano: this.tipoDanoSeleccionado,
+      coordX: x,
+      coordY: y
+    });
+  }
+
+  quitarDano(index: number) {
+    this.danos.splice(index, 1);
+  }
+
+  // --- FIRMAS ---
+  initCanvasFirmas() {
+    if(this.sig1) this.ctx1 = this.setupCanvas(this.sig1.nativeElement, 1);
+    if(this.sig2) this.ctx2 = this.setupCanvas(this.sig2.nativeElement, 2);
+    if(this.sig3) this.ctx3 = this.setupCanvas(this.sig3.nativeElement, 3);
+  }
+
+  setupCanvas(canvas: HTMLCanvasElement, num: number): CanvasRenderingContext2D {
+    const ctx = canvas.getContext('2d')!;
+    if(canvas.parentElement) {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = 150; // Fixed height for signatures
     }
 
-    if (this.fotosExterior.length !== 10 || this.fotosInterior.length !== 10) {
-      alert('Error: Faltan fotografías por cargar.');
-      return;
-    }
+    const startDraw = (x: number, y: number) => {
+      if(num===1) this.drawing1 = true;
+      if(num===2) this.drawing2 = true;
+      if(num===3) this.drawing3 = true;
+      ctx.beginPath(); ctx.moveTo(x, y);
+    };
 
-    // Unimos todos los archivos en un solo array para subir
-    const todosLosArchivos = [...this.fotosExterior, ...this.fotosInterior];
-    const uploads = todosLosArchivos.map(f => this.archivoService.subirArchivo(f));
+    const draw = (x: number, y: number) => {
+      const isDrawing = num===1 ? this.drawing1 : num===2 ? this.drawing2 : this.drawing3;
+      if(isDrawing) {
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = '#fff'; // White ink for dark mode
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    };
 
-    forkJoin(uploads).subscribe({
-      next: (resultados) => {
-        const urls = resultados.map(r => r.url);
-        
-        // Separamos las URLs según el orden en que las unimos
-        const urlsExterior = urls.slice(0, 10);
-        const urlsInterior = urls.slice(10, 20);
+    const stopDraw = () => {
+      if(num===1) this.drawing1 = false;
+      if(num===2) this.drawing2 = false;
+      if(num===3) this.drawing3 = false;
+    };
 
-        this.inspeccion.fotosExterior = urlsExterior;
-        this.inspeccion.fotosInterior = urlsInterior;
+    canvas.onmousedown = (e) => startDraw(e.offsetX, e.offsetY);
+    canvas.onmousemove = (e) => draw(e.offsetX, e.offsetY);
+    canvas.onmouseup = stopDraw;
+    canvas.onmouseleave = stopDraw;
 
-        // Enviamos el objeto inspeccion al backend
-        this.inspeccionService.crearInspeccion(this.inspeccion as any).subscribe({
-          next: (res) => {
-            alert(`Inspección de ${this.tipoInspeccionActual} guardada en base de datos correctamente.`);
-            // Reseteamos el sistema completo para el próximo conductor
-            this.fasePrincipal = 'INGRESO_CEDULA';
-            this.cedulaInput = '';
-            this.etapaActual = 1;
-            this.fotosExterior = [];
-            this.fotosInterior = [];
-          },
-          error: (err) => {
-            console.error('Error al crear inspección', err);
-            alert('Ocurrió un error de red al intentar guardar la inspección.');
-          }
-        });
+    canvas.ontouchstart = (e) => { e.preventDefault(); const rect = canvas.getBoundingClientRect(); startDraw(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top); };
+    canvas.ontouchmove = (e) => { e.preventDefault(); const rect = canvas.getBoundingClientRect(); draw(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top); };
+    canvas.ontouchend = stopDraw;
+
+    return ctx;
+  }
+
+  clearSignature(num: number) {
+    if(num===1 && this.ctx1 && this.sig1) this.ctx1.clearRect(0, 0, this.sig1.nativeElement.width, this.sig1.nativeElement.height);
+    if(num===2 && this.ctx2 && this.sig2) this.ctx2.clearRect(0, 0, this.sig2.nativeElement.width, this.sig2.nativeElement.height);
+    if(num===3 && this.ctx3 && this.sig3) this.ctx3.clearRect(0, 0, this.sig3.nativeElement.width, this.sig3.nativeElement.height);
+  }
+
+  finalizarInspeccion() {
+    this.guardando = true;
+    this.dto.danos = this.danos;
+    if(this.sig1) this.dto.inspectorFirmaBase64 = this.sig1.nativeElement.toDataURL();
+    if(this.sig2) this.dto.entregaFirmaBase64 = this.sig2.nativeElement.toDataURL();
+    if(this.sig3) this.dto.recibeFirmaBase64 = this.sig3.nativeElement.toDataURL();
+
+    this.http.post(`${environment.apiUrl}/inspecciones-livianos`, this.dto).subscribe({
+      next: () => {
+        alert(`¡Inspección de ${this.tipoInspeccionActual} completada con éxito!`);
+        this.guardando = false;
+        // Volver a inicio
+        this.fasePrincipal = 'INGRESO_CEDULA';
+        this.etapaActual = 1;
+        this.cedulaInput = '';
+        this.danos = [];
       },
       error: (err) => {
-        console.error('Error subiendo fotos de inspección', err);
-        alert('Ocurrió un error al intentar subir las fotos de la inspección. Verifica la conexión.');
+        console.error(err);
+        alert('Error al guardar la inspección');
+        this.guardando = false;
       }
     });
+  }
+
+  get isMoto(): boolean {
+    const t = this.vehiculoActual?.tipoVehiculo?.toUpperCase() || this.vehiculoActual?.tipo?.toUpperCase() || '';
+    return t.includes('MOTO');
   }
 }

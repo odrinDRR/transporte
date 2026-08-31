@@ -94,7 +94,14 @@
     </div>
 
     <!-- TARJETAS DE VEHÍCULOS -->
-    <div class="row g-3" *ngIf="vehiculosFiltrados$ | async as vehiculos">
+    <div *ngIf="cargandoVehiculos" class="text-center my-5">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Cargando unidades...</span>
+      </div>
+      <p class="text-white-50 mt-2">Cargando flota...</p>
+    </div>
+
+    <div class="row g-3" *ngIf="!cargandoVehiculos && (vehiculosFiltrados$ | async) as vehiculos">
       <div class="col-12 col-sm-6 col-lg-4 col-xl-3" *ngFor="let v of vehiculos">
         <div class="card hud-vehicle-card h-100 overflow-hidden shadow-lg">
           
@@ -525,11 +532,13 @@
         </div>
       </div>
 
+      <!-- Botones de Acción -->
       <div class="col-12 d-flex justify-content-end gap-3 mt-4">
-        <button class="btn btn-outline-light px-4 py-2 rounded-pill fw-bold btn-touch-action" (click)="alternarRegistro()">Cancelar</button>
-        <button class="btn btn-success-neon px-5 py-2 rounded-pill fw-bold shadow-lg text-white d-flex align-items-center gap-2 btn-touch-action" (click)="guardarVehiculo()" [disabled]="!fotoPerfilVehiculo">
-          <i class="bi bi-cloud-arrow-up-fill fs-5"></i> Guardar Unidad
-
+        <button class="btn btn-outline-light px-4 py-2 rounded-pill fw-bold btn-touch-action" [disabled]="guardandoVehiculo" (click)="alternarRegistro()">Cancelar</button>
+        <button class="btn btn-success-neon px-5 py-2 rounded-pill fw-bold shadow-lg text-white d-flex align-items-center gap-2 btn-touch-action" (click)="guardarVehiculo()" [disabled]="!fotoPerfilVehiculo || guardandoVehiculo">
+          <span *ngIf="guardandoVehiculo" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          <span *ngIf="!guardandoVehiculo"><i class="bi bi-cloud-arrow-up-fill fs-5"></i> Guardar Unidad</span>
+          <span *ngIf="guardandoVehiculo">Guardando...</span>
         </button>
       </div>
     </div>

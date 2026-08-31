@@ -1,6 +1,6 @@
 <div class="d-flex justify-content-center mt-3">
   
-  <div class="card bg-custom-card border-custom shadow-lg w-100" style="max-width: 580px; border-radius: 20px;">
+  <div class="card bg-custom-card border-custom shadow-lg w-100" style="max-width: 680px; border-radius: 20px;">
     
     <!-- PANTALLA 1: INGRESO DE CÉDULA -->
     <div *ngIf="fasePrincipal === 'INGRESO_CEDULA'" class="card-body p-4 text-center">
@@ -12,45 +12,14 @@
         <input type="text" class="form-control bg-dark text-white border-custom text-center mb-3 rounded-4" 
                placeholder="Cédula o Ficha" 
                [(ngModel)]="cedulaInput"
-               maxlength="8"
+               maxlength="15"
                style="font-size: 1.25rem; letter-spacing: 2px;">
         
-        <button class="btn btn-primary w-100 fw-bold rounded-pill shadow" (click)="verificarCedula()">
-          Continuar <i class="bi bi-arrow-right"></i>
+        <button class="btn btn-primary w-100 fw-bold rounded-pill shadow" (click)="verificarCedula()" [disabled]="verificando">
+          <span *ngIf="!verificando">Continuar <i class="bi bi-arrow-right"></i></span>
+          <span *ngIf="verificando">Verificando...</span>
         </button>
       </div>
-    </div>
-
-    <!-- PANTALLA 2: SELECCIÓN DE ACCIÓN -->
-    <div *ngIf="fasePrincipal === 'SELECCION_TIPO'" class="card-body p-4 text-center">
-      <div class="fs-1 mb-2">👋</div>
-      <h5 class="text-white fw-bold mb-1">¡Bienvenido, {{ nombreConductorActual }}!</h5>
-      <p class="text-custom-muted small mb-3">¿Qué reporte deseas realizar el día de hoy?</p>
-      
-      <div class="row g-2 mx-auto" style="max-width: 500px;">
-        <div [ngClass]="tieneInspeccionAbierta ? 'col-6' : 'col-12'">
-          <button class="btn w-100 h-100 p-3 rounded-4 border-2 text-center d-flex flex-column align-items-center justify-content-center"
-                  [ngClass]="tieneInspeccionAbierta ? 'btn-outline-success' : 'btn-success text-white shadow-lg'"
-                  (click)="seleccionarRuta('INICIO')">
-            <i class="bi bi-truck mb-1" [ngClass]="tieneInspeccionAbierta ? 'text-success' : 'text-white'" style="font-size: 2.2rem;"></i>
-            <h6 class="fw-bold mb-0">Iniciar Ruta</h6>
-            <small [ngClass]="tieneInspeccionAbierta ? 'text-white-50' : 'text-white'" style="font-size: 0.7rem;">Salida (Patio a Ruta)</small>
-          </button>
-        </div>
-        
-        <div class="col-6" *ngIf="tieneInspeccionAbierta">
-          <button class="btn btn-outline-warning w-100 h-100 p-3 rounded-4 border-2 text-center d-flex flex-column align-items-center justify-content-center"
-                  (click)="seleccionarRuta('CIERRE')">
-            <i class="bi bi-flag text-warning mb-1" style="font-size: 2.2rem;"></i>
-            <h6 class="fw-bold mb-0">Cerrar Ruta</h6>
-            <small class="text-white-50" style="font-size: 0.7rem;">Llegada (Ruta a Patio)</small>
-          </button>
-        </div>
-      </div>
-
-      <button class="btn btn-link text-custom-muted mt-3 text-decoration-none small" (click)="fasePrincipal = 'INGRESO_CEDULA'">
-        <i class="bi bi-arrow-left"></i> No soy {{ nombreConductorActual }}
-      </button>
     </div>
 
     <!-- PANTALLA 3: FORMULARIO INTERACTIVO (CARCHECK TECH) -->
@@ -58,7 +27,7 @@
       
       <!-- Cabecera -->
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <button class="btn btn-sm btn-outline-secondary rounded-circle" (click)="fasePrincipal = 'SELECCION_TIPO'">
+        <button class="btn btn-sm btn-outline-secondary rounded-circle" (click)="fasePrincipal = 'INGRESO_CEDULA'">
           <i class="bi bi-x-lg"></i>
         </button>
         <h6 class="text-white fw-bold mb-0">
@@ -69,169 +38,406 @@
 
       <!-- Stepper Visual -->
       <div class="d-flex justify-content-between mb-3 border-bottom border-custom pb-3 overflow-auto text-nowrap">
-        <span class="badge me-1" [ngClass]="etapaActual >= 1 ? 'bg-primary' : 'bg-dark border border-secondary'">1. Datos</span>
-        <span class="badge me-1" [ngClass]="etapaActual >= 2 ? 'bg-primary' : 'bg-dark border border-secondary'">2. Exterior Visual</span>
-        <span class="badge me-1" [ngClass]="etapaActual >= 3 ? 'bg-primary' : 'bg-dark border border-secondary'">3. Interior</span>
-        <span class="badge me-1" [ngClass]="etapaActual >= 4 ? 'bg-primary' : 'bg-dark border border-secondary'">4. Motor</span>
-        <span class="badge" [ngClass]="etapaActual >= 5 ? 'bg-primary' : 'bg-dark border border-secondary'">5. Dictamen</span>
+        <span class="badge me-1" [ngClass]="etapaActual >= 1 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">1. Datos</span>
+        <span class="badge me-1" [ngClass]="etapaActual >= 2 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">2. Fluidos y Docs</span>
+        <span class="badge me-1" [ngClass]="etapaActual >= 3 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">3. Exterior Visual</span>
+        <span class="badge me-1" [ngClass]="etapaActual >= 4 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">4. Accesorios</span>
+        <span class="badge" [ngClass]="etapaActual >= 5 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">5. Firmas</span>
       </div>
 
       <div [ngSwitch]="etapaActual">
         
         <!-- ETAPA 1 -->
         <div *ngSwitchCase="1">
-          <h6 class="text-white mb-3">Etapa 1: Datos Básicos y Verificación</h6>
-          <div class="mb-3">
-            <label class="form-label text-custom-muted small">Kilometraje al momento del {{ tipoInspeccionActual | lowercase }}:</label>
-            <input type="number" [(ngModel)]="inspeccion.kilometraje" class="form-control bg-dark text-white border-custom rounded-3">
-          </div>
-          
-          <h6 class="text-warning mt-3 mb-2 small fw-bold">Identidad del Vehículo</h6>
-          <div class="form-check form-switch mb-2 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center">
-            <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.serialOk" style="transform: scale(1.1);">
-            <label class="form-check-label text-white small">Serial de chasis / VIN visible y coincide</label>
-          </div>
-        </div>
-
-        <!-- ETAPA 2: INSPECTOR INTERACTIVO CARCHECK DE CARROCERÍA -->
-        <div *ngSwitchCase="2">
-          <h6 class="text-white mb-1"><i class="bi bi-shield-check text-info"></i> Inspección Visual de Carrocería (CarCheck)</h6>
-          <p class="text-custom-muted small mb-3">Haz clic en cualquier zona para alternar el estado (Verde: OK | Amarillo: Leve | Rojo: Grave).</p>
-          
-          <!-- Matriz Táctil de Carrocería -->
-          <div class="row g-2 mb-3">
-            <div class="col-6 col-md-4" *ngFor="let z of zonasCarroceria">
-              <div class="card bg-dark border-custom text-white p-2 text-center zona-card cursor-pointer" 
-                   (click)="toggleEstadoZona(z)">
-                <div class="d-flex justify-content-between align-items-center mb-1">
-                  <i class="bi {{ z.icono }} fs-5"></i>
-                  <span class="badge-status {{ obtenerClaseEstado(z.estado) }}">{{ z.estado }}</span>
-                </div>
-                <small class="fw-bold d-block text-truncate" style="font-size: 0.75rem;">{{ z.nombre }}</small>
-              </div>
-            </div>
-          </div>
-
-          <!-- Subir Fotos Exterior -->
-          <div class="mb-3 bg-dark p-2 rounded-4 border" [ngClass]="fotosExterior.length === 10 ? 'border-success' : 'border-warning'">
-            <label class="form-label text-warning fw-bold mb-2 small"><i class="bi bi-camera"></i> Evidencia Fotográfica (Obligatorio: 10 fotos)</label>
-            <input type="file" class="form-control bg-custom-main text-white border-custom mb-2" accept="image/*" multiple (change)="cargarFotosExterior($event)">
-            
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <small class="text-custom-muted" style="font-size: 0.75rem;">Seleccione 10 fotos tomadas del vehículo.</small>
-              <span class="badge" [ngClass]="fotosExterior.length === 10 ? 'bg-success' : 'bg-danger'">
-                {{ fotosExterior.length }} / 10 Fotos
-              </span>
-            </div>
-          </div>
-
-          <div class="row g-2">
-            <div class="col-6">
-              <div class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center">
-                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.latoneriaOk">
-                <label class="form-check-label text-white small">Latonería OK</label>
-              </div>
-            </div>
-            <div class="col-6">
-              <div class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center">
-                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.pinturaOk">
-                <label class="form-check-label text-white small">Pintura OK</label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ETAPA 3 -->
-        <div *ngSwitchCase="3">
-          <h6 class="text-white mb-3">Etapa 3: Interior y Cabina</h6>
-
-          <div class="mb-3 bg-dark p-2 rounded-4 border" [ngClass]="fotosInterior.length === 10 ? 'border-success' : 'border-warning'">
-            <label class="form-label text-warning fw-bold mb-2 small"><i class="bi bi-camera"></i> Evidencia Fotográfica (Obligatorio: 10 fotos)</label>
-            <input type="file" class="form-control bg-custom-main text-white border-custom mb-2" accept="image/*" multiple (change)="cargarFotosInterior($event)">
-            
-            <div class="d-flex justify-content-between align-items-center mt-1">
-              <small class="text-custom-muted" style="font-size: 0.75rem;">Seleccione 10 fotos de la cabina e interior.</small>
-              <span class="badge" [ngClass]="fotosInterior.length === 10 ? 'bg-success' : 'bg-danger'">
-                {{ fotosInterior.length }} / 10 Fotos
-              </span>
-            </div>
-          </div>
-
-          <div class="row g-2">
-            <div class="col-12 col-md-6">
-              <div class="form-check form-switch mb-1 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
-                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.cinturonesOk">
-                <label class="form-check-label text-white small">Cinturones de seguridad funcionales</label>
-              </div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="form-check form-switch mb-1 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
-                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.extintorVigente">
-                <label class="form-check-label text-white small">Extintor vigente y en su lugar</label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ETAPA 4 -->
-        <div *ngSwitchCase="4">
-          <h6 class="text-white mb-3">Etapa 4: Motor y Fluidos</h6>
-          <div class="row g-2">
-            <div class="col-12 col-md-6">
-              <div class="form-check form-switch mb-1 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
-                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.nivelAceiteOk">
-                <label class="form-check-label text-white small">Nivel de Aceite de Motor</label>
-              </div>
-            </div>
-            <div class="col-12 col-md-6">
-              <div class="form-check form-switch mb-1 bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
-                <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="inspeccion.refrigeranteOk">
-                <label class="form-check-label text-white small">Nivel de Refrigerante</label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ETAPA 5 -->
-        <div *ngSwitchCase="5">
-          <h6 class="text-white mb-3">Etapa 5: Dictamen y Declaración</h6>
+          <h6 class="text-white mb-3">Etapa 1: Motivo y Datos del Vehículo</h6>
           
           <div class="mb-3">
-            <label class="form-label text-custom-muted small">Dictamen Final</label>
-            <select [(ngModel)]="inspeccion.dictamen" class="form-select bg-dark text-white border-custom rounded-3">
-              <option value="APTO">🟢 Apto para Circular</option>
-              <option value="OBSERVADO">🟡 Observado con Pendientes Menores</option>
-              <option value="NO_APTO">🔴 No Apto (Remitir a Taller)</option>
+            <label class="form-label text-custom-muted small">Motivo de la Inspección</label>
+            <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.motivo">
+                <option value="RUTINARIO">Rutinario</option>
+                <option value="CORRECTIVO">Correctivo</option>
+                <option value="SOLICITUD">Solicitud del Usuario</option>
             </select>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label text-custom-muted small">Observaciones adicionales (Opcional)</label>
-            <textarea [(ngModel)]="inspeccion.observaciones" class="form-control bg-dark text-white border-custom rounded-3" rows="2" placeholder="Detalles o novedades encontradas..."></textarea>
+          <div class="row g-2 mb-3">
+            <div class="col-12 col-md-4">
+                <label class="form-label text-custom-muted small">Gerencia</label>
+                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.gerenciaSolicitante">
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label text-custom-muted small">Unidad Usuaria</label>
+                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.unidadUsuaria">
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label text-custom-muted small">Centro Costo</label>
+                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.centroCosto">
+            </div>
           </div>
 
-          <div class="mb-3">
-            <label class="form-label text-custom-muted small">Firma del Conductor (Ficha)</label>
-            <input type="text" [(ngModel)]="inspeccion.inspectorFirma" readonly class="form-control bg-dark text-white border-custom rounded-3 text-center">
+          <h6 class="text-warning mt-3 mb-2 small fw-bold">Identidad del Vehículo</h6>
+          <div class="row g-2 mb-3">
+            <div class="col-6 col-md-4">
+                <label class="form-label text-custom-muted small">Placa</label>
+                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.placa" disabled>
+            </div>
+            <div class="col-6 col-md-4">
+                <label class="form-label text-custom-muted small">Marca</label>
+                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.marca" disabled>
+            </div>
+            <div class="col-6 col-md-4">
+                <label class="form-label text-custom-muted small">Modelo</label>
+                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.modelo" disabled>
+            </div>
+            <div class="col-6 col-md-4">
+                <label class="form-label text-custom-muted small">Serial Carrocería</label>
+                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.serialCarroceria || 'N/A'" disabled>
+            </div>
+            <div class="col-6 col-md-4">
+                <label class="form-label text-custom-muted small">Color</label>
+                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.color || 'N/A'" disabled>
+            </div>
+            <div class="col-6 col-md-4">
+                <label class="form-label text-custom-muted small">Año</label>
+                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.anio || 'N/A'" disabled>
+            </div>
+            <div class="col-6 col-md-4">
+                <label class="form-label text-custom-muted small">Tipo</label>
+                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.tipoVehiculo || 'N/A'" disabled>
+            </div>
+          </div>
+
+          <h6 class="text-warning mt-3 mb-2 small fw-bold">Kilometraje y Transmisión</h6>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+                <label class="form-label text-custom-muted small">Km Entregado</label>
+                <input type="number" class="form-control bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.kilometrajeEntregado">
+            </div>
+            <div class="col-6">
+                <label class="form-label text-custom-muted small">Km Recibido</label>
+                <input type="number" class="form-control bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.kilometrajeRecibido">
+            </div>
+            <div class="col-12">
+                <label class="form-label text-custom-muted small">Transmisión / Tracción</label>
+                <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.transmision">
+                    <option value="AUTOMATICO">Automático</option>
+                    <option value="SINCRONICO">Sincrónico</option>
+                    <option value="4x4">4x4</option>
+                </select>
+            </div>
           </div>
         </div>
 
+        <!-- ETAPA 2 -->
+        <div *ngSwitchCase="2">
+          <h6 class="text-white mb-3">Etapa 2: Niveles de Fluidos y Documentos</h6>
+          
+          <h6 class="text-warning mt-3 mb-2 small fw-bold">Fluidos (ALTO / MEDIO / BAJO)</h6>
+          <div class="row g-2 mb-4">
+              <div class="col-6 col-md-4">
+                  <label class="form-label text-custom-muted small mb-1">Combustible</label>
+                  <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.nivelCombustible">
+                      <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
+                  </select>
+              </div>
+              <div class="col-6 col-md-4">
+                  <label class="form-label text-custom-muted small mb-1">Aceite Motor</label>
+                  <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.nivelAceiteMotor">
+                      <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
+                  </select>
+              </div>
+              <div class="col-6 col-md-4">
+                  <label class="form-label text-custom-muted small mb-1">Liga de Frenos</label>
+                  <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.nivelLigaFrenos">
+                      <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
+                  </select>
+              </div>
+              <div class="col-6 col-md-4">
+                  <label class="form-label text-custom-muted small mb-1">Aceite Caja</label>
+                  <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.nivelAceiteCaja">
+                      <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
+                  </select>
+              </div>
+              <div class="col-6 col-md-4">
+                  <label class="form-label text-custom-muted small mb-1">Refrigerante</label>
+                  <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.nivelRefrigerante">
+                      <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
+                  </select>
+              </div>
+              <div class="col-6 col-md-4">
+                <label class="form-label text-custom-muted small mb-1">Tipo de Cobertura</label>
+                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.tipoCobertura" placeholder="RCV / Amplia">
+            </div>
+          </div>
+
+          <h6 class="text-warning mt-3 mb-2 small fw-bold">Documentos del Vehículo</h6>
+          <div class="bg-dark p-2 rounded-3 border border-custom mb-3">
+              <div class="form-check form-switch mb-2 d-flex align-items-center">
+                  <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.docCarnet" style="transform: scale(1.1);">
+                  <label class="form-check-label text-white small">Carnet de Circulación</label>
+              </div>
+              <div class="form-check form-switch mb-2 d-flex align-items-center">
+                  <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.docAutorizacion" style="transform: scale(1.1);">
+                  <label class="form-check-label text-white small">Autorización para Conducir</label>
+              </div>
+              <div class="form-check form-switch d-flex align-items-center">
+                  <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.docAsignacion" style="transform: scale(1.1);">
+                  <label class="form-check-label text-white small">Asignación de Vehículo</label>
+              </div>
+          </div>
+
+          <h6 class="text-warning mt-3 mb-2 small fw-bold">Documentos del Conductor</h6>
+          <div class="bg-dark p-2 rounded-3 border border-custom mb-3">
+              <div class="form-check form-switch mb-2 d-flex align-items-center">
+                  <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.docLicencia" style="transform: scale(1.1);">
+                  <label class="form-check-label text-white small">Licencia para Conducir</label>
+              </div>
+              <div class="form-check form-switch d-flex align-items-center">
+                  <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.docCertificadoMedico" style="transform: scale(1.1);">
+                  <label class="form-check-label text-white small">Certificado Médico</label>
+              </div>
+          </div>
+        </div>
+
+        <!-- ETAPA 3: EVALUACIÓN GRÁFICA -->
+        <div *ngSwitchCase="3">
+          <h6 class="text-white mb-1"><i class="bi bi-shield-check text-info"></i> Evaluación Gráfica</h6>
+          <p class="text-custom-muted small mb-3">Selecciona un tipo de daño y haz clic sobre el vehículo para agregarlo.</p>
+          
+          <div class="row">
+            <!-- Diagrama SVG -->
+            <div class="col-12 col-md-7 mb-3">
+                <div class="bg-dark border border-custom p-3 rounded-4" style="position: relative; cursor: crosshair; user-select: none;" (mousedown)="agregarDano($event)">
+                    <!-- SVG Carro -->
+                    <svg *ngIf="!isMoto" viewBox="0 0 400 320" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto;">
+                        <rect x="130" y="30" width="140" height="260" rx="35" stroke="#475569" stroke-width="3" fill="#1e293b"/>
+                        <path d="M 145 90 Q 200 80 255 90 A 10 10 0 0 1 255 110 Q 200 105 145 110 A 10 10 0 0 1 145 90 Z" fill="#334155" stroke="#64748b" stroke-width="1.5"/>
+                        <path d="M 148 230 Q 200 235 252 230 A 8 8 0 0 1 252 245 Q 200 248 148 245 A 8 8 0 0 1 148 230 Z" fill="#334155" stroke="#64748b" stroke-width="1.5"/>
+                        <rect x="140" y="115" width="12" height="110" rx="3" fill="#475569"/>
+                        <rect x="248" y="115" width="12" height="110" rx="3" fill="#475569"/>
+                        <rect x="108" y="50" width="18" height="40" rx="4" fill="#0f172a"/>
+                        <rect x="274" y="50" width="18" height="40" rx="4" fill="#0f172a"/>
+                        <rect x="108" y="230" width="18" height="40" rx="4" fill="#0f172a"/>
+                        <rect x="274" y="230" width="18" height="40" rx="4" fill="#0f172a"/>
+                        <circle cx="150" cy="35" r="8" fill="#fef08a" stroke="#eab308"/>
+                        <circle cx="250" cy="35" r="8" fill="#fef08a" stroke="#eab308"/>
+                        <rect x="140" y="285" width="25" height="8" rx="2" fill="#ef4444"/>
+                        <rect x="235" y="285" width="25" height="8" rx="2" fill="#ef4444"/>
+                        
+                        <!-- Puertas Laterales (Bocetos a los lados) -->
+                        <rect x="40" y="70" width="40" height="180" rx="5" stroke="#475569" stroke-width="2" fill="#1e293b"/>
+                        <line x1="40" y1="160" x2="80" y2="160" stroke="#475569" stroke-width="2"/>
+                        <text x="60" y="60" font-size="9" font-weight="700" fill="#94a3b8" text-anchor="middle">LAT. IZQ</text>
+                        
+                        <rect x="320" y="70" width="40" height="180" rx="5" stroke="#475569" stroke-width="2" fill="#1e293b"/>
+                        <line x1="320" y1="160" x2="360" y2="160" stroke="#475569" stroke-width="2"/>
+                        <text x="340" y="60" font-size="9" font-weight="700" fill="#94a3b8" text-anchor="middle">LAT. DER</text>
+
+                        <text x="200" y="20" font-size="11" font-weight="700" fill="#94a3b8" text-anchor="middle">FRENTE (A)</text>
+                        <text x="200" y="308" font-size="11" font-weight="700" fill="#94a3b8" text-anchor="middle">TRASERA (B)</text>
+                    </svg>
+
+                    <!-- SVG Moto -->
+                    <svg *ngIf="isMoto" viewBox="0 0 400 320" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto;">
+                        <rect x="185" y="30" width="30" height="60" rx="8" fill="#0f172a"/> <!-- Caucho Delantero -->
+                        <path d="M 150 100 L 250 100" stroke="#64748b" stroke-width="6" stroke-linecap="round"/> <!-- Manubrio -->
+                        <circle cx="150" cy="100" r="8" fill="#334155"/>
+                        <circle cx="250" cy="100" r="8" fill="#334155"/>
+                        <rect x="175" y="100" width="50" height="100" rx="20" fill="#1e293b" stroke="#475569" stroke-width="3"/> <!-- Tanque/Cuerpo -->
+                        <rect x="180" y="160" width="40" height="80" rx="15" fill="#334155"/> <!-- Asiento -->
+                        <rect x="185" y="240" width="30" height="60" rx="8" fill="#0f172a"/> <!-- Caucho Trasero -->
+                        
+                        <!-- Laterales Moto -->
+                        <rect x="40" y="90" width="60" height="140" rx="10" stroke="#475569" stroke-width="2" fill="#1e293b"/>
+                        <circle cx="70" cy="115" r="15" fill="#0f172a"/> <!-- Caucho lateral vista -->
+                        <circle cx="70" cy="205" r="15" fill="#0f172a"/>
+                        <text x="70" y="80" font-size="9" font-weight="700" fill="#94a3b8" text-anchor="middle">LAT. IZQ</text>
+                        
+                        <rect x="300" y="90" width="60" height="140" rx="10" stroke="#475569" stroke-width="2" fill="#1e293b"/>
+                        <circle cx="330" cy="115" r="15" fill="#0f172a"/> <!-- Caucho lateral vista -->
+                        <circle cx="330" cy="205" r="15" fill="#0f172a"/>
+                        <text x="330" y="80" font-size="9" font-weight="700" fill="#94a3b8" text-anchor="middle">LAT. DER</text>
+
+                        <text x="200" y="20" font-size="11" font-weight="700" fill="#94a3b8" text-anchor="middle">FRENTE</text>
+                        <text x="200" y="315" font-size="11" font-weight="700" fill="#94a3b8" text-anchor="middle">TRASERA</text>
+                    </svg>
+                    <!-- PINES ROJOS -->
+                    <div *ngFor="let dano of danos; let i = index" 
+                         style="position: absolute; width: 22px; height: 22px; background: #ef4444; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; transform: translate(-50%, -50%); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3); pointer-events: none; z-index: 10;"
+                         [style.left.%]="dano.coordX" [style.top.%]="dano.coordY">
+                         {{ dano.codigoDano }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Selector de Daño -->
+            <div class="col-12 col-md-5">
+                <div class="d-flex flex-wrap gap-1 mb-3">
+                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===1 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(1, 'GOLPE')">1. GOLPE</button>
+                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===2 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(2, 'SUELTO')">2. SUELTO</button>
+                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===3 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(3, 'RAYA')">3. RAYA</button>
+                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===4 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(4, 'DESCONCHADO')">4. DESCONCHADO</button>
+                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===5 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(5, 'VIDRIO ROTO')">5. VIDRIO ROTO</button>
+                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===6 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(6, 'ESPEJO ROTO')">6. ESPEJO ROTO</button>
+                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===7 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(7, 'FALTA MOLDURA')">7. MOLDURA</button>
+                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===8 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(8, 'FALTA FARO')">8. FARO</button>
+                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===9 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(9, 'ACCESORIO FALTA')">9. ACCESORIOS</button>
+                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===10 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(10, 'FALTA COPAS')">10. COPAS</button>
+                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===11 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(11, 'FALTA EMBLEMA')">11. EMBLEMA</button>
+                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===12 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(12, 'TAP. MANCHADA')">12. TAP. MANCHADA</button>
+                </div>
+
+                <div class="bg-dark p-2 rounded-3 border border-custom">
+                    <h6 class="text-white small mb-2 border-bottom pb-1 border-secondary">Lista de Daños</h6>
+                    <ul class="list-unstyled small mb-0" style="max-height: 120px; overflow-y: auto;">
+                        <li *ngIf="danos.length===0" class="text-custom-muted">Ningún daño marcado.</li>
+                        <li *ngFor="let d of danos; let i = index" class="d-flex justify-content-between align-items-center mb-1 text-white">
+                            <span><span class="badge bg-danger rounded-pill me-1">{{ d.codigoDano }}</span> {{ d.nombreDano }}</span>
+                            <button class="btn btn-sm text-danger p-0 m-0" (click)="quitarDano(i)"><i class="bi bi-trash"></i></button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="mt-3">
+                    <label class="form-label text-custom-muted small">Observaciones Generales</label>
+                    <textarea class="form-control bg-dark text-white border-custom rounded-3" rows="2" [(ngModel)]="dto.observacionesDanos"></textarea>
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ETAPA 4: Puntos de Revisión -->
+        <div *ngSwitchCase="4">
+            <h6 class="text-white mb-3">Etapa 4: Puntos de Revisión y Accesorios</h6>
+            
+            <h6 class="text-warning mt-3 mb-2 small fw-bold">Sistema de Seguridad</h6>
+            <div class="row g-2 mb-3">
+                <div class="col-6 col-md-3">
+                    <div class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                        <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.segAlarma">
+                        <label class="form-check-label text-white small">Alarma</label>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                        <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.segBoveda">
+                        <label class="form-check-label text-white small">Bóveda</label>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                        <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.segExtintor">
+                        <label class="form-check-label text-white small">Extintor</label>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                        <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.segTrancaPalanca">
+                        <label class="form-check-label text-white small">Tranca Palanca</label>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="text-warning mt-3 mb-2 small fw-bold">Accesorios</h6>
+            <div class="row g-2 mb-3">
+                <div class="col-6 col-md-4" *ngFor="let acc of [
+                    {key:'accCables', label:'Cables Aux'}, {key:'accCauchoRepuesto', label:'Repuesto'},
+                    {key:'accCornetas', label:'Cornetas'}, {key:'accGato', label:'Gato Hidráulico'},
+                    {key:'accHerramientas', label:'Herramientas'}, {key:'accLlaveCruz', label:'Llave Cruz'},
+                    {key:'accPalancaGato', label:'Palanca Gato'}, {key:'accRadio', label:'Radio/CD'},
+                    {key:'accRines', label:'Rines'}, {key:'accTasa', label:'Tasa'}, {key:'accTriangulo', label:'Triángulo'}
+                ]">
+                    <div class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                        <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="dto[acc.key]">
+                        <label class="form-check-label text-white small">{{acc.label}}</label>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="text-warning mt-3 mb-2 small fw-bold">Estado General de Componentes (B, R, M)</h6>
+            <div class="row g-2 mb-3">
+                <div class="col-6 col-md-3" *ngFor="let rev of [
+                    {key:'revAire', label:'Aire Acond.'}, {key:'revAntena', label:'Antena'},
+                    {key:'revCauchos', label:'Cauchos'}, {key:'revFaros', label:'Faros/Luces'},
+                    {key:'revFrenos', label:'Frenos'}, {key:'revVidrios', label:'Vidrios'},
+                    {key:'revTapiceria', label:'Tapicería'}, {key:'revTablero', label:'Tablero/Techo'}
+                ]">
+                    <label class="form-label text-custom-muted small mb-1">{{rev.label}}</label>
+                    <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto[rev.key]">
+                        <option value="B">Bueno (B)</option><option value="R">Regular (R)</option><option value="M">Malo (M)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Batería y Cauchos Especificaciones -->
+            <div class="row g-3 mt-1 mb-3">
+                <div class="col-12 col-md-6">
+                    <div class="bg-dark p-3 rounded-4 border border-custom h-100">
+                        <h6 class="text-warning small fw-bold mb-3"><i class="bi bi-battery-half"></i> BATERÍA (10)</h6>
+                        <div class="row g-2">
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="Marca" [(ngModel)]="dto.batMarca"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="Modelo" [(ngModel)]="dto.batModelo"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="Código" [(ngModel)]="dto.batCodigo"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="% Vida Útil" [(ngModel)]="dto.batVida"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6">
+                    <div class="bg-dark p-3 rounded-4 border border-custom h-100">
+                        <h6 class="text-warning small fw-bold mb-3"><i class="bi bi-vinyl-fill"></i> CAUCHOS (11)</h6>
+                        <div class="row g-2">
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="Marca" [(ngModel)]="dto.cauMarca"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="Modelo" [(ngModel)]="dto.cauModelo"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="Código" [(ngModel)]="dto.cauCodigo"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="% Vida Útil" [(ngModel)]="dto.cauVida"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ETAPA 5: Firmas -->
+        <div *ngSwitchCase="5">
+          <h6 class="text-white mb-3">Etapa 5: Firmas y Cierre</h6>
+          
+          <div class="bg-dark p-3 rounded-4 border border-custom mb-3 text-center">
+            <h6 class="text-warning small fw-bold mb-3">Firma del Inspector</h6>
+            <input type="text" class="form-control bg-dark text-white border-custom rounded-3 mb-2 text-center" placeholder="Nombre" [(ngModel)]="dto.inspectorNombre">
+            <canvas #sig1 class="border border-secondary rounded-3 w-100 bg-secondary" style="height: 120px;"></canvas>
+            <button class="btn btn-sm btn-outline-secondary mt-2" (click)="clearSignature(1)">Borrar</button>
+          </div>
+
+          <div class="bg-dark p-3 rounded-4 border border-custom mb-3 text-center">
+            <h6 class="text-warning small fw-bold mb-3">Firma Unidad Entrega</h6>
+            <input type="text" class="form-control bg-dark text-white border-custom rounded-3 mb-2 text-center" placeholder="Nombre" [(ngModel)]="dto.entregaNombre">
+            <canvas #sig2 class="border border-secondary rounded-3 w-100 bg-secondary" style="height: 120px;"></canvas>
+            <button class="btn btn-sm btn-outline-secondary mt-2" (click)="clearSignature(2)">Borrar</button>
+          </div>
+
+          <div class="bg-dark p-3 rounded-4 border border-custom mb-3 text-center">
+            <h6 class="text-warning small fw-bold mb-3">Firma Unidad Recibe</h6>
+            <input type="text" class="form-control bg-dark text-white border-custom rounded-3 mb-2 text-center" placeholder="Nombre" [(ngModel)]="dto.recibeNombre">
+            <canvas #sig3 class="border border-secondary rounded-3 w-100 bg-secondary" style="height: 120px;"></canvas>
+            <button class="btn btn-sm btn-outline-secondary mt-2" (click)="clearSignature(3)">Borrar</button>
+          </div>
+        </div>
+        
       </div>
 
-      <!-- Botones de Navegación -->
-      <div class="d-flex justify-content-between mt-4 pt-3 border-top border-custom">
-        <button class="btn btn-sm btn-secondary rounded-pill px-3" [disabled]="etapaActual === 1" (click)="retroceder()">Anterior</button>
-        
-        <button class="btn btn-sm btn-primary rounded-pill px-4" *ngIf="etapaActual < 5" 
-                (click)="avanzar()"
-                [disabled]="(etapaActual === 2 && fotosExterior.length !== 10) || (etapaActual === 3 && fotosInterior.length !== 10)">
-          Siguiente
+      <!-- Footer navigation -->
+      <div class="d-flex justify-content-between mt-4">
+        <button class="btn btn-outline-secondary fw-bold px-4 rounded-pill" (click)="retroceder()" [disabled]="etapaActual === 1">
+          <i class="bi bi-arrow-left"></i> Atrás
         </button>
-        
-        <button class="btn btn-sm btn-success rounded-pill px-4 fw-bold shadow" *ngIf="etapaActual === 5" (click)="finalizar()">Enviar Reporte</button>
+        <button *ngIf="etapaActual < 5" class="btn btn-primary fw-bold px-4 rounded-pill" (click)="avanzar()">
+          Siguiente <i class="bi bi-arrow-right"></i>
+        </button>
+        <button *ngIf="etapaActual === 5" class="btn btn-success text-white fw-bold px-4 rounded-pill shadow-lg" (click)="finalizarInspeccion()" [disabled]="guardando">
+          <span *ngIf="!guardando">Finalizar <i class="bi bi-check2-all"></i></span>
+          <span *ngIf="guardando">Enviando...</span>
+        </button>
       </div>
 
     </div>
-
   </div>
 </div>

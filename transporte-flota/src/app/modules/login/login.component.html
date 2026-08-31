@@ -43,8 +43,9 @@
                 </div>
               </div>
 
-              <button type="submit" class="btn btn-dealer-primary w-100 py-3 fw-bold rounded-3 text-uppercase">
-                Iniciar Sesión <i class="bi bi-arrow-right-short ms-1 fs-5"></i>
+              <button type="submit" class="btn btn-dealer-primary w-100 py-3 fw-bold rounded-3 text-uppercase" [disabled]="cargandoLogin">
+                <span *ngIf="cargandoLogin" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Iniciar Sesión <i class="bi bi-arrow-right-short ms-1 fs-5" *ngIf="!cargandoLogin"></i>
               </button>
             </form>
           </div>
@@ -101,6 +102,16 @@
                 [(ngModel)]="nuevoUsuario.edad" 
                 placeholder="Edad">
             </div>
+              <div class="col-12 mt-2">
+                <label class="text-secondary fs-xs mb-1">Foto de Perfil (Obligatorio)</label>
+                <div class="file-upload-box p-3 rounded-3 text-center border-dashed position-relative mb-2" [class.has-file]="archivoFotoNombre">
+                  <input type="file" class="file-input-hidden" (change)="onFileSelected($event, 'foto')" accept="image/*">
+                  <i class="bi" [ngClass]="archivoFotoNombre ? 'bi-file-earmark-check-fill text-success fs-4' : 'bi-camera-fill text-primary fs-4'"></i>
+                  <span class="d-block text-white fs-xs mt-1 text-truncate px-2">
+                    {{ archivoFotoNombre || 'Haz clic para subir foto' }}
+                  </span>
+                </div>
+              </div>
               <div class="col-12 mt-2">
                 <select class="form-select dealer-control" [(ngModel)]="nuevoUsuario.cargo">
                   <option value="" disabled selected>Seleccione Cargo Operativo</option>
@@ -166,9 +177,15 @@
             <div class="mb-2">
               <input type="email" class="form-control dealer-control" [(ngModel)]="nuevoUsuario.correo" placeholder="Correo Institucional">
             </div>
-            <div class="mb-3">
-              <input type="password" class="form-control dealer-control" [(ngModel)]="nuevoUsuario.password" placeholder="Contraseña">
-              <div class="validation-rules mt-2 p-2 rounded bg-black-50">
+              <div class="mb-3">
+                <div class="input-group dealer-input-group">
+                  <span class="input-group-text bg-transparent border-end-0 text-secondary"><i class="bi bi-key"></i></span>
+                  <input [type]="mostrarPassword ? 'text' : 'password'" class="form-control border-start-0 border-end-0 text-white dealer-control" [(ngModel)]="nuevoUsuario.password" placeholder="Contraseña">
+                  <button class="btn border-start-0 bg-transparent text-secondary" type="button" (click)="togglePasswordVisibility()">
+                    <i class="bi" [ngClass]="mostrarPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                  </button>
+                </div>
+                <div class="validation-rules mt-2 p-2 rounded bg-black-50">
                 <small class="d-block fs-xs" [ngClass]="tieneLongitudCorrecta ? 'text-success' : 'text-secondary'">
                   <i class="bi me-1" [ngClass]="tieneLongitudCorrecta ? 'bi-check-circle-fill' : 'bi-circle'"></i> 8 a 14 caracteres
                 </small>
@@ -183,7 +200,11 @@
                 </small>
               </div>
             </div>
-            <button class="btn btn-success w-100 py-2 fw-bold rounded-3 text-uppercase" (click)="enviarParaAprobacion()">Enviar Solicitud</button>
+            <button class="btn btn-success w-100 py-2 fw-bold rounded-3 text-uppercase" (click)="enviarParaAprobacion()" [disabled]="cargandoRegistro">
+              <span *ngIf="cargandoRegistro" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              <span *ngIf="!cargandoRegistro">Enviar Solicitud</span>
+              <span *ngIf="cargandoRegistro">Enviando...</span>
+            </button>
           </div>
         </div>
 

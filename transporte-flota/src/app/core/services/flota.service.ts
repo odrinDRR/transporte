@@ -25,7 +25,7 @@ export class FlotaService {
       identificadorConductor: terminoBusqueda.trim() 
     };
 
-    return this.http.post<any>(`${this.apiUrl}/asignar-unidad`, payload);
+    return this.http.post(`${this.apiUrl}/usuarios/asignar-unidad`, payload, { responseType: 'text' });
   }
 
   // --- MÉTODOS DE ROL ---

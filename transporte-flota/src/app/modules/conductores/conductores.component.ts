@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { FlotaService } from '../../core/services/flota.service';
-import { ConductorService } from '../../services/conductor.service';
 import { VehiculoService } from '../../services/vehiculo.service';
 import { Conductor, Vehiculo } from '../../core/models/fleet.models';
 
@@ -22,15 +23,52 @@ export class ConductoresComponent implements OnInit {
 
   constructor(
     public flotaService: FlotaService,
-    private conductorService: ConductorService,
+    private http: HttpClient,
     private vehiculoService: VehiculoService
   ) {}
 
+  cargando = false;
+  private conductoresSubject = new BehaviorSubject<Conductor[]>([]);
+
   ngOnInit(): void {
     this.vehiculos$ = this.vehiculoService.obtenerVehiculos();
+    
+    this.cargando = true;
+    combineLatest([
+      this.http.get<any[]>(`${environment.apiUrl}/usuarios`),
+      this.vehiculos$
+    ]).subscribe({
+      next: ([usuarios, vehiculos]) => {
+        // Mapear los usuarios con cargo CONDUCTOR a la interfaz Conductor
+        const conductoresMap = usuarios
+          .filter(u => u.cargo === 'CONDUCTOR' && u.estado !== 'PENDIENTE')
+          .map(u => {
+            const veh = vehiculos.find(v => v.conductorId === u.id);
+            return {
+              id: u.id,
+              nombre: u.nombre + ' ' + u.apellido,
+              cedula: u.cedula,
+              fichaNumerica: u.ficha || u.licencia || 'Sin ficha',
+              licenciaVigente: true,
+              vencimientoLicencia: u.fechaVencimientoLicencia || '',
+              vencimientoMedico: u.urlCertificadoMedico || '',
+              fotoUrl: u.fotoUrl || '',
+              vehiculoAsignadoId: veh ? veh.id : null
+            };
+          });
+
+        this.conductoresSubject.next(conductoresMap);
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('Error cargando conductores:', err);
+        this.cargando = false;
+      }
+    });
+
     // Filtro reactivo en tiempo real con comprobación de nulidad segura
     this.conductoresFiltrados$ = combineLatest([
-      this.conductorService.obtenerConductores(),
+      this.conductoresSubject.asObservable(),
       this.filtroBusqueda$
     ]).pipe(
       map(([conductores, texto]) => {
@@ -77,7 +115,10 @@ export class ConductoresComponent implements OnInit {
       ).subscribe({
         next: (res) => {
           this.mensajeAsignacion = 'ÉXITO: Unidad asignada correctamente.';
-          setTimeout(() => this.cerrarAsignacion(), 2000);
+          setTimeout(() => {
+            this.cerrarAsignacion();
+            this.ngOnInit(); // Refresh to show the assigned vehicle
+          }, 1500);
         },
         error: (err) => {
           this.mensajeAsignacion = 'ERROR: No se pudo asignar la unidad.';

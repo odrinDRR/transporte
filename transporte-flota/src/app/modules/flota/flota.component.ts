@@ -19,6 +19,7 @@ export class FlotaComponent implements OnInit {
   // ESTADOS Y PROPIEDADES DEL COMPONENTE
   // ==========================================
   mostrarRegistro: boolean = false;
+  guardandoVehiculo: boolean = false;
   mostrarCarrusel: boolean = false;
   vehiculoSeleccionado: Vehiculo | null = null;
   
@@ -81,16 +82,33 @@ export class FlotaComponent implements OnInit {
     );
   }
 
+  cargandoVehiculos = false;
+  cargandoConductores = false;
+
   // --- MÉTODOS HTTP (CONEXIÓN A SPRING BOOT) ---
   cargarDatosBackend(): void {
+    this.cargandoVehiculos = true;
     this.vehiculoService.obtenerVehiculos().subscribe({
-      next: (data) => this.vehiculosSubject.next(data),
-      error: (err) => console.error('Error al cargar vehículos', err)
+      next: (data) => {
+        this.vehiculosSubject.next(data);
+        this.cargandoVehiculos = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar vehículos', err);
+        this.cargandoVehiculos = false;
+      }
     });
 
+    this.cargandoConductores = true;
     this.conductorService.obtenerConductores().subscribe({
-      next: (data) => this.conductoresSubject.next(data),
-      error: (err) => console.error('Error al cargar conductores', err)
+      next: (data) => {
+        this.conductoresSubject.next(data);
+        this.cargandoConductores = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar conductores', err);
+        this.cargandoConductores = false;
+      }
     });
   }
 
@@ -132,6 +150,7 @@ export class FlotaComponent implements OnInit {
       return;
     }
 
+    this.guardandoVehiculo = true;
     try {
       // 1. Subir Foto de Perfil a Supabase
       const urlPerfil = await this.supabaseStorage.uploadFile(
@@ -171,15 +190,18 @@ export class FlotaComponent implements OnInit {
           this.cargarDatosBackend();
           this.alternarRegistro();
           this.resetearFormulario();
+          this.guardandoVehiculo = false;
         },
         error: (err) => {
           console.error('Error guardando en BD', err);
           alert('Ocurrió un error al intentar guardar el vehículo.');
+          this.guardandoVehiculo = false;
         }
       });
     } catch (error) {
       console.error('Error subiendo imágenes a Supabase', error);
       alert('Error subiendo las imágenes. Por favor, intenta de nuevo.');
+      this.guardandoVehiculo = false;
     }
   }
 

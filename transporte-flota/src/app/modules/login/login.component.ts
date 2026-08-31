@@ -26,6 +26,8 @@ export class LoginComponent {
   archivoLicenciaNombre: string = '';
   archivoMedico: File | null = null;
   archivoMedicoNombre: string = '';
+  archivoFoto: File | null = null;
+  archivoFotoNombre: string = '';
 
   nuevoUsuario = {
     nombre: '',
@@ -37,6 +39,7 @@ export class LoginComponent {
     username: '',
     correo: '',
     password: '',
+    fotoUrl: '',
     estado: 'PENDIENTE',
     fechaVencimientoLicencia: '',
     fechaVencimientoCertificadoMedico: ''
@@ -115,32 +118,40 @@ export class LoginComponent {
   this.nuevoUsuario.cedula = valor;
 }
 
-  onFileSelected(event: Event, tipo: 'licencia' | 'medico'): void {
+  onFileSelected(event: Event, tipo: 'licencia' | 'medico' | 'foto'): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
       if (tipo === 'licencia') {
         this.archivoLicencia = file;
         this.archivoLicenciaNombre = file.name;
-      } else {
+      } else if (tipo === 'medico') {
         this.archivoMedico = file;
         this.archivoMedicoNombre = file.name;
+      } else if (tipo === 'foto') {
+        this.archivoFoto = file;
+        this.archivoFotoNombre = file.name;
       }
     }
   }
 
+  cargandoLogin = false;
+
   ingresar(): void {
     if (this.usuario.trim() !== '' && this.clave.trim() !== '') {
+      this.cargandoLogin = true;
       // Limpiamos cualquier sesión previa antes de intentar el login
       this.authService.logout();
       
       this.authService.login(this.usuario.trim(), this.clave.trim()).subscribe({
         next: (res) => {
           this.flotaService.iniciarSesion(res.rol); // Mantenemos compatibilidad con flotaService
+          this.cargandoLogin = false;
           this.loginCompletado.emit();
         },
         error: (err) => {
           console.error(err);
+          this.cargandoLogin = false;
           alert(err.error || 'Credenciales inválidas o usuario inactivo');
         }
       });
@@ -172,6 +183,7 @@ export class LoginComponent {
         username: '',
         correo: '',
         password: '',
+        fotoUrl: '',
         estado: 'PENDIENTE',
         fechaVencimientoLicencia: '',
         fechaVencimientoCertificadoMedico: ''
@@ -179,17 +191,22 @@ export class LoginComponent {
     }
   }
 
- avanzarRegistro(): void {
-  if (this.pasoRegistro === 1) {
-    if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.apellido || !this.nuevoUsuario.cedula || !this.nuevoUsuario.cargo) {
-      alert('Por favor completa todos los datos obligatorios.');
-      return;
-    }
+  avanzarRegistro(): void {
+    if (this.pasoRegistro === 1) {
+      if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.apellido || !this.nuevoUsuario.cedula || !this.nuevoUsuario.cargo) {
+        alert('Por favor completa todos los datos obligatorios.');
+        return;
+      }
+      
+      if (!this.archivoFoto) {
+        alert('Debes adjuntar tu foto de perfil.');
+        return;
+      }
 
-    if (this.nuevoUsuario.cedula.length > 8) {
-      alert('La cédula no puede exceder los 8 dígitos.');
-      return;
-    }
+      if (this.nuevoUsuario.cedula.length > 8) {
+        alert('La cédula no puede exceder los 8 dígitos.');
+        return;
+      }
 
     if (this.nuevoUsuario.edad === null || this.nuevoUsuario.edad < 18 || this.nuevoUsuario.edad > 80) {
       alert('La edad permitida debe estar comprendida entre 18 y 80 años.');
@@ -216,6 +233,8 @@ export class LoginComponent {
     }
   }
 
+  cargandoRegistro = false;
+
   async enviarParaAprobacion(): Promise<void> {
     if (!this.nuevoUsuario.username || !this.nuevoUsuario.password) {
       alert('Indica un usuario y contraseña válidos.');
@@ -228,9 +247,21 @@ export class LoginComponent {
       return;
     }
 
+    this.cargandoRegistro = true;
+
     try {
       let urlLicencia = null;
       let urlMedico = null;
+      let urlFoto = null;
+
+      if (this.archivoFoto) {
+        const urlFotoSupabase = await this.supabaseStorage.uploadFile(
+          this.archivoFoto,
+          'flota_archivos',
+          'usuarios/fotos'
+        );
+        urlFoto = urlFotoSupabase;
+      }
 
       if (this.archivoLicencia) {
         const urlLicenciaSupabase = await this.supabaseStorage.uploadFile(
@@ -254,20 +285,24 @@ export class LoginComponent {
         ...this.nuevoUsuario,
         urlLicencia,
         urlCertificadoMedico: urlMedico,
+        fotoUrl: urlFoto,
         fechaVencimientoLicencia: this.nuevoUsuario.fechaVencimientoLicencia ? this.nuevoUsuario.fechaVencimientoLicencia : null,
         fechaVencimientoCertificadoMedico: this.nuevoUsuario.fechaVencimientoCertificadoMedico ? this.nuevoUsuario.fechaVencimientoCertificadoMedico : null
       };
 
       this.authService.register(payload).subscribe({
         next: (res) => {
+          this.cargandoRegistro = false;
           alert(res || 'Solicitud registrada. La documentación en PDF/Foto fue enviada a revisión.');
           this.alternarRegistro();
         },
         error: (err) => {
+          this.cargandoRegistro = false;
           alert(err.error || 'Ocurrió un error al registrarse.');
         }
       });
     } catch (error) {
+      this.cargandoRegistro = false;
       console.error('Error subiendo archivos', error);
       alert('Hubo un problema subiendo los documentos. Inténtalo de nuevo.');
     }

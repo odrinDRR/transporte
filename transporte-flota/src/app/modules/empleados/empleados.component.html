@@ -6,20 +6,40 @@
     </button>
   </div>
 
-  <div class="mb-4" style="max-width: 400px;">
-    <label class="form-label text-custom-muted small">Buscador Inteligente</label>
-    <div class="input-group">
-      <span class="input-group-text bg-dark text-custom-muted border-custom"><i class="bi bi-search"></i></span>
-      <input type="text" class="form-control bg-dark text-white border-custom" 
-             placeholder="Buscar por cédula o nombre...">
+  <div class="mb-4 d-flex justify-content-between flex-wrap gap-3">
+    <!-- Buscador -->
+    <div style="max-width: 400px; flex-grow: 1;">
+      <label class="form-label text-custom-muted small">Buscador Inteligente</label>
+      <div class="input-group">
+        <span class="input-group-text bg-dark text-custom-muted border-custom"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control bg-dark text-white border-custom" 
+               placeholder="Buscar por cédula o nombre..." [(ngModel)]="filtroTexto">
+      </div>
+    </div>
+    
+    <!-- Filtros por Rol -->
+    <div class="d-flex align-items-end">
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-primary" [class.active]="filtroRol === 'TODOS'" (click)="filtroRol = 'TODOS'">Todos</button>
+        <button type="button" class="btn btn-outline-primary" [class.active]="filtroRol === 'EMPLEADOS'" (click)="filtroRol = 'EMPLEADOS'">Empleados</button>
+        <button type="button" class="btn btn-outline-primary" [class.active]="filtroRol === 'COORDINADORES'" (click)="filtroRol = 'COORDINADORES'">Coordinadores</button>
+      </div>
     </div>
   </div>
 
-  <div class="table-responsive">
+  <div *ngIf="cargando" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+      <span class="visually-hidden">Cargando empleados...</span>
+    </div>
+    <p class="text-white-50 mt-2">Cargando directorio...</p>
+  </div>
+
+  <div class="table-responsive" *ngIf="!cargando">
     <table class="table table-dark table-hover border-custom align-middle">
       <thead>
         <tr class="text-custom-muted">
-          <th>Nombre y Apellido</th>
+          <th>Perfil</th>
+          <th>Nombre y Ficha</th>
           <th>Cédula</th>
           <th>Cargo</th>
           <th>Estado</th>
@@ -27,8 +47,30 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td colspan="5" class="text-center text-custom-muted py-4">Cargando empleados...</td>
+        <tr *ngFor="let e of empleadosFiltrados">
+          <td>
+            <img [src]="e.fotoUrl || 'assets/images/default-avatar.png'" alt="Foto" class="rounded-circle" width="40" height="40" style="object-fit: cover;">
+          </td>
+          <td>
+            <div class="fw-bold">{{ e.nombre }} {{ e.apellido }}</div>
+            <div class="text-secondary small">{{ e.ficha || 'Sin ficha' }}</div>
+          </td>
+          <td>{{ e.cedula }}</td>
+          <td><span class="badge bg-dark border border-secondary text-info">{{ e.cargo }}</span></td>
+          <td>
+            <span class="badge" [ngClass]="{'bg-success': e.estado === 'ACTIVO', 'bg-warning': e.estado === 'INACTIVO'}">{{ e.estado }}</span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-outline-light me-1" title="Ver Documentos">
+              <i class="bi bi-file-earmark-person"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-primary" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="empleadosFiltrados.length === 0">
+          <td colspan="6" class="text-center text-custom-muted py-4">No se encontraron empleados.</td>
         </tr>
       </tbody>
     </table>
