@@ -1,156 +1,147 @@
-<div class="card bg-custom-card border-custom p-3" style="min-height: 80vh;">
-  
-  <!-- VISTA 1: COLA DE ESPERA -->
-  <div *ngIf="!revisionActual">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h5 class="text-white mb-0"><i class="bi bi-inboxes"></i> Bandeja de Auditoría de Patio</h5>
-        <small class="text-custom-muted">Unidades esperando revisión y validación física</small>
-      </div>
-      <span class="badge bg-primary fs-6">{{ pendientes.length }} Pendientes</span>
-    </div>
-
-    <div class="table-responsive" *ngIf="pendientes.length > 0">
-      <table class="table table-dark table-hover border-custom align-middle">
-        <thead>
-          <tr class="text-custom-muted">
-            <th>Unidad</th>
-            <th>Conductor</th>
-            <th>Salida (Inicio)</th>
-            <th>Llegada (Cierre)</th>
-            <th>Acción</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let p of pendientes">
-            <td class="fw-bold text-white fs-5"><span class="badge bg-dark border border-secondary">{{ p.placa }}</span></td>
-            <td>{{ p.conductor }}</td>
-            <td class="text-custom-muted small">{{ p.fechaInicio }}</td>
-            <td class="text-warning small fw-bold">{{ p.fechaCierre }}</td>
-            <td>
-              <button class="btn btn-sm btn-primary" (click)="seleccionarRevision(p)">
-                <i class="bi bi-layout-split"></i> Comparar y Validar
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div *ngIf="pendientes.length === 0" class="text-center p-5 text-custom-muted border border-custom rounded border-dashed mt-3">
-      <i class="bi bi-check-circle display-4 mb-3 d-block text-success"></i>
-      <h5>Todo al día</h5>
-      <p>No hay vehículos esperando auditoría en patio.</p>
+<div class="container-fluid py-4 animate__animated animate__fadeIn">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="text-white fw-bold mb-1"><i class="bi bi-shield-check text-primary me-2"></i> Auditoría de Patio</h4>
+      <p class="text-custom-muted mb-0">Validación de unidades al entrar a planta.</p>
     </div>
   </div>
 
-  <!-- VISTA 2: MODO COMPARATIVA Y EVALUACIÓN FÍSICA -->
-  <div *ngIf="revisionActual">
-    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-custom pb-3">
-      <h5 class="text-white mb-0">
-        <button class="btn btn-sm btn-outline-secondary me-2" (click)="volverACola()"><i class="bi bi-arrow-left"></i></button>
-        Auditoría Unidad: <span class="text-primary">{{ revisionActual.placa }}</span>
-      </h5>
-      <span class="text-custom-muted">Conductor: <strong class="text-white">{{ revisionActual.conductor }}</strong></span>
-    </div>
+  <div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
 
-    <!-- FASE 1: COMPARACIÓN DIGITAL (SPLIT VIEW) -->
-    <h6 class="text-info mb-3"><i class="bi bi-1-circle"></i> FASE 1: Comparativa de Reportes Digitales</h6>
-    
-    <div class="row g-3 mb-4">
-      <!-- Columna INICIO -->
-      <div class="col-12 col-md-6">
-        <div class="card bg-dark border border-secondary h-100">
-          <div class="card-header bg-secondary bg-opacity-25 text-white fw-bold">
-            <i class="bi bi-box-arrow-right text-primary"></i> Reporte de Salida (Inicio)
-            <div class="small text-custom-muted fw-normal mt-1">{{ revisionActual.fechaInicio }}</div>
+      <!-- FASE 1: INGRESO DE CÉDULA -->
+      <div *ngIf="faseAuditoria === 'INGRESO'" class="card bg-dark border-custom shadow-lg">
+        <div class="card-body p-5 text-center">
+          <div class="mb-4">
+            <i class="bi bi-person-badge display-1 text-primary"></i>
           </div>
-          <div class="card-body p-0">
-            <ul class="list-group list-group-flush border-custom">
-              <li class="list-group-item bg-transparent text-white border-custom">
-                <small class="text-custom-muted d-block">Kilometraje</small>
-                <strong>{{ revisionActual.inicio.km | number }} Km</strong>
-              </li>
-              <li class="list-group-item bg-transparent text-white border-custom">
-                <small class="text-custom-muted d-block">Carrocería</small>
-                {{ revisionActual.inicio.carroceria }}
-              </li>
-              <li class="list-group-item bg-transparent text-white border-custom">
-                <small class="text-custom-muted d-block">Luces</small>
-                {{ revisionActual.inicio.luces }}
-              </li>
-              <li class="list-group-item bg-transparent text-white border-custom">
-                <small class="text-custom-muted d-block">Observaciones Extras</small>
-                <span class="fst-italic">{{ revisionActual.inicio.observaciones || 'Ninguna' }}</span>
-              </li>
-            </ul>
+          <h4 class="text-white fw-bold mb-3">Identificación del Conductor</h4>
+          <p class="text-custom-muted mb-4">Ingresa la cédula o ficha del conductor para buscar su inspección activa.</p>
+          
+          <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+              <div class="input-group input-group-lg mb-3">
+                <span class="input-group-text bg-dark border-custom text-custom-muted">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input type="text" class="form-control bg-dark text-white border-custom" 
+                       placeholder="Ej: 12345678" [(ngModel)]="cedulaInput"
+                       (keyup.enter)="buscarInspeccionActiva()">
+                <button class="btn btn-primary px-4" (click)="buscarInspeccionActiva()" [disabled]="!cedulaInput || buscando">
+                  <span *ngIf="!buscando">Buscar</span>
+                  <span *ngIf="buscando"><span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Buscando...</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Columna CIERRE -->
-      <div class="col-12 col-md-6">
-        <div class="card bg-dark border h-100" [ngClass]="hayDiscrepanciaTexto('carroceria') || hayDiscrepanciaTexto('luces') ? 'border-warning' : 'border-secondary'">
-          <div class="card-header bg-secondary bg-opacity-25 text-white fw-bold">
-            <i class="bi bi-box-arrow-in-left text-warning"></i> Reporte de Llegada (Cierre)
-            <div class="small text-custom-muted fw-normal mt-1">{{ revisionActual.fechaCierre }}</div>
+      <!-- FASE 2: COMPONENTE DE INSPECCIÓN REUTILIZADO -->
+      <div *ngIf="faseAuditoria === 'INSPECCION'">
+        <div class="alert alert-info border-info bg-dark text-info mb-3 d-flex align-items-center">
+          <i class="bi bi-info-circle-fill me-2 fs-5"></i>
+          <div>
+            <strong>Inspección Activa Encontrada.</strong> Realiza el formulario de cierre para el vehículo <strong>{{vehiculoAuditoria?.placa}}</strong> ({{vehiculoAuditoria?.marca}} {{vehiculoAuditoria?.modelo}}).
           </div>
-          <div class="card-body p-0">
-            <ul class="list-group list-group-flush border-custom">
-              <li class="list-group-item bg-transparent text-white border-custom">
-                <small class="text-custom-muted d-block">Kilometraje (Recorrido: <span class="text-info">+{{ calcularDeltaKm() | number }} Km</span>)</small>
-                <strong>{{ revisionActual.cierre.km | number }} Km</strong>
-              </li>
-              <!-- Marcador visual de discrepancias -->
-              <li class="list-group-item bg-transparent border-custom" [ngClass]="hayDiscrepanciaTexto('carroceria') ? 'text-danger fw-bold bg-danger bg-opacity-10' : 'text-white'">
-                <small class="d-block" [ngClass]="hayDiscrepanciaTexto('carroceria') ? 'text-danger' : 'text-custom-muted'">Carrocería <i *ngIf="hayDiscrepanciaTexto('carroceria')" class="bi bi-exclamation-triangle"></i></small>
-                {{ revisionActual.cierre.carroceria }}
-              </li>
-              <li class="list-group-item bg-transparent border-custom" [ngClass]="hayDiscrepanciaTexto('luces') ? 'text-danger fw-bold bg-danger bg-opacity-10' : 'text-white'">
-                <small class="d-block" [ngClass]="hayDiscrepanciaTexto('luces') ? 'text-danger' : 'text-custom-muted'">Luces <i *ngIf="hayDiscrepanciaTexto('luces')" class="bi bi-exclamation-triangle"></i></small>
-                {{ revisionActual.cierre.luces }}
-              </li>
-              <li class="list-group-item bg-transparent text-white border-custom">
-                <small class="text-custom-muted d-block">Observaciones Extras</small>
-                <span class="fst-italic">{{ revisionActual.cierre.observaciones || 'Ninguna' }}</span>
-              </li>
-            </ul>
+        </div>
+        
+        <!-- Incrustamos el componente pasándole los datos -->
+        <app-inspeccion 
+          [isAuditoria]="true" 
+          [vehiculoAuditoria]="vehiculoAuditoria"
+          [conductorAuditoria]="conductorAuditoria"
+          [inspeccionOrigenId]="inspeccionActiva.id"
+          (onFinalizado)="onInspeccionFinalizada($event)">
+        </app-inspeccion>
+      </div>
+
+      <!-- FASE 3: COMPARACIÓN (AUDITORÍA FINAL) -->
+      <div *ngIf="faseAuditoria === 'COMPARACION'">
+        <div class="card bg-dark border-custom shadow-lg mb-4">
+          <div class="card-header border-bottom border-custom bg-transparent p-4">
+            <h5 class="text-white fw-bold mb-0"><i class="bi bi-layout-split text-warning me-2"></i> Comparación de Inspecciones</h5>
+          </div>
+          <div class="card-body p-4">
+            
+            <div class="row g-4">
+              <!-- Columna Salida (Conductor) -->
+              <div class="col-md-6">
+                <div class="p-3 border border-custom rounded-3 bg-dark-subtle h-100">
+                  <h6 class="text-info fw-bold mb-3 border-bottom border-info pb-2"><i class="bi bi-box-arrow-up-right me-2"></i> Reporte de Salida (Conductor)</h6>
+                  <ul class="list-group list-group-flush bg-transparent">
+                    <li class="list-group-item bg-transparent text-white border-secondary px-0 d-flex justify-content-between">
+                      <span class="text-custom-muted small">Kilometraje Entregado:</span>
+                      <strong>{{inspeccionActiva.kilometrajeEntregado | number}} km</strong>
+                    </li>
+                    <li class="list-group-item bg-transparent text-white border-secondary px-0 d-flex justify-content-between">
+                      <span class="text-custom-muted small">Nivel de Combustible:</span>
+                      <strong>{{inspeccionActiva.nivelCombustible}}</strong>
+                    </li>
+                    <li class="list-group-item bg-transparent text-white border-secondary px-0 d-flex justify-content-between">
+                      <span class="text-custom-muted small">Caucho de Repuesto:</span>
+                      <strong>{{inspeccionActiva.accCauchoRepuesto ? 'Sí' : 'No'}}</strong>
+                    </li>
+                    <li class="list-group-item bg-transparent text-white border-secondary px-0 d-flex justify-content-between">
+                      <span class="text-custom-muted small">Estado de Llantas:</span>
+                      <strong>{{inspeccionActiva.revCauchos}}</strong>
+                    </li>
+                    <li class="list-group-item bg-transparent text-white border-secondary px-0 d-flex justify-content-between">
+                      <span class="text-custom-muted small">Observaciones Visuales:</span>
+                      <strong>{{inspeccionActiva.observacionesDanos || 'Ninguna'}}</strong>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Columna Entrada (Auditor) -->
+              <div class="col-md-6">
+                <div class="p-3 border border-custom rounded-3 bg-dark-subtle h-100">
+                  <h6 class="text-warning fw-bold mb-3 border-bottom border-warning pb-2"><i class="bi bi-box-arrow-in-left me-2"></i> Reporte de Cierre (Auditor)</h6>
+                  <ul class="list-group list-group-flush bg-transparent">
+                    <li class="list-group-item bg-transparent text-white border-secondary px-0 d-flex justify-content-between" [ngClass]="{'text-danger': hayDiscrepancia('kilometrajeRecibido')}">
+                      <span class="text-custom-muted small">Kilometraje Recibido:</span>
+                      <strong>{{inspeccionAuditor.kilometrajeRecibido | number}} km</strong>
+                    </li>
+                    <li class="list-group-item bg-transparent text-white border-secondary px-0 d-flex justify-content-between" [ngClass]="{'text-danger': hayDiscrepancia('nivelCombustible')}">
+                      <span class="text-custom-muted small">Nivel de Combustible:</span>
+                      <strong>{{inspeccionAuditor.nivelCombustible}}</strong>
+                    </li>
+                    <li class="list-group-item bg-transparent text-white border-secondary px-0 d-flex justify-content-between" [ngClass]="{'text-danger': hayDiscrepancia('accCauchoRepuesto')}">
+                      <span class="text-custom-muted small">Caucho de Repuesto:</span>
+                      <strong>{{inspeccionAuditor.accCauchoRepuesto ? 'Sí' : 'No'}}</strong>
+                    </li>
+                    <li class="list-group-item bg-transparent text-white border-secondary px-0 d-flex justify-content-between" [ngClass]="{'text-danger': hayDiscrepancia('revCauchos')}">
+                      <span class="text-custom-muted small">Estado de Llantas:</span>
+                      <strong>{{inspeccionAuditor.revCauchos}}</strong>
+                    </li>
+                    <li class="list-group-item bg-transparent text-white border-secondary px-0 d-flex justify-content-between" [ngClass]="{'text-danger': hayDiscrepancia('observacionesDanos')}">
+                      <span class="text-custom-muted small">Observaciones Visuales:</span>
+                      <strong>{{inspeccionAuditor.observacionesDanos || 'Ninguna'}}</strong>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-4 pt-4 border-top border-custom">
+              <h6 class="text-white mb-3">Veredicto Final del Auditor</h6>
+              <div class="form-floating mb-4">
+                <textarea class="form-control bg-dark text-white border-custom" placeholder="Escribe aquí las observaciones" id="floatingTextarea2" style="height: 100px" [(ngModel)]="observacionesFinales"></textarea>
+                <label for="floatingTextarea2" class="text-custom-muted">Observaciones, discrepancias o notas de aprobación</label>
+              </div>
+
+              <div class="d-flex gap-2 justify-content-end">
+                <button class="btn btn-outline-secondary" (click)="reiniciar()">Cancelar</button>
+                <button class="btn btn-danger" (click)="rechazar()"><i class="bi bi-x-circle me-1"></i> Rechazar / Bloquear Unidad</button>
+                <button class="btn btn-success" (click)="aprobar()"><i class="bi bi-check-circle me-1"></i> Aprobar Auditoría</button>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- FASE 2: EVALUACIÓN FÍSICA (SUPERVISOR) -->
-    <h6 class="text-warning mb-3 border-top border-custom pt-4"><i class="bi bi-2-circle"></i> FASE 2: Validación Física en Patio</h6>
-    
-    <div class="bg-dark p-3 rounded border border-custom mb-4">
-      <div class="form-check form-switch mb-3">
-        <input class="form-check-input" type="checkbox" role="switch" id="chkKm" [(ngModel)]="evaluacionFisica.odometroCoincide">
-        <label class="form-check-label text-white" for="chkKm">
-          Validado: El odómetro físico marca exactamente <strong>{{ revisionActual.cierre.km | number }} Km</strong>.
-        </label>
-      </div>
-      <div class="form-check form-switch mb-3">
-        <input class="form-check-input" type="checkbox" role="switch" id="chkEstado" [(ngModel)]="evaluacionFisica.estadoFisicoCoincide">
-        <label class="form-check-label text-white" for="chkEstado">
-          Validado: El estado del vehículo coincide con el reporte del conductor.
-        </label>
-      </div>
-      <div>
-        <label class="form-label text-custom-muted small">Notas del Supervisor (Obligatorio si se rechaza):</label>
-        <textarea class="form-control bg-custom-main text-white border-custom" rows="2" [(ngModel)]="evaluacionFisica.notasSupervisor" placeholder="Escriba aquí los hallazgos..."></textarea>
-      </div>
     </div>
-
-    <!-- BOTONES DE DICTAMEN FINAL -->
-    <div class="d-flex gap-3 justify-content-end">
-      <button class="btn btn-outline-danger" (click)="rechazar()">
-        <i class="bi bi-x-circle"></i> RECHAZAR AUDITORÍA
-      </button>
-      <button class="btn btn-success" (click)="aprobar()">
-        <i class="bi bi-check-circle"></i> APROBAR Y CERRAR
-      </button>
-    </div>
-
   </div>
 </div>

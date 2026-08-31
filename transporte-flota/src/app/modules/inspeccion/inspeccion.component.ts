@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, AfterViewInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { VehiculoService } from '../../services/vehiculo.service';
@@ -15,7 +15,14 @@ export interface InspeccionLivianoDanoDTO {
   templateUrl: './inspeccion.component.html',
   styleUrls: ['./inspeccion.component.scss']
 })
-export class InspeccionComponent implements AfterViewInit {
+export class InspeccionComponent implements AfterViewInit, OnChanges {
+  // ---- ENTRADAS PARA MODO AUDITORIA ----
+  @Input() isAuditoria: boolean = false;
+  @Input() inspeccionOrigenId?: number;
+  @Input() vehiculoAuditoria: any = null;
+  @Input() conductorAuditoria: any = null;
+  @Output() onFinalizado = new EventEmitter<any>();
+
   // Control de las grandes fases de la vista
   fasePrincipal: 'INGRESO_CEDULA' | 'SELECCION_TIPO' | 'FORMULARIO' = 'INGRESO_CEDULA';
   
@@ -121,6 +128,26 @@ export class InspeccionComponent implements AfterViewInit {
     private http: HttpClient,
     private vehiculoService: VehiculoService
   ) {}
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.isAuditoria && this.vehiculoAuditoria && this.conductorAuditoria) {
+      this.vehiculoActual = this.vehiculoAuditoria;
+      this.conductorActual = this.conductorAuditoria;
+      this.nombreConductorActual = this.conductorActual.nombre;
+      
+      this.dto.vehiculoId = Number(this.vehiculoActual.id);
+      this.dto.usuarioId = this.conductorActual.id;
+      this.dto.inspectorNombre = 'AUDITOR';
+      
+      this.tipoInspeccionActual = 'CIERRE';
+      this.dto.tipoInspeccion = 'CIERRE';
+      this.dto.inspeccionOrigenId = this.inspeccionOrigenId;
+      this.dto.motivo = 'AUDITORIA';
+      
+      this.fasePrincipal = 'FORMULARIO';
+      this.etapaActual = 1;
+    }
+  }
 
   ngAfterViewInit() {}
 
@@ -286,14 +313,19 @@ export class InspeccionComponent implements AfterViewInit {
     if(this.sig3) this.dto.recibeFirmaBase64 = this.sig3.nativeElement.toDataURL();
 
     this.http.post(`${environment.apiUrl}/inspecciones-livianos`, this.dto).subscribe({
-      next: () => {
+      next: (response) => {
         alert(`¡Inspección de ${this.tipoInspeccionActual} completada con éxito!`);
         this.guardando = false;
-        // Volver a inicio
-        this.fasePrincipal = 'INGRESO_CEDULA';
-        this.etapaActual = 1;
-        this.cedulaInput = '';
-        this.danos = [];
+        
+        if (this.isAuditoria) {
+           this.onFinalizado.emit(response);
+        } else {
+           // Volver a inicio para flujo normal
+           this.fasePrincipal = 'INGRESO_CEDULA';
+           this.etapaActual = 1;
+           this.cedulaInput = '';
+           this.danos = [];
+        }
       },
       error: (err) => {
         console.error(err);

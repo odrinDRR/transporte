@@ -1,102 +1,112 @@
 import { Component } from '@angular/core';
-
-interface ReporteInspeccion {
-  km: number;
-  carroceria: string;
-  luces: string;
-  llantas: string;
-  observaciones: string;
-}
-
-interface AuditoriaPendiente {
-  id: number;
-  placa: string;
-  conductor: string;
-  fechaInicio: string;
-  fechaCierre: string;
-  inicio: ReporteInspeccion;
-  cierre: ReporteInspeccion;
-}
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-auditoria',
   templateUrl: './auditoria.component.html'
 })
 export class AuditoriaComponent {
+  faseAuditoria: 'INGRESO' | 'INSPECCION' | 'COMPARACION' = 'INGRESO';
+  cedulaInput: string = '';
+  buscando: boolean = false;
   
-  // Datos simulados de vehículos esperando revisión en patio
-  pendientes: AuditoriaPendiente[] = [
-    {
-      id: 1,
-      placa: 'A82-BC3',
-      conductor: 'Carlos Mendoza',
-      fechaInicio: '20-08-2026 06:30 AM',
-      fechaCierre: '20-08-2026 04:15 PM',
-      inicio: { km: 124500, carroceria: 'Sin novedades', luces: '100% Operativas', llantas: 'Presión normal', observaciones: 'Salida de rutina.' },
-      cierre: { km: 124680, carroceria: 'Abolladura leve en puerta derecha', luces: 'Faro derecho roto', llantas: 'Presión normal', observaciones: 'Roce en almacén de cliente.' }
-    },
-    {
-      id: 2,
-      placa: 'AB1-23C',
-      conductor: 'Luis Pérez',
-      fechaInicio: '20-08-2026 07:00 AM',
-      fechaCierre: '20-08-2026 03:50 PM',
-      inicio: { km: 45000, carroceria: 'Sin novedades', luces: 'Operativas', llantas: 'Normal', observaciones: '' },
-      cierre: { km: 45045, carroceria: 'Sin novedades', luces: 'Operativas', llantas: 'Normal', observaciones: 'Viaje sin contratiempos.' }
-    }
-  ];
+  // Datos de la Inspección Activa (Salida/Inicio)
+  inspeccionActiva: any = null;
+  conductorAuditoria: any = null;
+  vehiculoAuditoria: any = null;
 
-  revisionActual: AuditoriaPendiente | null = null;
-  
-  // Formulario de Fase 2: Validación Física
-  evaluacionFisica = {
-    odometroCoincide: false,
-    estadoFisicoCoincide: false,
-    notasSupervisor: ''
-  };
+  // Datos de la Inspección del Auditor (Llegada/Cierre)
+  inspeccionAuditor: any = null;
 
-  seleccionarRevision(item: AuditoriaPendiente): void {
-    this.revisionActual = item;
-    // Resetear formulario físico
-    this.evaluacionFisica = { odometroCoincide: false, estadoFisicoCoincide: false, notasSupervisor: '' };
+  // Formulario Final (Veredicto)
+  observacionesFinales: string = '';
+
+  constructor(private http: HttpClient) {}
+
+  buscarInspeccionActiva() {
+    if (!this.cedulaInput) return;
+    this.buscando = true;
+    
+    // Primero, buscamos al usuario por cédula para obtener sus datos básicos
+    this.http.get<any[]>(`${environment.apiUrl}/usuarios`).subscribe({
+      next: (usuarios) => {
+        const term = this.cedulaInput.trim().toLowerCase();
+        const conductor = usuarios.find(u => 
+          u.cargo === 'CONDUCTOR' && 
+          (
+            (u.cedula && u.cedula.toLowerCase() === term) ||
+            (u.ficha && u.ficha.toLowerCase() === term)
+          )
+        );
+
+        if (!conductor) {
+          alert('Conductor no encontrado. Verifica la cédula o ficha.');
+          this.buscando = false;
+          return;
+        }
+
+        // Si lo encontramos, buscamos su inspección activa por la cédula
+        this.http.get<any>(`${environment.apiUrl}/inspecciones-livianos/activa/${conductor.cedula}`).subscribe({
+          next: (inspeccion) => {
+            this.inspeccionActiva = inspeccion;
+            this.conductorAuditoria = {
+               id: conductor.id,
+               nombre: conductor.nombre + ' ' + conductor.apellido,
+               cedula: conductor.cedula
+            };
+            this.vehiculoAuditoria = inspeccion.vehiculo;
+            this.faseAuditoria = 'INSPECCION';
+            this.buscando = false;
+          },
+          error: (err) => {
+            if (err.status === 404) {
+              alert('Este conductor NO tiene una inspección activa. No hay nada que auditar.');
+            } else {
+              alert('Error al conectar con el servidor.');
+            }
+            this.buscando = false;
+          }
+        });
+      },
+      error: () => {
+        alert('Error al buscar usuarios.');
+        this.buscando = false;
+      }
+    });
   }
 
-  volverACola(): void {
-    this.revisionActual = null;
+  onInspeccionFinalizada(resultadoAuditor: any) {
+    this.inspeccionAuditor = resultadoAuditor;
+    this.faseAuditoria = 'COMPARACION';
   }
 
-  calcularDeltaKm(): number {
-    if (!this.revisionActual) return 0;
-    return this.revisionActual.cierre.km - this.revisionActual.inicio.km;
+  hayDiscrepancia(campo: string): boolean {
+    if (!this.inspeccionActiva || !this.inspeccionAuditor) return false;
+    return String(this.inspeccionActiva[campo]) !== String(this.inspeccionAuditor[campo]);
   }
 
-  hayDiscrepanciaTexto(campo: keyof ReporteInspeccion): boolean {
-    if (!this.revisionActual) return false;
-    return this.revisionActual.inicio[campo] !== this.revisionActual.cierre[campo];
+  aprobar() {
+    alert('Auditoría completada exitosamente. Inspección cerrada.');
+    this.reiniciar();
   }
 
-  aprobar(): void {
-    if (!this.evaluacionFisica.odometroCoincide || !this.evaluacionFisica.estadoFisicoCoincide) {
-      alert('⚠️ Para APROBAR, debes confirmar que validaste físicamente el odómetro y el estado de la unidad.');
+  rechazar() {
+    if (!this.observacionesFinales.trim()) {
+      alert('Debes ingresar observaciones detallando el motivo del rechazo.');
       return;
     }
-    alert(`✅ Auditoría APROBADA para la unidad ${this.revisionActual?.placa}. Registro guardado.`);
-    this.removerActualDeLista();
+    alert('Auditoría finalizada con Novedad/Rechazo registrada.');
+    this.reiniciar();
   }
 
-  rechazar(): void {
-    if (this.evaluacionFisica.notasSupervisor.trim() === '') {
-      alert('❌ Para RECHAZAR, debes dejar una nota explicando la discrepancia o el fraude detectado.');
-      return;
-    }
-    alert(`🚨 Auditoría RECHAZADA. Se ha bloqueado la unidad ${this.revisionActual?.placa} y notificado a Gerencia.`);
-    this.removerActualDeLista();
-  }
-
-  private removerActualDeLista(): void {
-    if (this.revisionActual) {
-      this.pendientes = this.pendientes.filter(p => p.id !== this.revisionActual!.id);
-      this.revisionActual = null;
-    }
+  reiniciar() {
+    this.faseAuditoria = 'INGRESO';
+    this.cedulaInput = '';
+    this.inspeccionActiva = null;
+    this.inspeccionAuditor = null;
+    this.conductorAuditoria = null;
+    this.vehiculoAuditoria = null;
+    this.observacionesFinales = '';
   }
 }
