@@ -54,7 +54,12 @@
         </li>
         <li class="nav-item">
           <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'auditoria'" (click)="cambiarModulo('auditoria')" href="javascript:void(0)">
-            <i class="bi bi-layout-split"></i> Auditoría de Patio
+            <i class="bi bi-layout-split"></i> Realizar Auditoría
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'listado-auditorias'" (click)="cambiarModulo('listado-auditorias')" href="javascript:void(0)">
+            <i class="bi bi-card-checklist"></i> Listado de Auditorías
           </a>
         </li>
         <li class="nav-item">
@@ -115,6 +120,11 @@
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'listado-auditorias'" (click)="cambiarModulo('listado-auditorias')" href="javascript:void(0)">
+            <i class="bi bi-card-checklist"></i> Listado de Auditorías
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'aprobaciones'" (click)="cambiarModulo('aprobaciones')" href="javascript:void(0)">
             <i class="bi bi-person-check"></i> Aprobar Empleados
           </a>
@@ -158,6 +168,7 @@
 
       <app-inspeccion *ngSwitchCase="'inspeccion'"></app-inspeccion>
       <app-auditoria *ngSwitchCase="'auditoria'"></app-auditoria>
+      <app-listado-auditorias *ngSwitchCase="'listado-auditorias'"></app-listado-auditorias>
       <app-aprobaciones *ngSwitchCase="'aprobaciones'"></app-aprobaciones>
       <app-perfil *ngSwitchCase="'perfil'"></app-perfil>
     </div>

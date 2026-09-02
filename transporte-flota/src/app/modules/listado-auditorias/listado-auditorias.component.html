@@ -1,0 +1,110 @@
+<div class="container-fluid py-4 animate__animated animate__fadeIn">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="text-white fw-bold mb-1"><i class="bi bi-card-checklist text-primary me-2"></i> Listado de Auditorías</h4>
+      <p class="text-custom-muted mb-0">Control y registro de auditorías de patio.</p>
+    </div>
+    <button class="btn btn-outline-primary" (click)="cargarDatos()">
+      <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+    </button>
+  </div>
+
+  <div class="card bg-dark border-custom shadow-lg">
+    <div class="card-header bg-transparent border-bottom border-custom p-0">
+      <ul class="nav nav-tabs border-0 mt-3 ms-3">
+        <li class="nav-item">
+          <a class="nav-link text-white rounded-top border-custom border-bottom-0" 
+             [class.bg-primary]="tabActiva === 'EN_TRANSITO'"
+             [class.bg-dark-subtle]="tabActiva !== 'EN_TRANSITO'"
+             (click)="cambiarTab('EN_TRANSITO')" style="cursor:pointer">
+            <i class="bi bi-hourglass-split me-2"></i> En Transcurso / Patio 
+            <span class="badge bg-danger ms-2">{{auditoriasEnTransito.length}}</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white rounded-top border-custom border-bottom-0 ms-2" 
+             [class.bg-success]="tabActiva === 'AUDITADAS'"
+             [class.bg-dark-subtle]="tabActiva !== 'AUDITADAS'"
+             (click)="cambiarTab('AUDITADAS')" style="cursor:pointer">
+            <i class="bi bi-check-all me-2"></i> Auditadas
+            <span class="badge bg-secondary ms-2">{{auditoriasCompletadas.length}}</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    
+    <div class="card-body p-0">
+      
+      <!-- Carga -->
+      <div *ngIf="cargando" class="text-center p-5 text-custom-muted">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2">Cargando registros...</p>
+      </div>
+
+      <!-- Tabla En Transito -->
+      <div *ngIf="!cargando && tabActiva === 'EN_TRANSITO'" class="table-responsive">
+        <table class="table table-dark table-hover mb-0">
+          <thead class="bg-dark-subtle">
+            <tr>
+              <th class="text-custom-muted">FECHA REGISTRO</th>
+              <th class="text-custom-muted">NRO CONTROL</th>
+              <th class="text-custom-muted">VEHÍCULO</th>
+              <th class="text-custom-muted">CONDUCTOR</th>
+              <th class="text-custom-muted text-center">ESTADO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ins of auditoriasEnTransito">
+              <td>{{ins.fechaCreacion | date:'dd/MM/yyyy HH:mm'}}</td>
+              <td class="text-warning fw-bold">{{ins.numeroControl}}</td>
+              <td>{{ins.vehiculo.placa}} ({{ins.vehiculo.marca}})</td>
+              <td>{{ins.usuario.nombre}} {{ins.usuario.apellido}} <br><small class="text-custom-muted">{{ins.usuario.ficha}}</small></td>
+              <td class="text-center">
+                <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i> Esperando Auditoría</span>
+              </td>
+            </tr>
+            <tr *ngIf="auditoriasEnTransito.length === 0">
+              <td colspan="5" class="text-center py-4 text-custom-muted">
+                No hay vehículos esperando auditoría de patio actualmente.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tabla Completadas -->
+      <div *ngIf="!cargando && tabActiva === 'AUDITADAS'" class="table-responsive">
+        <table class="table table-dark table-hover mb-0">
+          <thead class="bg-dark-subtle">
+            <tr>
+              <th class="text-custom-muted">FECHA AUDITORÍA</th>
+              <th class="text-custom-muted">ID AUDITORÍA</th>
+              <th class="text-custom-muted">VEHÍCULO</th>
+              <th class="text-custom-muted">AUDITOR</th>
+              <th class="text-custom-muted">UBICACIÓN</th>
+              <th class="text-custom-muted text-center">ESTADO</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let aud of auditoriasCompletadas">
+              <td>{{aud.fechaRegistro | date:'dd/MM/yyyy HH:mm'}}</td>
+              <td class="text-info fw-bold">#{{aud.id}}</td>
+              <td>{{aud.vehiculo.placa}} ({{aud.vehiculo.marca}})</td>
+              <td>{{aud.auditor.nombre}} {{aud.auditor.apellido}}</td>
+              <td>{{aud.ubicacionPatio}}</td>
+              <td class="text-center">
+                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> {{aud.estadoVehiculoPatio}}</span>
+              </td>
+            </tr>
+            <tr *ngIf="auditoriasCompletadas.length === 0">
+              <td colspan="6" class="text-center py-4 text-custom-muted">
+                No se han registrado auditorías todavía.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>

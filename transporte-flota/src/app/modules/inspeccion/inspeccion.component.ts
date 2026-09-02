@@ -136,7 +136,7 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
       this.nombreConductorActual = this.conductorActual.nombre;
       
       this.dto.vehiculoId = Number(this.vehiculoActual.id);
-      this.dto.usuarioId = this.conductorActual.id;
+      this.dto.usuarioId = Number(this.conductorActual.id);
       this.dto.inspectorNombre = 'AUDITOR';
       
       this.tipoInspeccionActual = 'CIERRE';
