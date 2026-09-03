@@ -33,6 +33,7 @@ export class LoginComponent {
     nombre: '',
     apellido: '',
     cedula: '',
+    telefono: '',
     edad: null as number | null,
     cargo: '' as RolUsuario | '',
     categoriaLicencia: '2da',
@@ -44,6 +45,9 @@ export class LoginComponent {
     fechaVencimientoLicencia: '',
     fechaVencimientoCertificadoMedico: ''
   };
+
+  prefijoTelefono: string = '0414';
+  numeroTelefono: string = '';
 
   constructor(
     private flotaService: FlotaService, 
@@ -118,6 +122,14 @@ export class LoginComponent {
   this.nuevoUsuario.cedula = valor;
 }
 
+  soloNumeros(event: KeyboardEvent): boolean {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      return false;
+    }
+    return true;
+  }
+
   onFileSelected(event: Event, tipo: 'licencia' | 'medico' | 'foto'): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
@@ -177,6 +189,7 @@ export class LoginComponent {
         nombre: '',
         apellido: '',
         cedula: '',
+        telefono: '',
         edad: null,
         cargo: '',
         categoriaLicencia: '2da',
@@ -188,6 +201,8 @@ export class LoginComponent {
         fechaVencimientoLicencia: '',
         fechaVencimientoCertificadoMedico: ''
       };
+      this.prefijoTelefono = '0414';
+      this.numeroTelefono = '';
     }
   }
 
@@ -195,6 +210,11 @@ export class LoginComponent {
     if (this.pasoRegistro === 1) {
       if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.apellido || !this.nuevoUsuario.cedula || !this.nuevoUsuario.cargo) {
         alert('Por favor completa todos los datos obligatorios.');
+        return;
+      }
+      
+      if (!this.numeroTelefono || this.numeroTelefono.length < 7) {
+        alert('Por favor ingresa un número de teléfono válido.');
         return;
       }
       
@@ -258,7 +278,8 @@ export class LoginComponent {
         const urlFotoSupabase = await this.supabaseStorage.uploadFile(
           this.archivoFoto,
           'flota_archivos',
-          'usuarios/fotos'
+          'usuarios/fotos',
+          `foto_${this.nuevoUsuario.cedula}`
         );
         urlFoto = urlFotoSupabase;
       }
@@ -267,7 +288,8 @@ export class LoginComponent {
         const urlLicenciaSupabase = await this.supabaseStorage.uploadFile(
           this.archivoLicencia,
           'flota_archivos',
-          'usuarios/documentos'
+          'usuarios/documentos',
+          `licencia_${this.nuevoUsuario.cedula}`
         );
         urlLicencia = urlLicenciaSupabase;
       }
@@ -276,13 +298,15 @@ export class LoginComponent {
         const urlMedicoSupabase = await this.supabaseStorage.uploadFile(
           this.archivoMedico,
           'flota_archivos',
-          'usuarios/documentos'
+          'usuarios/documentos',
+          `certmedico_${this.nuevoUsuario.cedula}`
         );
         urlMedico = urlMedicoSupabase;
       }
 
       const payload = {
         ...this.nuevoUsuario,
+        telefono: `${this.prefijoTelefono}-${this.numeroTelefono}`,
         urlLicencia,
         urlCertificadoMedico: urlMedico,
         fotoUrl: urlFoto,

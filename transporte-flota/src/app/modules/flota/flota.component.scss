@@ -353,57 +353,41 @@ select.touch-input option:disabled {
 /* ==========================================
    IMPRESIÓN (Ficha Técnica Limpia en Blanco y Negro)
    ========================================== */
-@media print {
-  /* Ocultar todo lo ajeno al área de impresión */
-  body * { 
-    visibility: hidden; 
-  }
-  
-  .printable-area, .printable-area * { 
-    visibility: visible; 
-  }
-  
-  .printable-area {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    background: #ffffff !important;
-    border: none !important;
-    box-shadow: none !important;
-    color: #000000 !important;
-  }
+::ng-deep {
+  @media print {
+    body.print-ficha {
+      .fleet-app-content { display: none !important; }
+      .print-ficha-container { display: block !important; }
+      .print-qr-container { display: none !important; }
+      .fleet-mobile-container {
+        background: #ffffff !important;
+        color: #000000 !important;
+        min-height: auto !important;
+        padding: 0 !important;
+      }
+    }
+    
+    body.print-qr {
+      .fleet-app-content { display: none !important; }
+      .print-ficha-container { display: none !important; }
+      .print-qr-container { display: block !important; }
+      .fleet-mobile-container {
+        background: #ffffff !important;
+        color: #000000 !important;
+        min-height: auto !important;
+        padding: 0 !important;
+      }
+    }
+    
+    /* Si presiona CTRL+P normalmente desde el navegador */
+    body:not(.print-ficha):not(.print-qr) {
+      .print-ficha-container { display: none !important; }
+      .print-qr-container { display: none !important; }
+    }
 
-  /* Anular clases oscuras de Bootstrap para impresión */
-  .printable-area .bg-dark,
-  .printable-area .bg-black {
-    background-color: transparent !important;
+    @page {
+      size: A4 portrait;
+      margin: 1cm;
+    }
   }
-  
-  .printable-area .text-white,
-  .printable-area .text-white-50,
-  .printable-area .text-primary {
-    color: #000000 !important;
-  }
-
-  .printable-area .border-secondary {
-    border-color: #cccccc !important;
-  }
-
-  /* Estilos específicos para la matriz de datos y fotos al imprimir */
-  .hud-specs-list {
-    background: #f8f9fa !important;
-    border: 1px solid #dee2e6 !important;
-  }
-
-  /* Ocultar UI de botones en papel */
-  .no-print { 
-    display: none !important; 
-  }
-
-  /* Ajustes de página y saltos */
-  @page {
-    size: A4 portrait;
-    margin: 1cm;
-  }
-}
+}  

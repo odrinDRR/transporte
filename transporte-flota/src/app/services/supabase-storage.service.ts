@@ -11,9 +11,11 @@ export class SupabaseStorageService {
   /**
    * Sube un archivo directamente a Supabase Storage usando su API REST
    */
-  async uploadFile(file: File, bucket: string, folder: string): Promise<string> {
+  async uploadFile(file: File, bucket: string, folder: string, customName?: string): Promise<string> {
     const fileExt = file.name.split('.').pop();
-    const fileName = `${new Date().getTime()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const fileName = customName 
+      ? `${customName}_${new Date().getTime()}.${fileExt}` 
+      : `${new Date().getTime()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
     const filePath = `${folder}/${fileName}`;
     
     const url = `${environment.supabaseUrl}/storage/v1/object/${bucket}/${filePath}`;

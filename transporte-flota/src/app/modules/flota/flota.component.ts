@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Observable, combineLatest, BehaviorSubject, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { FlotaService } from '../../core/services/flota.service';
@@ -22,6 +22,8 @@ export class FlotaComponent implements OnInit {
   guardandoVehiculo: boolean = false;
   mostrarCarrusel: boolean = false;
   vehiculoSeleccionado: Vehiculo | null = null;
+  imagenesCargadas: { [key: string]: boolean } = {};
+  modoImpresion: 'FICHA' | 'QR' | 'NADA' = 'NADA';
   
   // Gestión de Galería/Carrusel (Se mantiene para ver fotos en la ficha)
   fotosCarrusel: string[] = [];
@@ -38,6 +40,9 @@ export class FlotaComponent implements OnInit {
   // Modelo de Formulario
   nuevoVehiculo: Partial<Vehiculo> = this.inicializarFormulario();
 
+  prefijoTelefono: string = '0414';
+  numeroTelefono: string = '';
+
   private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([]);
   public vehiculos$: Observable<Vehiculo[]> = this.vehiculosSubject.asObservable();
 
@@ -53,7 +58,8 @@ export class FlotaComponent implements OnInit {
     private vehiculoService: VehiculoService,
     private conductorService: ConductorService,
     private archivoService: ArchivoService,
-    private supabaseStorage: SupabaseStorageService
+    private supabaseStorage: SupabaseStorageService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -133,8 +139,6 @@ export class FlotaComponent implements OnInit {
       kilometraje: undefined,
       estado: 'OPERATIVO',
       observaciones: '',
-      responsableVerificacion: { nombre: '', ci: '', telefono: '' },
-      responsableVehiculo: { nombre: '', ci: '', telefono: '' },
       fotosEstructuradas: {}
     };
   }
@@ -152,35 +156,50 @@ export class FlotaComponent implements OnInit {
 
     this.guardandoVehiculo = true;
     try {
-      // 1. Subir Foto de Perfil a Supabase
-      const urlPerfil = await this.supabaseStorage.uploadFile(
+      // 1. Preparar subida de Foto de Perfil
+      const perfilPromise = this.supabaseStorage.uploadFile(
         this.fotoPerfilVehiculo,
         'flota_archivos',
-        'vehiculos/perfiles'
+        'vehiculos/perfiles',
+        `perfil_${this.nuevoVehiculo.placa}`
       );
 
-      // 2. Subir Fotos Estructuradas (6 vistas) a Supabase
-      const urlsEstructuradas: FotosFichaTecnica = {};
-      for (const [llave, archivo] of Object.entries(this.fotosEstructuradasArchivos)) {
+      // 2. Preparar subidas de Fotos Estructuradas (6 vistas)
+      const llaves = Object.keys(this.fotosEstructuradasArchivos);
+      const subidasPromises = llaves.map(llave => {
+        const archivo = this.fotosEstructuradasArchivos[llave];
         if (archivo) {
-          const urlSubida = await this.supabaseStorage.uploadFile(
+          return this.supabaseStorage.uploadFile(
             archivo,
             'flota_archivos',
-            'vehiculos/ficha_tecnica'
-          );
-          urlsEstructuradas[llave] = urlSubida;
+            'vehiculos/ficha_tecnica',
+            `${llave}_${this.nuevoVehiculo.placa}`
+          ).then(url => ({ llave, url }));
         }
-      }
+        return Promise.resolve(null);
+      });
+
+      // Ejecutar TODAS las subidas en paralelo para máxima velocidad
+      const [urlPerfil, resultadosEstructuradas] = await Promise.all([
+        perfilPromise,
+        Promise.all(subidasPromises)
+      ]);
+
+      const urlsEstructuradas: FotosFichaTecnica = {};
+      resultadosEstructuradas.forEach(res => {
+        if (res) {
+          urlsEstructuradas[res.llave as keyof FotosFichaTecnica] = res.url;
+        }
+      });
 
       // 3. Construir Payload
+      
       const payload = {
         ...this.nuevoVehiculo,
         urlFotoPerfil: urlPerfil,
         fotosEstructuradas: urlsEstructuradas,
-        // Construimos el array de fotos simple para el carrusel y compatibilidad
         fotos: Object.values(urlsEstructuradas).filter(url => url !== undefined),
-        capacidadCarga: this.nuevoVehiculo.capacidadCarga ? Number(this.nuevoVehiculo.capacidadCarga) : undefined,
-        marcaModelo: `${this.nuevoVehiculo.marca} ${this.nuevoVehiculo.modelo}`.trim()
+        capacidadCarga: this.nuevoVehiculo.capacidadCarga ? Number(this.nuevoVehiculo.capacidadCarga) : undefined
       };
 
       // 4. Guardar en Backend
@@ -221,6 +240,8 @@ export class FlotaComponent implements OnInit {
   // --- MÉTODOS DE UTILIDAD Y UI ---
   resetearFormulario(): void {
     this.nuevoVehiculo = this.inicializarFormulario();
+    this.prefijoTelefono = '0414';
+    this.numeroTelefono = '';
   }
 
   aplicarFiltroBuscador(event: Event): void {
@@ -238,12 +259,25 @@ export class FlotaComponent implements OnInit {
     return c ? `${c.nombre}` : 'Sin Asignar';
   }
 
+  obtenerDetallesConductor(id?: number | null, conductores?: Conductor[] | null): Conductor | null {
+    if (!id || !conductores) return null;
+    return conductores.find(item => item.id === id) || null;
+  }
+
   alternarRegistro(): void {
     this.mostrarRegistro = !this.mostrarRegistro;
     this.fotosEstructuradasArchivos = {};
     this.fotoPerfilVehiculo = null;
     if (!this.mostrarRegistro) {
       this.resetearFormulario();
+    }
+    
+    // Test for runtime template crash
+    try {
+      this.cdr.detectChanges();
+    } catch (e: any) {
+      console.error('Crash in template!', e);
+      alert('Error en el formulario: ' + e.message);
     }
   }
 
@@ -319,6 +353,7 @@ export class FlotaComponent implements OnInit {
 
   abrirFicha(v: Vehiculo): void {
     this.vehiculoSeleccionado = v;
+    this.imagenesCargadas = {};
   }
 
   cerrarFicha(): void {
@@ -326,12 +361,67 @@ export class FlotaComponent implements OnInit {
   }
 
   imprimirFicha(): void {
-    window.print();
+    const printContents = document.getElementById('ficha-print-section')?.innerHTML;
+    if (printContents) {
+      this.imprimirHtml(printContents, 'Ficha Técnica Vehicular');
+    }
+  }
+
+  imprimirQR(): void {
+    const printContents = document.getElementById('qr-print-section')?.innerHTML;
+    if (printContents) {
+      this.imprimirHtml(printContents, 'QR Vehicular');
+    }
+  }
+
+  private imprimirHtml(htmlContent: string, title: string): void {
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+    
+    const doc = iframe.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(`
+        <html>
+          <head>
+            <title>${title}</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+            <style>
+              @media print {
+                @page { size: A4 portrait; margin: 0; }
+                body { 
+                  padding: 1.5cm; /* Margen interno para que no pegue del borde */
+                  background: white; 
+                  color: black;
+                  -webkit-print-color-adjust: exact; 
+                  print-color-adjust: exact;
+                }
+                .table-bordered, .table-bordered td, .table-bordered th {
+                  border: 2px solid #000 !important;
+                }
+              }
+              body { font-family: system-ui, -apple-system, sans-serif; background: white; }
+            </style>
+          </head>
+          <body onload="setTimeout(() => { window.print(); setTimeout(() => { window.parent.document.body.removeChild(window.frameElement); }, 100); }, 500);">
+            ${htmlContent}
+          </body>
+        </html>
+      `);
+      doc.close();
+    }
   }
 
   abrirCarrusel(v: Vehiculo): void {
     this.fotosCarrusel = v.fotos || [];
     this.indiceFotoActual = 0;
+    this.imagenesCargadas = {};
     this.mostrarCarrusel = true;
   }
 
@@ -345,6 +435,7 @@ export class FlotaComponent implements OnInit {
     } else {
       this.indiceFotoActual = 0;
     }
+    this.imagenesCargadas['carrusel'] = false;
   }
 
   anteriorFoto(): void {
@@ -353,9 +444,11 @@ export class FlotaComponent implements OnInit {
     } else {
       this.indiceFotoActual = this.fotosCarrusel.length - 1;
     }
+    this.imagenesCargadas['carrusel'] = false;
   }
 
   seleccionarFoto(index: number): void {
     this.indiceFotoActual = index;
+    this.imagenesCargadas['carrusel'] = false;
   }
 }

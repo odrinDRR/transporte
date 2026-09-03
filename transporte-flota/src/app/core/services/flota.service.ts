@@ -28,6 +28,10 @@ export class FlotaService {
     return this.http.post(`${this.apiUrl}/usuarios/asignar-unidad`, payload, { responseType: 'text' });
   }
 
+  desvincularUnidad(conductorId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/usuarios/desvincular-unidad/${conductorId}`, {}, { responseType: 'text' });
+  }
+
   // --- MÉTODOS DE ROL ---
   cambiarRol(rol: RolUsuario): void {
     this.rolActualSubject.next(rol);

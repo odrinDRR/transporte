@@ -128,4 +128,19 @@ export class ConductoresComponent implements OnInit {
       this.mensajeAsignacion = 'ERROR: Debe seleccionar un vehículo de la lista.';
     }
   }
+
+  revocarAsignacion(conductor: Conductor): void {
+    if (confirm(`¿Estás seguro de que deseas desvincular la unidad de ${conductor.nombre}?`)) {
+      this.flotaService.desvincularUnidad(conductor.id).subscribe({
+        next: () => {
+          alert('Unidad desvinculada exitosamente.');
+          this.ngOnInit(); // Refresh to clear the assigned vehicle
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Error al desvincular la unidad.');
+        }
+      });
+    }
+  }
 }

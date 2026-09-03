@@ -14,10 +14,19 @@
       <ul class="nav nav-tabs border-0 mt-3 ms-3">
         <li class="nav-item">
           <a class="nav-link text-white rounded-top border-custom border-bottom-0" 
+             [class.bg-primary]="tabActiva === 'TODAS'"
+             [class.bg-dark-subtle]="tabActiva !== 'TODAS'"
+             (click)="cambiarTab('TODAS')" style="cursor:pointer">
+            <i class="bi bi-collection me-2"></i> Todos
+            <span class="badge bg-secondary ms-2">{{registrosUnificados.length}}</span>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white rounded-top border-custom border-bottom-0 ms-2" 
              [class.bg-primary]="tabActiva === 'EN_TRANSITO'"
              [class.bg-dark-subtle]="tabActiva !== 'EN_TRANSITO'"
              (click)="cambiarTab('EN_TRANSITO')" style="cursor:pointer">
-            <i class="bi bi-hourglass-split me-2"></i> En Transcurso / Patio 
+            <i class="bi bi-hourglass-split me-2"></i> En Proceso 
             <span class="badge bg-danger ms-2">{{auditoriasEnTransito.length}}</span>
           </a>
         </li>
@@ -41,7 +50,44 @@
         <p class="mt-2">Cargando registros...</p>
       </div>
 
-      <!-- Tabla En Transito -->
+      <!-- Tabla TODAS -->
+      <div *ngIf="!cargando && tabActiva === 'TODAS'" class="table-responsive">
+        <table class="table table-dark table-hover mb-0">
+          <thead class="bg-dark-subtle">
+            <tr>
+              <th class="text-custom-muted">FECHA</th>
+              <th class="text-custom-muted">REF.</th>
+              <th class="text-custom-muted">VEHÍCULO</th>
+              <th class="text-custom-muted">RESPONSABLE</th>
+              <th class="text-custom-muted text-center">ESTADO</th>
+              <th class="text-custom-muted text-end">ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let reg of registrosUnificados">
+              <td>{{reg.fecha | date:'dd/MM/yyyy HH:mm'}}</td>
+              <td class="text-white fw-bold">{{reg.referencia}}</td>
+              <td>{{reg.vehiculo}}</td>
+              <td>{{reg.responsable}}</td>
+              <td class="text-center">
+                <span class="badge {{reg.badgeClass}}"><i class="bi {{reg.icon}} me-1"></i> {{reg.estado}}</span>
+              </td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-info" (click)="imprimir(reg.tipo, reg.id)" title="Imprimir Planilla">
+                  <i class="bi bi-printer"></i>
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="registrosUnificados.length === 0">
+              <td colspan="6" class="text-center py-4 text-custom-muted">
+                No hay registros en el sistema.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Tabla En Proceso -->
       <div *ngIf="!cargando && tabActiva === 'EN_TRANSITO'" class="table-responsive">
         <table class="table table-dark table-hover mb-0">
           <thead class="bg-dark-subtle">
@@ -51,6 +97,7 @@
               <th class="text-custom-muted">VEHÍCULO</th>
               <th class="text-custom-muted">CONDUCTOR</th>
               <th class="text-custom-muted text-center">ESTADO</th>
+              <th class="text-custom-muted text-end">ACCIONES</th>
             </tr>
           </thead>
           <tbody>
@@ -62,38 +109,47 @@
               <td class="text-center">
                 <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i> Esperando Auditoría</span>
               </td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-info" (click)="imprimir('inspeccion', ins.id)" title="Imprimir Planilla">
+                  <i class="bi bi-printer"></i>
+                </button>
+              </td>
             </tr>
             <tr *ngIf="auditoriasEnTransito.length === 0">
-              <td colspan="5" class="text-center py-4 text-custom-muted">
-                No hay vehículos esperando auditoría de patio actualmente.
+              <td colspan="6" class="text-center py-4 text-custom-muted">
+                No hay vehículos esperando auditoría actualmente.
               </td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Tabla Completadas -->
+      <!-- Tabla Auditadas -->
       <div *ngIf="!cargando && tabActiva === 'AUDITADAS'" class="table-responsive">
         <table class="table table-dark table-hover mb-0">
           <thead class="bg-dark-subtle">
             <tr>
               <th class="text-custom-muted">FECHA AUDITORÍA</th>
-              <th class="text-custom-muted">ID AUDITORÍA</th>
               <th class="text-custom-muted">VEHÍCULO</th>
               <th class="text-custom-muted">AUDITOR</th>
               <th class="text-custom-muted">UBICACIÓN</th>
               <th class="text-custom-muted text-center">ESTADO</th>
+              <th class="text-custom-muted text-end">ACCIONES</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let aud of auditoriasCompletadas">
               <td>{{aud.fechaRegistro | date:'dd/MM/yyyy HH:mm'}}</td>
-              <td class="text-info fw-bold">#{{aud.id}}</td>
               <td>{{aud.vehiculo.placa}} ({{aud.vehiculo.marca}})</td>
               <td>{{aud.auditor.nombre}} {{aud.auditor.apellido}}</td>
               <td>{{aud.ubicacionPatio}}</td>
               <td class="text-center">
                 <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i> {{aud.estadoVehiculoPatio}}</span>
+              </td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-info" (click)="imprimir('auditoria', aud.id)" title="Imprimir Reporte Completo">
+                  <i class="bi bi-printer"></i>
+                </button>
               </td>
             </tr>
             <tr *ngIf="auditoriasCompletadas.length === 0">
