@@ -398,12 +398,12 @@
             <i class="bi bi-camera text-primary me-2"></i>Memoria Fotográfica (6 Tomas Obligatorias)
           </h6>
           
-          <div class="row g-2">
+          <div class="row gx-2 gy-4">
             <!-- 1. FRONTAL -->
             <div class="col-4 col-md-4 text-center">
-              <span class="text-white-50 fs-xs fw-bold d-block mb-1 text-truncate">1. FRONTAL</span>
-              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all h-100 d-flex flex-column justify-content-center" 
-                   [ngClass]="fotosEstructuradasArchivos['vistaFrontal'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="min-height: 60px;">
+              <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate">1. FRONTAL</span>
+              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center" 
+                   [ngClass]="fotosEstructuradasArchivos['vistaFrontal'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="height: 75px;">
                 <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaFrontal')">
                 <div class="z-1 position-relative pointer-events-none">
                   <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaFrontal']"></i>
@@ -413,9 +413,9 @@
             </div>
             <!-- 2. TRASERA -->
             <div class="col-4 col-md-4 text-center">
-              <span class="text-white-50 fs-xs fw-bold d-block mb-1 text-truncate">2. TRASERA</span>
-              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all h-100 d-flex flex-column justify-content-center" 
-                   [ngClass]="fotosEstructuradasArchivos['vistaTrasera'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="min-height: 60px;">
+              <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate">2. TRASERA</span>
+              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center" 
+                   [ngClass]="fotosEstructuradasArchivos['vistaTrasera'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="height: 75px;">
                 <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaTrasera')">
                 <div class="z-1 position-relative pointer-events-none">
                   <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaTrasera']"></i>
@@ -425,9 +425,9 @@
             </div>
             <!-- 3. LAT. DERECHA -->
             <div class="col-4 col-md-4 text-center">
-              <span class="text-white-50 fs-xs fw-bold d-block mb-1 text-truncate" title="3. LAT. DERECHA">3. LAT. DER.</span>
-              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all h-100 d-flex flex-column justify-content-center" 
-                   [ngClass]="fotosEstructuradasArchivos['vistaLateralDerecha'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="min-height: 60px;">
+              <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate" title="3. LAT. DERECHA">3. LAT. DER.</span>
+              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center" 
+                   [ngClass]="fotosEstructuradasArchivos['vistaLateralDerecha'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="height: 75px;">
                 <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaLateralDerecha')">
                 <div class="z-1 position-relative pointer-events-none">
                   <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaLateralDerecha']"></i>
@@ -437,9 +437,9 @@
             </div>
             <!-- 4. LAT. IZQUIERDA -->
             <div class="col-4 col-md-4 text-center">
-              <span class="text-white-50 fs-xs fw-bold d-block mb-1 text-truncate" title="4. LAT. IZQUIERDA">4. LAT. IZQ.</span>
-              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all h-100 d-flex flex-column justify-content-center" 
-                   [ngClass]="fotosEstructuradasArchivos['vistaLateralIzquierda'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="min-height: 60px;">
+              <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate" title="4. LAT. IZQUIERDA">4. LAT. IZQ.</span>
+              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center" 
+                   [ngClass]="fotosEstructuradasArchivos['vistaLateralIzquierda'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="height: 75px;">
                 <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaLateralIzquierda')">
                 <div class="z-1 position-relative pointer-events-none">
                   <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaLateralIzquierda']"></i>
@@ -449,9 +449,9 @@
             </div>
             <!-- 5. SERIAL CARROCERÍA -->
             <div class="col-4 col-md-4 text-center">
-              <span class="text-white-50 fs-xs fw-bold d-block mb-1 text-truncate" title="5. SERIAL CARROCERÍA">5. SERIAL</span>
-              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all h-100 d-flex flex-column justify-content-center" 
-                   [ngClass]="fotosEstructuradasArchivos['vistaSerialCarroceria'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="min-height: 60px;">
+              <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate" title="5. SERIAL CARROCERÍA">5. SERIAL</span>
+              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center" 
+                   [ngClass]="fotosEstructuradasArchivos['vistaSerialCarroceria'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="height: 75px;">
                 <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaSerialCarroceria')">
                 <div class="z-1 position-relative pointer-events-none">
                   <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaSerialCarroceria']"></i>
@@ -461,9 +461,9 @@
             </div>
             <!-- 6. BIEN NACIONAL -->
             <div class="col-4 col-md-4 text-center">
-              <span class="text-white-50 fs-xs fw-bold d-block mb-1 text-truncate" title="6. BIEN NACIONAL">6. BIEN NAC.</span>
-              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all h-100 d-flex flex-column justify-content-center" 
-                   [ngClass]="fotosEstructuradasArchivos['vistaNumeroBien'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="min-height: 60px;">
+              <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate" title="6. BIEN NACIONAL">6. BIEN NAC.</span>
+              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center" 
+                   [ngClass]="fotosEstructuradasArchivos['vistaNumeroBien'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="height: 75px;">
                 <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaNumeroBien')">
                 <div class="z-1 position-relative pointer-events-none">
                   <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaNumeroBien']"></i>
