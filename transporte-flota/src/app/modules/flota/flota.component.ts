@@ -19,6 +19,10 @@ export class FlotaComponent implements OnInit {
   // ESTADOS Y PROPIEDADES DEL COMPONENTE
   // ==========================================
   mostrarRegistro: boolean = false;
+  
+  // Vista Previa de Impresión
+  previewMode: 'FICHA' | 'QR' = 'FICHA';
+  previewTitle: string = '';
   guardandoVehiculo: boolean = false;
   mostrarCarrusel: boolean = false;
   vehiculoSeleccionado: Vehiculo | null = null;
@@ -386,18 +390,33 @@ export class FlotaComponent implements OnInit {
     this.vehiculoSeleccionado = null;
   }
 
-  imprimirFicha(): void {
-    const printContents = document.getElementById('ficha-print-section')?.innerHTML;
-    if (printContents) {
-      this.imprimirHtml(printContents, 'Ficha Técnica Vehicular');
+  abrirVistaPrevia(mode: 'FICHA' | 'QR'): void {
+    this.previewMode = mode;
+    this.previewTitle = mode === 'FICHA' ? 'Vista Previa: Ficha Técnica' : 'Vista Previa: QR Vehicular';
+    
+    // Usar Bootstrap Modal API para abrir el modal
+    const modalElement = document.getElementById('previewPrintModal');
+    if (modalElement) {
+      // @ts-ignore
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
     }
   }
 
-  imprimirQR(): void {
-    const printContents = document.getElementById('qr-print-section')?.innerHTML;
+  confirmarImpresion(): void {
+    const sectionId = this.previewMode === 'FICHA' ? 'ficha-print-content' : 'qr-print-content';
+    const printContents = document.getElementById(sectionId)?.innerHTML;
     if (printContents) {
-      this.imprimirHtml(printContents, 'QR Vehicular');
+      this.imprimirHtml(printContents, this.previewTitle);
     }
+  }
+
+  imprimirFicha(): void {
+    this.abrirVistaPrevia('FICHA');
+  }
+
+  imprimirQR(): void {
+    this.abrirVistaPrevia('QR');
   }
 
   private imprimirHtml(htmlContent: string, title: string): void {
@@ -428,9 +447,20 @@ export class FlotaComponent implements OnInit {
                   -webkit-print-color-adjust: exact; 
                   print-color-adjust: exact;
                 }
-                .table-bordered, .table-bordered td, .table-bordered th {
+                .custom-print-table { border-collapse: collapse; width: 100%; font-size: 11px; }
+                .custom-print-table th, .custom-print-table td {
                   border: 2px solid #000 !important;
+                  padding: 4px 6px !important;
+                  vertical-align: middle !important;
+                  line-height: 1.3 !important;
+                  white-space: normal !important;
                 }
+                .custom-print-table .p-0 { padding: 0 !important; }
+                .custom-print-table .p-1 { padding: 0.25rem !important; }
+                .custom-print-table .p-2 { padding: 0.5rem !important; }
+                .custom-print-table .text-center { text-align: center !important; }
+                .custom-print-table .align-middle { vertical-align: middle !important; }
+                .custom-print-table .border-top { border-top: 2px solid #000 !important; }
               }
               body { font-family: system-ui, -apple-system, sans-serif; background: white; }
             </style>
