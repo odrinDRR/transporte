@@ -1,632 +1,748 @@
-<div *ngIf="conductores$ | async as conductores" class="fleet-mobile-container p-2 p-md-4 min-vh-100" [class.bg-white]="modoImpresion !== 'NADA'" [class.p-0]="modoImpresion !== 'NADA'">
-  
+<div *ngIf="conductores$ | async as conductores" class="fleet-mobile-container p-2 p-md-4 min-vh-100"
+  [class.bg-white]="modoImpresion !== 'NADA'" [class.p-0]="modoImpresion !== 'NADA'">
+
   <!-- CONTENEDOR PRINCIPAL DE LA APP -->
   <div class="fleet-app-content" [class.d-print-none]="modoImpresion !== 'NADA'">
 
-  <!-- KPI BAR -->
-  <section class="row g-2 mb-4 d-print-none" *ngIf="vehiculos$ | async as vehiculos">
-    <div class="col-6 col-lg-3">
-      <div class="kpi-card glass-panel p-3 border-start border-4 border-success animate-fade-in">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <span class="text-uppercase text-white fw-bold fs-xs tracking-wide">Operativos</span>
-            <h3 class="text-white fw-extrabold mb-0 mt-1">{{ (vehiculos | filterStatus:'OPERATIVO').length }}</h3>
-          </div>
-          <div class="kpi-icon-box bg-success-glow text-success">
-            <i class="bi bi-check-circle-fill fs-4"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-6 col-lg-3">
-      <div class="kpi-card glass-panel p-3 border-start border-4 border-warning animate-fade-in">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <span class="text-uppercase text-white fw-bold fs-xs tracking-wide">En Taller</span>
-            <h3 class="text-white fw-extrabold mb-0 mt-1">{{ (vehiculos | filterStatus:'TALLER').length }}</h3>
-          </div>
-          <div class="kpi-icon-box bg-warning-glow text-warning">
-            <i class="bi bi-tools fs-4"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-6 col-lg-3">
-      <div class="kpi-card glass-panel p-3 border-start border-4 border-danger animate-fade-in">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <span class="text-uppercase text-white fw-bold fs-xs tracking-wide">Inactivos</span>
-            <h3 class="text-white fw-extrabold mb-0 mt-1">{{ (vehiculos | filterStatus:'INACTIVO').length }}</h3>
-          </div>
-          <div class="kpi-icon-box bg-danger-glow text-danger">
-            <i class="bi bi-exclamation-octagon-fill fs-4"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col-6 col-lg-3">
-      <div class="kpi-card glass-panel p-3 border-start border-4 border-primary animate-fade-in">
-        <div class="d-flex justify-content-between align-items-center">
-          <div>
-            <span class="text-uppercase text-white fw-bold fs-xs tracking-wide">Total Unidades</span>
-            <h3 class="text-white fw-extrabold mb-0 mt-1">{{ vehiculos.length }}</h3>
-          </div>
-          <div class="kpi-icon-box bg-primary-glow text-primary">
-            <i class="bi bi-shield-shaded fs-4"></i>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- DASHBOARD PRINCIPAL -->
-  <div *ngIf="!mostrarRegistro" class="animate-fade-in">
-    
-    <div class="d-flex justify-content-between align-items-center mb-3 d-print-none">
-      <div>
-        <h4 class="text-white fw-bold mb-0 d-flex align-items-center gap-2">
-          <i class="bi bi-truck text-primary"></i> Control de Flota
-        </h4>
-        <small class="text-white-50">Inspección técnica y estado operativo</small>
-      </div>
-      <button class="btn btn-primary-neon rounded-pill px-4 py-2 fw-bold shadow-lg text-nowrap d-flex align-items-center gap-2" (click)="alternarRegistro()" *ngIf="flotaService.puedeEditarOEliminar()">
-        <i class="bi bi-plus-circle-fill fs-5"></i> <span>Nueva Unidad</span>
-      </button>
-    </div>
-
-    <div class="glass-panel p-3 rounded-4 mb-4 d-print-none">
-      <div class="row g-2">
-        <div class="col-12 col-md-6">
-          <div class="input-group search-touch-group overflow-hidden">
-            <span class="input-group-text border-0 bg-transparent text-primary"><i class="bi bi-search fs-5"></i></span>
-            <input type="text" class="form-control border-0 bg-transparent text-white shadow-none touch-input" placeholder="Buscar por placa o unidad..." (keyup)="aplicarFiltroBuscador($event)">
-          </div>
-        </div>
-        <div class="col-12 col-md-6">
-          <div class="d-flex gap-1 overflow-x-auto pb-1 status-filter-bar">
-            <button type="button" class="btn btn-touch-filter flex-fill" (click)="filtrarPorEstado('TODOS')">Todos</button>
-            <button type="button" class="btn btn-touch-filter text-success border-success flex-fill" (click)="filtrarPorEstado('OPERATIVO')">Operativos</button>
-            <button type="button" class="btn btn-touch-filter text-warning border-warning flex-fill" (click)="filtrarPorEstado('TALLER')">Taller</button>
-            <button type="button" class="btn btn-touch-filter text-danger border-danger flex-fill" (click)="filtrarPorEstado('INACTIVO')">Inactivos</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TARJETAS DE VEHÍCULOS -->
-    <div *ngIf="cargandoVehiculos" class="text-center my-5 d-print-none">
-      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-        <span class="visually-hidden">Cargando unidades...</span>
-      </div>
-      <p class="text-white-50 mt-2">Cargando flota...</p>
-    </div>
-
-    <div class="row g-3 d-print-none" *ngIf="!cargandoVehiculos && (vehiculosFiltrados$ | async) as vehiculos">
-      <div class="col-12 col-sm-6 col-lg-4 col-xl-3" *ngFor="let v of vehiculos">
-        <div class="card hud-vehicle-card h-100 overflow-hidden shadow-lg">
-          
-          <div class="position-relative hud-image-wrapper" (click)="abrirCarrusel(v)">
-            <img [src]="(v.urlFotoPerfil ? v.urlFotoPerfil : (v.fotos && v.fotos.length > 0 ? v.fotos[0] : 'assets/placeholder.png'))" class="hud-img" alt="Foto Vehículo">
-            <div class="hud-overlay"></div>
-            
-            <span class="badge-hud-placa">{{ v.placa }}</span>
-            <span class="badge-hud-status" [ngClass]="{'status-operativo': v.estado === 'OPERATIVO', 'status-taller': v.estado === 'TALLER', 'status-inactivo': v.estado === 'INACTIVO'}">
-              <span class="pulse-dot"></span> {{ v.estado }}
-            </span>
-
-            <div class="hud-quick-info d-flex gap-2 w-100 pe-4">
-              <span class="badge bg-black text-white border border-secondary shadow-sm">
-                <i class="bi bi-calendar3 text-primary"></i> {{ v.anio }}
-              </span>
-              <span class="badge bg-black text-white border border-secondary shadow-sm">
-                <i class="bi bi-palette text-white-50"></i> {{ v.color || 'N/A' }}
-              </span>
-            </div>
-          </div>
-
-          <div class="card-body p-3 d-flex flex-column justify-content-between">
+    <!-- KPI BAR -->
+    <section class="row g-2 mb-4 d-print-none" *ngIf="vehiculos$ | async as vehiculos">
+      <div class="col-6 col-lg-3">
+        <div class="kpi-card glass-panel p-3 border-start border-4 border-success animate-fade-in">
+          <div class="d-flex justify-content-between align-items-center">
             <div>
-              <div class="d-flex justify-content-between align-items-start mb-1">
-                <h5 class="text-white fw-bold text-truncate mb-0" style="max-width: 70%;">{{ v.identificador }}</h5>
-                <span class="badge bg-dark text-light border border-light border-opacity-25 text-uppercase fs-xs">{{ v.tipoVehiculo || 'Unidad' }}</span>
-              </div>
-              <p class="text-white small mb-3 text-truncate fw-semibold">{{ v.marcaModelo }}</p>
-
-              <div class="hud-metrics-grid mb-3">
-                <div class="metric-box">
-                  <span class="label">CARGA (KG)</span>
-                  <span class="value">{{ v.capacidadCarga }}</span>
-                </div>
-                <div class="metric-box">
-                  <span class="label">RECORRIDO</span>
-                  <span class="value text-primary font-monospace">{{ (v.kilometraje || 0) | number }} Km</span>
-                </div>
-                <div class="metric-box" style="grid-column: span 2;">
-                  <span class="label">CONDUCTOR ASIGNADO</span>
-                  <span class="value text-truncate">{{ obtenerNombreConductor(v.conductorId, conductores) }}</span>
-                </div>
-              </div>
+              <span class="text-uppercase text-white fw-bold fs-xs tracking-wide">Operativos</span>
+              <h3 class="text-white fw-extrabold mb-0 mt-1">{{ (vehiculos | filterStatus:'OPERATIVO').length }}</h3>
             </div>
-
-            <div class="d-flex gap-2">
-              <button class="btn btn-outline-light flex-grow-1 fw-bold rounded-3 btn-touch-action" (click)="abrirFicha(v)">
-                <i class="bi bi-qr-code-scan text-primary me-1"></i> Ficha QR
-              </button>
-              <button class="btn btn-outline-danger px-3 rounded-3 btn-touch-action" *ngIf="flotaService.puedeEditarOEliminar()" (click)="eliminar(v.id)">
-                <i class="bi bi-trash3-fill"></i>
-              </button>
+            <div class="kpi-icon-box bg-success-glow text-success">
+              <i class="bi bi-check-circle-fill fs-4"></i>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  </div> <!-- ESTE DIV CIERRA EL DASHBOARD PRINCIPAL (*ngIf="!mostrarRegistro") -->
 
-  <!-- MODAL FICHA TÉCNICA Y QR COMPLETA (IMPRESIÓN / CONSULTA) -->
+      <div class="col-6 col-lg-3">
+        <div class="kpi-card glass-panel p-3 border-start border-4 border-warning animate-fade-in">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <span class="text-uppercase text-white fw-bold fs-xs tracking-wide">En Taller</span>
+              <h3 class="text-white fw-extrabold mb-0 mt-1">{{ (vehiculos | filterStatus:'TALLER').length }}</h3>
+            </div>
+            <div class="kpi-icon-box bg-warning-glow text-warning">
+              <i class="bi bi-tools fs-4"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-lg-3">
+        <div class="kpi-card glass-panel p-3 border-start border-4 border-danger animate-fade-in">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <span class="text-uppercase text-white fw-bold fs-xs tracking-wide">Inactivos</span>
+              <h3 class="text-white fw-extrabold mb-0 mt-1">{{ (vehiculos | filterStatus:'INACTIVO').length }}</h3>
+            </div>
+            <div class="kpi-icon-box bg-danger-glow text-danger">
+              <i class="bi bi-exclamation-octagon-fill fs-4"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-lg-3">
+        <div class="kpi-card glass-panel p-3 border-start border-4 border-primary animate-fade-in">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <span class="text-uppercase text-white fw-bold fs-xs tracking-wide">Total Unidades</span>
+              <h3 class="text-white fw-extrabold mb-0 mt-1">{{ vehiculos.length }}</h3>
+            </div>
+            <div class="kpi-icon-box bg-primary-glow text-primary">
+              <i class="bi bi-shield-shaded fs-4"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD PRINCIPAL -->
+    <div *ngIf="!mostrarRegistro" class="animate-fade-in">
+
+      <div class="d-flex justify-content-between align-items-center mb-3 d-print-none">
+        <div>
+          <h4 class="text-white fw-bold mb-0 d-flex align-items-center gap-2">
+            <i class="bi bi-truck text-primary"></i> Control de Flota
+          </h4>
+          <small class="text-white-50">Inspección técnica y estado operativo</small>
+        </div>
+        <button
+          class="btn btn-primary-neon rounded-pill px-4 py-2 fw-bold shadow-lg text-nowrap d-flex align-items-center gap-2"
+          (click)="alternarRegistro()" *ngIf="flotaService.puedeEditarOEliminar()">
+          <i class="bi bi-plus-circle-fill fs-5"></i> <span>Nueva Unidad</span>
+        </button>
+      </div>
+
+      <div class="glass-panel p-3 rounded-4 mb-4 d-print-none">
+        <div class="row g-2">
+          <div class="col-12 col-md-6">
+            <div class="input-group search-touch-group overflow-hidden">
+              <span class="input-group-text border-0 bg-transparent text-primary"><i
+                  class="bi bi-search fs-5"></i></span>
+              <input type="text" class="form-control border-0 bg-transparent text-white shadow-none touch-input"
+                placeholder="Buscar por placa o unidad..." (keyup)="aplicarFiltroBuscador($event)">
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="d-flex gap-1 overflow-x-auto pb-1 status-filter-bar">
+              <button type="button" class="btn btn-touch-filter flex-fill"
+                (click)="filtrarPorEstado('TODOS')">Todos</button>
+              <button type="button" class="btn btn-touch-filter text-success border-success flex-fill"
+                (click)="filtrarPorEstado('OPERATIVO')">Operativos</button>
+              <button type="button" class="btn btn-touch-filter text-warning border-warning flex-fill"
+                (click)="filtrarPorEstado('TALLER')">Taller</button>
+              <button type="button" class="btn btn-touch-filter text-danger border-danger flex-fill"
+                (click)="filtrarPorEstado('INACTIVO')">Inactivos</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TARJETAS DE VEHÍCULOS -->
+      <div *ngIf="cargandoVehiculos" class="text-center my-5 d-print-none">
+        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+          <span class="visually-hidden">Cargando unidades...</span>
+        </div>
+        <p class="text-white-50 mt-2">Cargando flota...</p>
+      </div>
+
+      <div class="row g-3 d-print-none" *ngIf="!cargandoVehiculos && (vehiculosFiltrados$ | async) as vehiculos">
+        <div class="col-12 col-sm-6 col-lg-4 col-xl-3" *ngFor="let v of vehiculos">
+          <div class="card hud-vehicle-card h-100 overflow-hidden shadow-lg">
+
+            <div class="position-relative hud-image-wrapper" (click)="abrirCarrusel(v)">
+              <img
+                [src]="(v.urlFotoPerfil ? v.urlFotoPerfil : (v.fotos && v.fotos.length > 0 ? v.fotos[0] : 'assets/placeholder.png'))"
+                class="hud-img" alt="Foto Vehículo">
+              <div class="hud-overlay"></div>
+
+              <span class="badge-hud-placa">{{ v.placa }}</span>
+              <span class="badge-hud-status"
+                [ngClass]="{'status-operativo': v.estado === 'OPERATIVO', 'status-taller': v.estado === 'TALLER', 'status-inactivo': v.estado === 'INACTIVO'}">
+                <span class="pulse-dot"></span> {{ v.estado }}
+              </span>
+
+              <div class="hud-quick-info d-flex gap-2 w-100 pe-4">
+                <span class="badge bg-black text-white border border-secondary shadow-sm">
+                  <i class="bi bi-calendar3 text-primary"></i> {{ v.anio }}
+                </span>
+                <span class="badge bg-black text-white border border-secondary shadow-sm">
+                  <i class="bi bi-palette text-white-50"></i> {{ v.color || 'N/A' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="card-body p-3 d-flex flex-column justify-content-between">
+              <div>
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <h5 class="text-white fw-bold text-truncate mb-0" style="max-width: 70%;">{{ v.identificador }}</h5>
+                  <span class="badge bg-dark text-light border border-light border-opacity-25 text-uppercase fs-xs">{{
+                    v.tipoVehiculo || 'Unidad' }}</span>
+                </div>
+                <p class="text-white small mb-3 text-truncate fw-semibold">{{ v.marcaModelo }}</p>
+
+                <div class="hud-metrics-grid mb-3">
+                  <div class="metric-box">
+                    <span class="label">CARGA (KG)</span>
+                    <span class="value">{{ v.capacidadCarga }}</span>
+                  </div>
+                  <div class="metric-box">
+                    <span class="label">RECORRIDO</span>
+                    <span class="value text-primary font-monospace">{{ (v.kilometraje || 0) | number }} Km</span>
+                  </div>
+                  <div class="metric-box" style="grid-column: span 2;">
+                    <span class="label">CONDUCTOR ASIGNADO</span>
+                    <span class="value text-truncate">{{ obtenerNombreConductor(v.conductorId, conductores) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button class="btn btn-outline-light flex-grow-1 fw-bold rounded-3 btn-touch-action"
+                  (click)="abrirFicha(v)">
+                  <i class="bi bi-qr-code-scan text-primary me-1"></i> Ficha QR
+                </button>
+                <button class="btn btn-outline-danger px-3 rounded-3 btn-touch-action"
+                  *ngIf="flotaService.puedeEditarOEliminar()" (click)="eliminar(v.id)">
+                  <i class="bi bi-trash3-fill"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div> <!-- ESTE DIV CIERRA EL DASHBOARD PRINCIPAL (*ngIf="!mostrarRegistro") -->
+
+    <!-- MODAL FICHA TÉCNICA Y QR COMPLETA (IMPRESIÓN / CONSULTA) -->
     <div class="modal d-block modal-backdrop-glass" tabindex="-1" *ngIf="vehiculoSeleccionado">
       <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-        <div class="modal-content glass-card-modal shadow-lg overflow-hidden animate-pop-in" style="border: none !important;">
-          
-          <div class="bg-dark p-3 d-flex justify-content-between align-items-center border-bottom border-primary border-2">
+        <div class="modal-content glass-card-modal shadow-lg overflow-hidden animate-pop-in"
+          style="border: none !important;">
+
+          <div
+            class="bg-dark p-3 d-flex justify-content-between align-items-center border-bottom border-primary border-2">
             <div>
               <h5 class="text-white fw-bold mb-0 tracking-wide text-uppercase">Ficha Técnica Vehicular</h5>
               <small class="text-primary">{{ vehiculoSeleccionado.dependencia || 'GERENCIA DE TRANSPORTE' }}</small>
             </div>
-            <button class="btn btn-sm btn-outline-light rounded-circle no-print" (click)="cerrarFicha()"><i class="bi bi-x-lg"></i></button>
+            <button class="btn btn-sm btn-outline-light rounded-circle no-print" (click)="cerrarFicha()"><i
+                class="bi bi-x-lg"></i></button>
           </div>
-          
+
           <div class="modal-body p-0">
-            
+
             <!-- VIEW EN PANTALLA (MODO OSCURO) -->
             <div class="p-4 text-white">
-              
+
               <!-- Encabezado con QR y Placa -->
-            <div class="row align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
-              <div class="col-12 col-md-4 text-center mb-3 mb-md-0">
-                <div class="p-2 bg-white rounded-4 d-inline-block shadow-lg border border-4 border-light">
-                  <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}" alt="Código QR" class="img-fluid" style="width: 130px; height: 130px;">
+              <div class="row align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+                <div class="col-12 col-md-4 text-center mb-3 mb-md-0">
+                  <div class="p-2 bg-white rounded-4 d-inline-block shadow-lg border border-4 border-light">
+                    <img
+                      src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}"
+                      alt="Código QR" class="img-fluid" style="width: 130px; height: 130px;">
+                  </div>
+                </div>
+                <div class="col-12 col-md-8 text-center text-md-start">
+                  <span class="badge bg-primary text-uppercase px-3 py-1 mb-2">Unidad Inspeccionada</span>
+                  <h2 class="fw-extrabold mb-1 font-monospace text-primary tracking-widest">{{
+                    vehiculoSeleccionado.placa }}</h2>
+                  <h5 class="fw-bold text-white mb-2">{{ vehiculoSeleccionado.identificador }} • {{
+                    vehiculoSeleccionado.marcaModelo }}</h5>
+                  <p class="text-white-50 fs-xs mb-0">N° BIEN NACIONAL: <strong class="text-white">{{
+                      vehiculoSeleccionado.numeroBien || 'S/N' }}</strong></p>
                 </div>
               </div>
-              <div class="col-12 col-md-8 text-center text-md-start">
-                <span class="badge bg-primary text-uppercase px-3 py-1 mb-2">Unidad Inspeccionada</span>
-                <h2 class="fw-extrabold mb-1 font-monospace text-primary tracking-widest">{{ vehiculoSeleccionado.placa }}</h2>
-                <h5 class="fw-bold text-white mb-2">{{ vehiculoSeleccionado.identificador }} • {{ vehiculoSeleccionado.marcaModelo }}</h5>
-                <p class="text-white-50 fs-xs mb-0">N° BIEN NACIONAL: <strong class="text-white">{{ vehiculoSeleccionado.numeroBien || 'S/N' }}</strong></p>
-              </div>
-            </div>
 
-            <!-- Matriz de Datos Técnicos -->
-            <div class="hud-specs-list rounded-3 p-3 mb-4 bg-dark bg-opacity-50 border border-secondary border-opacity-25">
-              <h6 class="text-primary fw-bold mb-3 fs-xs text-uppercase tracking-wider"><i class="bi bi-info-circle me-1"></i> Especificaciones de la Unidad</h6>
-              <div class="row g-2">
-                <div class="col-6 col-md-4">
-                  <span class="text-white-50 fs-xs d-block">SERIAL VIN / CARROCERÍA:</span>
-                  <strong class="font-monospace text-white fs-sm">{{ vehiculoSeleccionado.vin || 'N/A' }}</strong>
-                </div>
-                <div class="col-6 col-md-4">
-                  <span class="text-white-50 fs-xs d-block">AÑO / COLOR:</span>
-                  <strong class="text-white fs-sm">{{ vehiculoSeleccionado.anio }} / {{ vehiculoSeleccionado.color || 'N/A' }}</strong>
-                </div>
-                <div class="col-6 col-md-4">
-                  <span class="text-white-50 fs-xs d-block">TIPO DE VEHÍCULO:</span>
-                  <strong class="text-white fs-sm">{{ vehiculoSeleccionado.tipoVehiculo || 'N/A' }}</strong>
-                </div>
-                <div class="col-6 col-md-4 mt-2">
-                  <span class="text-white-50 fs-xs d-block">CAPACIDAD DE CARGA:</span>
-                  <strong class="text-white fs-sm">{{ vehiculoSeleccionado.capacidadCarga }} Kg</strong>
-                </div>
-                <div class="col-6 col-md-4 mt-2">
-                  <span class="text-white-50 fs-xs d-block">KILOMETRAJE:</span>
-                  <strong class="text-white fs-sm font-monospace">{{ (vehiculoSeleccionado.kilometraje || 0) | number }} Km</strong>
-                </div>
-                <div class="col-6 col-md-4 mt-2">
-                  <span class="text-white-50 fs-xs d-block">ESTADO OPERATIVO:</span>
-                  <span class="badge" [ngClass]="{'bg-success': vehiculoSeleccionado.estado === 'OPERATIVO', 'bg-warning text-dark': vehiculoSeleccionado.estado === 'TALLER', 'bg-danger': vehiculoSeleccionado.estado === 'INACTIVO'}">{{ vehiculoSeleccionado.estado }}</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Memoria Fotográfica de Inspección (6 Vistas) -->
-            <div class="mb-4">
-              <h6 class="text-primary fw-bold mb-3 fs-xs text-uppercase tracking-wider"><i class="bi bi-camera-fill me-1"></i> Memoria Fotográfica de Inspección</h6>
-              <div class="row g-2">
-                <div class="col-4 col-md-2 text-center">
-                  <div class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black position-relative">
-                    <div class="position-absolute top-50 start-50 translate-middle" *ngIf="!imagenesCargadas['frontal']">
-                      <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                    </div>
-                    <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaFrontal || vehiculoSeleccionado.fotos?.[0] || 'assets/images/placeholder.png'" 
-                         class="object-fit-cover w-100 h-100" 
-                         [style.opacity]="imagenesCargadas['frontal'] ? 1 : 0"
-                         (load)="imagenesCargadas['frontal'] = true" 
-                         alt="Frontal">
+              <!-- Matriz de Datos Técnicos -->
+              <div
+                class="hud-specs-list rounded-3 p-3 mb-4 bg-dark bg-opacity-50 border border-secondary border-opacity-25">
+                <h6 class="text-primary fw-bold mb-3 fs-xs text-uppercase tracking-wider"><i
+                    class="bi bi-info-circle me-1"></i> Especificaciones de la Unidad</h6>
+                <div class="row g-2">
+                  <div class="col-6 col-md-4">
+                    <span class="text-white-50 fs-xs d-block">SERIAL VIN / CARROCERÍA:</span>
+                    <strong class="font-monospace text-white fs-sm">{{ vehiculoSeleccionado.vin || 'N/A' }}</strong>
                   </div>
-                  <span class="fs-2xs text-white-50 d-block">1. FRONTAL</span>
-                </div>
-                <div class="col-4 col-md-2 text-center">
-                  <div class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black position-relative">
-                    <div class="position-absolute top-50 start-50 translate-middle" *ngIf="!imagenesCargadas['trasera']">
-                      <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                    </div>
-                    <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaTrasera || vehiculoSeleccionado.fotos?.[1] || 'assets/images/placeholder.png'" 
-                         class="object-fit-cover w-100 h-100" 
-                         [style.opacity]="imagenesCargadas['trasera'] ? 1 : 0"
-                         (load)="imagenesCargadas['trasera'] = true" 
-                         alt="Trasera">
+                  <div class="col-6 col-md-4">
+                    <span class="text-white-50 fs-xs d-block">AÑO / COLOR:</span>
+                    <strong class="text-white fs-sm">{{ vehiculoSeleccionado.anio }} / {{ vehiculoSeleccionado.color ||
+                      'N/A' }}</strong>
                   </div>
-                  <span class="fs-2xs text-white-50 d-block">2. TRASERA</span>
-                </div>
-                <div class="col-4 col-md-2 text-center">
-                  <div class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black position-relative">
-                    <div class="position-absolute top-50 start-50 translate-middle" *ngIf="!imagenesCargadas['latDer']">
-                      <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                    </div>
-                    <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralDerecha || vehiculoSeleccionado.fotos?.[2] || 'assets/images/placeholder.png'" 
-                         class="object-fit-cover w-100 h-100" 
-                         [style.opacity]="imagenesCargadas['latDer'] ? 1 : 0"
-                         (load)="imagenesCargadas['latDer'] = true" 
-                         alt="Lat. Der">
+                  <div class="col-6 col-md-4">
+                    <span class="text-white-50 fs-xs d-block">TIPO DE VEHÍCULO:</span>
+                    <strong class="text-white fs-sm">{{ vehiculoSeleccionado.tipoVehiculo || 'N/A' }}</strong>
                   </div>
-                  <span class="fs-2xs text-white-50 d-block">3. LAT. DER.</span>
-                </div>
-                <div class="col-4 col-md-2 text-center">
-                  <div class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black position-relative">
-                    <div class="position-absolute top-50 start-50 translate-middle" *ngIf="!imagenesCargadas['latIzq']">
-                      <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                    </div>
-                    <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralIzquierda || vehiculoSeleccionado.fotos?.[3] || 'assets/images/placeholder.png'" 
-                         class="object-fit-cover w-100 h-100" 
-                         [style.opacity]="imagenesCargadas['latIzq'] ? 1 : 0"
-                         (load)="imagenesCargadas['latIzq'] = true" 
-                         alt="Lat. Izq">
+                  <div class="col-6 col-md-4 mt-2">
+                    <span class="text-white-50 fs-xs d-block">CAPACIDAD DE CARGA:</span>
+                    <strong class="text-white fs-sm">{{ vehiculoSeleccionado.capacidadCarga }} Kg</strong>
                   </div>
-                  <span class="fs-2xs text-white-50 d-block">4. LAT. IZQ.</span>
-                </div>
-                <div class="col-4 col-md-2 text-center">
-                  <div class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black position-relative">
-                    <div class="position-absolute top-50 start-50 translate-middle" *ngIf="!imagenesCargadas['serial']">
-                      <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                    </div>
-                    <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaSerialCarroceria || vehiculoSeleccionado.fotos?.[4] || 'assets/images/placeholder.png'" 
-                         class="object-fit-cover w-100 h-100" 
-                         [style.opacity]="imagenesCargadas['serial'] ? 1 : 0"
-                         (load)="imagenesCargadas['serial'] = true" 
-                         alt="Serial">
+                  <div class="col-6 col-md-4 mt-2">
+                    <span class="text-white-50 fs-xs d-block">KILOMETRAJE:</span>
+                    <strong class="text-white fs-sm font-monospace">{{ (vehiculoSeleccionado.kilometraje || 0) | number
+                      }} Km</strong>
                   </div>
-                  <span class="fs-2xs text-white-50 d-block">5. SERIAL</span>
-                </div>
-                <div class="col-4 col-md-2 text-center">
-                  <div class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black position-relative">
-                    <div class="position-absolute top-50 start-50 translate-middle" *ngIf="!imagenesCargadas['bien']">
-                      <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                    </div>
-                    <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaNumeroBien || vehiculoSeleccionado.fotos?.[5] || 'assets/images/placeholder.png'" 
-                         class="object-fit-cover w-100 h-100" 
-                         [style.opacity]="imagenesCargadas['bien'] ? 1 : 0"
-                         (load)="imagenesCargadas['bien'] = true" 
-                         alt="Bien Noc">
+                  <div class="col-6 col-md-4 mt-2">
+                    <span class="text-white-50 fs-xs d-block">ESTADO OPERATIVO:</span>
+                    <span class="badge"
+                      [ngClass]="{'bg-success': vehiculoSeleccionado.estado === 'OPERATIVO', 'bg-warning text-dark': vehiculoSeleccionado.estado === 'TALLER', 'bg-danger': vehiculoSeleccionado.estado === 'INACTIVO'}">{{
+                      vehiculoSeleccionado.estado }}</span>
                   </div>
-                  <span class="fs-2xs text-white-50 d-block">6. BIEN NAC.</span>
                 </div>
               </div>
+
+              <!-- Memoria Fotográfica de Inspección (6 Vistas) -->
+              <div class="mb-4">
+                <h6 class="text-primary fw-bold mb-3 fs-xs text-uppercase tracking-wider"><i
+                    class="bi bi-camera-fill me-1"></i> Memoria Fotográfica de Inspección</h6>
+                <div class="row g-2">
+                  <div class="col-4 col-md-2 text-center">
+                    <div
+                      class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black position-relative">
+                      <div class="position-absolute top-50 start-50 translate-middle"
+                        *ngIf="!imagenesCargadas['frontal']">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                      </div>
+                      <img
+                        [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaFrontal || vehiculoSeleccionado.fotos?.[0] || 'assets/images/placeholder.png'"
+                        class="object-fit-cover w-100 h-100" [style.opacity]="imagenesCargadas['frontal'] ? 1 : 0"
+                        (load)="imagenesCargadas['frontal'] = true" alt="Frontal">
+                    </div>
+                    <span class="fs-2xs text-white-50 d-block">1. FRONTAL</span>
+                  </div>
+                  <div class="col-4 col-md-2 text-center">
+                    <div
+                      class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black position-relative">
+                      <div class="position-absolute top-50 start-50 translate-middle"
+                        *ngIf="!imagenesCargadas['trasera']">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                      </div>
+                      <img
+                        [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaTrasera || vehiculoSeleccionado.fotos?.[1] || 'assets/images/placeholder.png'"
+                        class="object-fit-cover w-100 h-100" [style.opacity]="imagenesCargadas['trasera'] ? 1 : 0"
+                        (load)="imagenesCargadas['trasera'] = true" alt="Trasera">
+                    </div>
+                    <span class="fs-2xs text-white-50 d-block">2. TRASERA</span>
+                  </div>
+                  <div class="col-4 col-md-2 text-center">
+                    <div
+                      class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black position-relative">
+                      <div class="position-absolute top-50 start-50 translate-middle"
+                        *ngIf="!imagenesCargadas['latDer']">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                      </div>
+                      <img
+                        [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralDerecha || vehiculoSeleccionado.fotos?.[2] || 'assets/images/placeholder.png'"
+                        class="object-fit-cover w-100 h-100" [style.opacity]="imagenesCargadas['latDer'] ? 1 : 0"
+                        (load)="imagenesCargadas['latDer'] = true" alt="Lat. Der">
+                    </div>
+                    <span class="fs-2xs text-white-50 d-block">3. LAT. DER.</span>
+                  </div>
+                  <div class="col-4 col-md-2 text-center">
+                    <div
+                      class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black position-relative">
+                      <div class="position-absolute top-50 start-50 translate-middle"
+                        *ngIf="!imagenesCargadas['latIzq']">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                      </div>
+                      <img
+                        [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralIzquierda || vehiculoSeleccionado.fotos?.[3] || 'assets/images/placeholder.png'"
+                        class="object-fit-cover w-100 h-100" [style.opacity]="imagenesCargadas['latIzq'] ? 1 : 0"
+                        (load)="imagenesCargadas['latIzq'] = true" alt="Lat. Izq">
+                    </div>
+                    <span class="fs-2xs text-white-50 d-block">4. LAT. IZQ.</span>
+                  </div>
+                  <div class="col-4 col-md-2 text-center">
+                    <div
+                      class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black position-relative">
+                      <div class="position-absolute top-50 start-50 translate-middle"
+                        *ngIf="!imagenesCargadas['serial']">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                      </div>
+                      <img
+                        [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaSerialCarroceria || vehiculoSeleccionado.fotos?.[4] || 'assets/images/placeholder.png'"
+                        class="object-fit-cover w-100 h-100" [style.opacity]="imagenesCargadas['serial'] ? 1 : 0"
+                        (load)="imagenesCargadas['serial'] = true" alt="Serial">
+                    </div>
+                    <span class="fs-2xs text-white-50 d-block">5. SERIAL</span>
+                  </div>
+                  <div class="col-4 col-md-2 text-center">
+                    <div
+                      class="ratio ratio-4x3 rounded-3 overflow-hidden border border-secondary mb-1 bg-black position-relative">
+                      <div class="position-absolute top-50 start-50 translate-middle" *ngIf="!imagenesCargadas['bien']">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                      </div>
+                      <img
+                        [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaNumeroBien || vehiculoSeleccionado.fotos?.[5] || 'assets/images/placeholder.png'"
+                        class="object-fit-cover w-100 h-100" [style.opacity]="imagenesCargadas['bien'] ? 1 : 0"
+                        (load)="imagenesCargadas['bien'] = true" alt="Bien Noc">
+                    </div>
+                    <span class="fs-2xs text-white-50 d-block">6. BIEN NAC.</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Observaciones Técnicas -->
+              <div class="p-3 bg-dark rounded-3 border border-secondary border-opacity-25 mb-4">
+                <span class="text-white-50 fs-xs fw-bold d-block mb-1">OBSERVACIONES TÉCNICO / LEGALES:</span>
+                <p class="text-white fs-sm mb-0">{{ vehiculoSeleccionado.observaciones || 'Unidad en condiciones
+                  operativas según inspección técnica.' }}</p>
+              </div>
+
+              <!-- Responsables y Custodios -->
+              <div class="row g-3"
+                *ngIf="obtenerDetallesConductor(vehiculoSeleccionado.conductorId, conductores) as conductor">
+                <div class="col-12">
+                  <div class="p-3 border border-secondary border-opacity-50 rounded-3 bg-dark bg-opacity-25">
+                    <span
+                      class="text-primary fw-bold fs-xs d-block mb-2 border-bottom border-secondary pb-1">RESPONSABLE
+                      DEL VEHÍCULO (CUSTODIO)</span>
+                    <div class="row">
+                      <div class="col-12 col-md-4">
+                        <p class="mb-1 fs-sm"><strong>Nombre:</strong> {{ conductor.nombre }}</p>
+                      </div>
+                      <div class="col-12 col-md-4">
+                        <p class="mb-1 fs-sm"><strong>C.I.:</strong> {{ conductor.cedula || 'N/A' }}</p>
+                      </div>
+                      <div class="col-12 col-md-4">
+                        <p class="mb-0 fs-sm"><strong>Teléfono:</strong> {{ conductor.telefono || 'N/A' }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </div>
 
-            <!-- Observaciones Técnicas -->
-            <div class="p-3 bg-dark rounded-3 border border-secondary border-opacity-25 mb-4">
-              <span class="text-white-50 fs-xs fw-bold d-block mb-1">OBSERVACIONES TÉCNICO / LEGALES:</span>
-              <p class="text-white fs-sm mb-0">{{ vehiculoSeleccionado.observaciones || 'Unidad en condiciones operativas según inspección técnica.' }}</p>
+            <div
+              class="p-3 bg-dark d-flex gap-2 justify-content-end border-top border-secondary border-opacity-25 no-print">
+              <button class="btn btn-outline-light px-4 rounded-pill fw-bold" (click)="cerrarFicha()">Cerrar</button>
+              <button class="btn btn-primary-neon text-white px-4 fw-bold rounded-pill btn-touch-action"
+                (click)="imprimirQR()">
+                <i class="bi bi-qr-code me-1"></i> Imprimir QR
+              </button>
+              <button class="btn btn-primary-neon text-white px-4 fw-bold rounded-pill btn-touch-action"
+                (click)="imprimirFicha()">
+                <i class="bi bi-printer-fill me-1"></i> Imprimir Ficha
+              </button>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- REGISTRO DE VEHÍCULO CON TODOS LOS CAMPOS NUEVOS -->
+    <div *ngIf="mostrarRegistro" class="animate-fade-in">
+      <div
+        class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+        <div>
+          <h4 class="text-white fw-bold mb-0"><i class="bi bi-journal-plus text-primary me-2"></i>Alta de Unidad y Ficha
+            Técnica</h4>
+          <small class="text-white-50">Complete el registro técnico vehicular e inspección fotográfica</small>
+        </div>
+        <button class="btn btn-outline-light rounded-circle" (click)="alternarRegistro()"><i
+            class="bi bi-x-lg"></i></button>
+      </div>
 
-            <!-- Responsables y Custodios -->
-            <div class="row g-3" *ngIf="obtenerDetallesConductor(vehiculoSeleccionado.conductorId, conductores) as conductor">
+      <div class="row g-4 mx-auto" style="max-width: 950px;">
+
+        <!-- Carga de Archivos Principales -->
+        <div class="col-12 col-md-4">
+          <div class="glass-panel p-4 rounded-4 h-100">
+            <h6 class="text-white fw-bold mb-4 border-bottom border-secondary border-opacity-25 pb-2">
+              <i class="bi bi-image text-primary me-2"></i>Identidad Gráfica
+            </h6>
+
+            <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">FOTO DE PORTADA <span
+                class="text-danger">*</span></label>
+            <div class="upload-drop-zone p-4 rounded-3 text-center position-relative cursor-pointer transition-all"
+              [ngClass]="fotoPerfilVehiculo ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'">
+              <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3"
+                accept="image/*" (change)="cargarFotoPerfil($event)">
+
+              <div class="z-1 position-relative pointer-events-none">
+                <i class="bi bi-cloud-arrow-up-fill fs-5" *ngIf="!fotoPerfilVehiculo"></i>
+                <i class="bi bi-check-lg fs-5" *ngIf="fotoPerfilVehiculo"></i>
+
+                <p class="text-white mb-1 fw-semibold fs-sm">{{ fotoPerfilVehiculo ? 'Archivo seleccionado' : 'Haz clic
+                  para seleccionar Imagen' }}</p>
+                <small class="text-white-50 fs-xs d-block">{{ fotoPerfilVehiculo ? fotoPerfilVehiculo.name : 'Principal
+                  para la tarjeta del dashboard.' }}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- SECCIÓN 5: Memoria Fotográfica (6 Vistas) -->
+        <div class="col-12 col-md-8">
+          <div class="glass-panel p-4 rounded-4 h-100">
+            <h6 class="text-white fw-bold mb-4 border-bottom border-secondary border-opacity-25 pb-2">
+              <i class="bi bi-camera text-primary me-2"></i>Memoria Fotográfica (6 Tomas Obligatorias)
+            </h6>
+
+            <div class="row gx-2 gy-4">
+              <!-- 1. FRONTAL -->
+              <div class="col-4 col-md-4 text-center">
+                <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate">1. FRONTAL</span>
+                <div
+                  class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center"
+                  [ngClass]="fotosEstructuradasArchivos['vistaFrontal'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'"
+                  style="height: 75px;">
+                  <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3"
+                    accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaFrontal')">
+                  <div class="z-1 position-relative pointer-events-none">
+                    <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaFrontal']"></i>
+                    <i class="bi bi-check-circle-fill text-primary fs-5"
+                      *ngIf="fotosEstructuradasArchivos['vistaFrontal']"></i>
+                  </div>
+                </div>
+              </div>
+
+
+              <!-- 2. TRASERA -->
+              <div class="col-4 col-md-4 text-center">
+                <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate">2. TRASERA</span>
+                <div
+                  class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center"
+                  [ngClass]="fotosEstructuradasArchivos['vistaTrasera'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'"
+                  style="height: 75px;">
+                  <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3"
+                    accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaTrasera')">
+                  <div class="z-1 position-relative pointer-events-none">
+                    <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaTrasera']"></i>
+                    <i class="bi bi-check-circle-fill text-primary fs-5"
+                      *ngIf="fotosEstructuradasArchivos['vistaTrasera']"></i>
+                  </div>
+                </div>
+              </div>
+              <!-- 3. LAT. DERECHA -->
+              <div class="col-4 col-md-4 text-center">
+                <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate" title="3. LAT. DERECHA">3. LAT.
+                  DER.</span>
+                <div
+                  class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center"
+                  [ngClass]="fotosEstructuradasArchivos['vistaLateralDerecha'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'"
+                  style="height: 75px;">
+                  <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3"
+                    accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaLateralDerecha')">
+                  <div class="z-1 position-relative pointer-events-none">
+                    <i class="bi bi-camera fs-5 text-white-50"
+                      *ngIf="!fotosEstructuradasArchivos['vistaLateralDerecha']"></i>
+                    <i class="bi bi-check-circle-fill text-primary fs-5"
+                      *ngIf="fotosEstructuradasArchivos['vistaLateralDerecha']"></i>
+                  </div>
+                </div>
+              </div>
+              <!-- 4. LAT. IZQUIERDA -->
+              <div class="col-4 col-md-4 text-center">
+                <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate" title="4. LAT. IZQUIERDA">4. LAT.
+                  IZQ.</span>
+                <div
+                  class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center"
+                  [ngClass]="fotosEstructuradasArchivos['vistaLateralIzquierda'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'"
+                  style="height: 75px;">
+                  <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3"
+                    accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaLateralIzquierda')">
+                  <div class="z-1 position-relative pointer-events-none">
+                    <i class="bi bi-camera fs-5 text-white-50"
+                      *ngIf="!fotosEstructuradasArchivos['vistaLateralIzquierda']"></i>
+                    <i class="bi bi-check-circle-fill text-primary fs-5"
+                      *ngIf="fotosEstructuradasArchivos['vistaLateralIzquierda']"></i>
+                  </div>
+                </div>
+              </div>
+              <!-- 5. SERIAL CARROCERÍA -->
+              <div class="col-4 col-md-4 text-center">
+                <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate" title="5. SERIAL CARROCERÍA">5.
+                  SERIAL</span>
+                <div
+                  class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center"
+                  [ngClass]="fotosEstructuradasArchivos['vistaSerialCarroceria'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'"
+                  style="height: 75px;">
+                  <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3"
+                    accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaSerialCarroceria')">
+                  <div class="z-1 position-relative pointer-events-none">
+                    <i class="bi bi-camera fs-5 text-white-50"
+                      *ngIf="!fotosEstructuradasArchivos['vistaSerialCarroceria']"></i>
+                    <i class="bi bi-check-circle-fill text-primary fs-5"
+                      *ngIf="fotosEstructuradasArchivos['vistaSerialCarroceria']"></i>
+                  </div>
+                </div>
+              </div>
+              <!-- 6. BIEN NACIONAL -->
+              <div class="col-4 col-md-4 text-center">
+                <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate" title="6. BIEN NACIONAL">6. BIEN
+                  NAC.</span>
+                <div
+                  class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center"
+                  [ngClass]="fotosEstructuradasArchivos['vistaNumeroBien'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'"
+                  style="height: 75px;">
+                  <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3"
+                    accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaNumeroBien')">
+                  <div class="z-1 position-relative pointer-events-none">
+                    <i class="bi bi-camera fs-5 text-white-50"
+                      *ngIf="!fotosEstructuradasArchivos['vistaNumeroBien']"></i>
+                    <i class="bi bi-check-circle-fill text-primary fs-5"
+                      *ngIf="fotosEstructuradasArchivos['vistaNumeroBien']"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulario de Datos Identificativos y Especificaciones -->
+        <div class="col-12">
+          <div class="glass-panel p-4 rounded-4">
+            <h6 class="text-white fw-bold mb-4 border-bottom border-secondary border-opacity-25 pb-2">
+              <i class="bi bi-sliders text-primary me-2"></i>Especificaciones Técnicas e Institucionales
+            </h6>
+
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">DEPENDENCIA / ÁREA <span
+                    class="text-danger">*</span></label>
+                <input type="text"
+                  class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input"
+                  [(ngModel)]="nuevoVehiculo.dependencia" name="dependencia" maxlength="30"
+                  placeholder="Ej: Gerencia de Logística">
+              </div>
+
+              <div class="col-6 col-md-3">
+                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">N° BIEN NACIONAL</label>
+                <input type="text"
+                  class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input"
+                  [(ngModel)]="nuevoVehiculo.numeroBien" name="numeroBien" maxlength="9"
+                  (keypress)="soloNumeros($event)" placeholder="Ej: 123456789">
+              </div>
+
+              <div class="col-6 col-md-3">
+                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">PLACA <span
+                    class="text-danger">*</span></label>
+                <input type="text"
+                  class="form-control bg-dark text-white border-secondary border-opacity-50 text-uppercase font-monospace touch-input"
+                  [(ngModel)]="nuevoVehiculo.placa" (input)="validarAlfanumerico($event, 'placa')" maxlength="7"
+                  placeholder="Ej: A82BC3">
+              </div>
+
+              <div class="col-6 col-md-4">
+                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">TIPO DE UNIDAD <span
+                    class="text-danger">*</span></label>
+                <select class="form-select bg-dark text-white border-secondary border-opacity-50 touch-input"
+                  [(ngModel)]="nuevoVehiculo.tipoVehiculo">
+                  <option value="" disabled selected>Seleccione...</option>
+                  <option value="Auto Sedán">Auto Sedán</option>
+                  <option value="Camión Ligero">Camión Ligero</option>
+                  <option value="Camión Pesado">Camión Pesado</option>
+                  <option value="Chuto">Chuto / Remolcador</option>
+                  <option value="Furgón">Furgón</option>
+                  <option value="Camioneta">Camioneta Pick-up</option>
+                  <option value="Moto">Motocicleta</option>
+                </select>
+              </div>
+
+              <div class="col-6 col-md-4">
+                <div class="d-flex justify-content-between">
+                  <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">IDENTIFICADOR <span
+                      class="text-danger">*</span></label>
+                  <span class="text-primary fs-xs">{{ nuevoVehiculo.identificador?.length || 0 }}/30</span>
+                </div>
+                <input type="text"
+                  class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input"
+                  [(ngModel)]="nuevoVehiculo.identificador" maxlength="30" placeholder="Ej: Plataforma 01">
+              </div>
+
+              <div class="col-12 col-md-4">
+                <div class="d-flex justify-content-between">
+                  <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">MARCA Y MODELO <span
+                      class="text-danger">*</span></label>
+                  <span class="text-primary fs-xs">{{ nuevoVehiculo.marcaModelo?.length || 0 }}/30</span>
+                </div>
+                <input type="text"
+                  class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input"
+                  [(ngModel)]="nuevoVehiculo.marcaModelo" maxlength="30" placeholder="Ej: Ford Triton V8">
+              </div>
+
+              <div class="col-6 col-md-3">
+                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">AÑO <span
+                    class="text-danger">*</span></label>
+                <select class="form-select bg-dark text-white border-secondary border-opacity-50 touch-input"
+                  [(ngModel)]="nuevoVehiculo.anio">
+                  <option value="" disabled selected>Seleccione...</option>
+                  <option *ngFor="let a of anios" [value]="a">{{ a }}</option>
+                </select>
+              </div>
+
+              <div class="col-6 col-md-3">
+                <div class="d-flex justify-content-between">
+                  <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">COLOR</label>
+                  <span class="text-primary fs-xs">{{ nuevoVehiculo.color?.length || 0 }}/15</span>
+                </div>
+                <input type="text"
+                  class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input"
+                  [(ngModel)]="nuevoVehiculo.color" maxlength="15" placeholder="Ej: Blanco">
+              </div>
+
+              <div class="col-12 col-md-6">
+                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">SERIAL VIN (CARROCERÍA)</label>
+                <input type="text"
+                  class="form-control bg-dark text-white border-secondary border-opacity-50 font-monospace touch-input"
+                  [(ngModel)]="nuevoVehiculo.vin" (input)="validarAlfanumerico($event, 'vin')" maxlength="17"
+                  placeholder="Solo dígitos o letras">
+              </div>
+
+              <div class="col-6 col-md-3">
+                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">CARGA (KG) <span
+                    class="text-danger">*</span></label>
+                <select class="form-select bg-dark text-white border-secondary border-opacity-50 touch-input"
+                  [(ngModel)]="nuevoVehiculo.capacidadCarga">
+                  <option value="" disabled selected>Seleccione...</option>
+                  <option *ngFor="let c of cargasKg" [value]="c">
+                    {{ c | number }} Kg {{ c >= 1000 ? '(' + (c / 1000) + ' Ton)' : '' }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="col-6 col-md-3">
+                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">KILÓMETROS <span
+                    class="text-danger">*</span></label>
+                <input type="number" min="0" max="400000"
+                  class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input input-no-arrows"
+                  [(ngModel)]="nuevoVehiculo.kilometraje" (input)="validarKilometraje($event)" placeholder="Ej: 45000">
+              </div>
+
               <div class="col-12">
-                <div class="p-3 border border-secondary border-opacity-50 rounded-3 bg-dark bg-opacity-25">
-                  <span class="text-primary fw-bold fs-xs d-block mb-2 border-bottom border-secondary pb-1">RESPONSABLE DEL VEHÍCULO (CUSTODIO)</span>
-                  <div class="row">
-                    <div class="col-12 col-md-4">
-                      <p class="mb-1 fs-sm"><strong>Nombre:</strong> {{ conductor.nombre }}</p>
-                    </div>
-                    <div class="col-12 col-md-4">
-                      <p class="mb-1 fs-sm"><strong>C.I.:</strong> {{ conductor.cedula || 'N/A' }}</p>
-                    </div>
-                    <div class="col-12 col-md-4">
-                      <p class="mb-0 fs-sm"><strong>Teléfono:</strong> {{ conductor.telefono || 'N/A' }}</p>
-                    </div>
-                  </div>
-                </div>
+                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">OBSERVACIONES TÉCNICO /
+                  LEGALES</label>
+                <textarea class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input"
+                  rows="2" [(ngModel)]="nuevoVehiculo.observaciones"
+                  placeholder="Detalles de carrocería, estado mecánico o de documentación..."></textarea>
               </div>
             </div>
+          </div>
+        </div>
 
-          </div>
-          
-          <div class="p-3 bg-dark d-flex gap-2 justify-content-end border-top border-secondary border-opacity-25 no-print">
-            <button class="btn btn-outline-light px-4 rounded-pill fw-bold" (click)="cerrarFicha()">Cerrar</button>
-            <button class="btn btn-primary-neon text-white px-4 fw-bold rounded-pill btn-touch-action" (click)="imprimirQR()">
-              <i class="bi bi-qr-code me-1"></i> Imprimir QR
-            </button>
-            <button class="btn btn-primary-neon text-white px-4 fw-bold rounded-pill btn-touch-action" (click)="imprimirFicha()">
-              <i class="bi bi-printer-fill me-1"></i> Imprimir Ficha
-            </button>
-          </div>
+        <!-- Botones de Acción -->
+        <div class="col-12 d-flex justify-content-end gap-3 mt-4">
+          <button class="btn btn-outline-light px-4 py-2 rounded-pill fw-bold btn-touch-action"
+            [disabled]="guardandoVehiculo" (click)="alternarRegistro()">Cancelar</button>
+          <button
+            class="btn btn-success-neon px-5 py-2 rounded-pill fw-bold shadow-lg text-white d-flex align-items-center gap-2 btn-touch-action"
+            (click)="guardarVehiculo()" [disabled]="!fotoPerfilVehiculo || guardandoVehiculo">
+            <span *ngIf="guardandoVehiculo" class="spinner-border spinner-border-sm me-2" role="status"
+              aria-hidden="true"></span>
+            <span *ngIf="!guardandoVehiculo"><i class="bi bi-cloud-arrow-up-fill fs-5"></i> Guardar Unidad</span>
+            <span *ngIf="guardandoVehiculo">Guardando...</span>
+          </button>
         </div>
       </div>
     </div>
-  </div>
-  <!-- REGISTRO DE VEHÍCULO CON TODOS LOS CAMPOS NUEVOS -->
-  <div *ngIf="mostrarRegistro" class="animate-fade-in">
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary border-opacity-25">
-      <div>
-        <h4 class="text-white fw-bold mb-0"><i class="bi bi-journal-plus text-primary me-2"></i>Alta de Unidad y Ficha Técnica</h4>
-        <small class="text-white-50">Complete el registro técnico vehicular e inspección fotográfica</small>
-      </div>
-      <button class="btn btn-outline-light rounded-circle" (click)="alternarRegistro()"><i class="bi bi-x-lg"></i></button>
-    </div>
 
-    <div class="row g-4 mx-auto" style="max-width: 950px;">
-      
-      <!-- Carga de Archivos Principales -->
-      <div class="col-12 col-md-4">
-        <div class="glass-panel p-4 rounded-4 h-100">
-          <h6 class="text-white fw-bold mb-4 border-bottom border-secondary border-opacity-25 pb-2">
-            <i class="bi bi-image text-primary me-2"></i>Identidad Gráfica
-          </h6>
-          
-          <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">FOTO DE PORTADA <span class="text-danger">*</span></label>
-          <div class="upload-drop-zone p-4 rounded-3 text-center position-relative cursor-pointer transition-all" 
-               [ngClass]="fotoPerfilVehiculo ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'">
-            <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" (change)="cargarFotoPerfil($event)">
-            
-            <div class="z-1 position-relative pointer-events-none">
-              <i class="bi bi-cloud-arrow-up-fill fs-5" *ngIf="!fotoPerfilVehiculo"></i>
-              <i class="bi bi-check-lg fs-5" *ngIf="fotoPerfilVehiculo"></i>
-              
-              <p class="text-white mb-1 fw-semibold fs-sm">{{ fotoPerfilVehiculo ? 'Archivo seleccionado' : 'Haz clic para seleccionar Imagen' }}</p>
-              <small class="text-white-50 fs-xs d-block">{{ fotoPerfilVehiculo ? fotoPerfilVehiculo.name : 'Principal para la tarjeta del dashboard.' }}</small>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-      <!-- SECCIÓN 5: Memoria Fotográfica (6 Vistas) -->
-      <div class="col-12 col-md-8">
-        <div class="glass-panel p-4 rounded-4 h-100">
-          <h6 class="text-white fw-bold mb-4 border-bottom border-secondary border-opacity-25 pb-2">
-            <i class="bi bi-camera text-primary me-2"></i>Memoria Fotográfica (6 Tomas Obligatorias)
-          </h6>
-          
-          <div class="row gx-2 gy-4">
-            <!-- 1. FRONTAL -->
-            <div class="col-4 col-md-4 text-center">
-              <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate">1. FRONTAL</span>
-              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center" 
-                   [ngClass]="fotosEstructuradasArchivos['vistaFrontal'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="height: 75px;">
-                <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaFrontal')">
-                <div class="z-1 position-relative pointer-events-none">
-                  <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaFrontal']"></i>
-                  <i class="bi bi-check-circle-fill text-primary fs-5" *ngIf="fotosEstructuradasArchivos['vistaFrontal']"></i>
-                </div>
-              </div>
-            </div>
-            <!-- 2. TRASERA -->
-            <div class="col-4 col-md-4 text-center">
-              <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate">2. TRASERA</span>
-              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center" 
-                   [ngClass]="fotosEstructuradasArchivos['vistaTrasera'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="height: 75px;">
-                <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaTrasera')">
-                <div class="z-1 position-relative pointer-events-none">
-                  <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaTrasera']"></i>
-                  <i class="bi bi-check-circle-fill text-primary fs-5" *ngIf="fotosEstructuradasArchivos['vistaTrasera']"></i>
-                </div>
-              </div>
-            </div>
-            <!-- 3. LAT. DERECHA -->
-            <div class="col-4 col-md-4 text-center">
-              <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate" title="3. LAT. DERECHA">3. LAT. DER.</span>
-              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center" 
-                   [ngClass]="fotosEstructuradasArchivos['vistaLateralDerecha'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="height: 75px;">
-                <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaLateralDerecha')">
-                <div class="z-1 position-relative pointer-events-none">
-                  <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaLateralDerecha']"></i>
-                  <i class="bi bi-check-circle-fill text-primary fs-5" *ngIf="fotosEstructuradasArchivos['vistaLateralDerecha']"></i>
-                </div>
-              </div>
-            </div>
-            <!-- 4. LAT. IZQUIERDA -->
-            <div class="col-4 col-md-4 text-center">
-              <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate" title="4. LAT. IZQUIERDA">4. LAT. IZQ.</span>
-              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center" 
-                   [ngClass]="fotosEstructuradasArchivos['vistaLateralIzquierda'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="height: 75px;">
-                <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaLateralIzquierda')">
-                <div class="z-1 position-relative pointer-events-none">
-                  <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaLateralIzquierda']"></i>
-                  <i class="bi bi-check-circle-fill text-primary fs-5" *ngIf="fotosEstructuradasArchivos['vistaLateralIzquierda']"></i>
-                </div>
-              </div>
-            </div>
-            <!-- 5. SERIAL CARROCERÍA -->
-            <div class="col-4 col-md-4 text-center">
-              <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate" title="5. SERIAL CARROCERÍA">5. SERIAL</span>
-              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center" 
-                   [ngClass]="fotosEstructuradasArchivos['vistaSerialCarroceria'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="height: 75px;">
-                <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaSerialCarroceria')">
-                <div class="z-1 position-relative pointer-events-none">
-                  <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaSerialCarroceria']"></i>
-                  <i class="bi bi-check-circle-fill text-primary fs-5" *ngIf="fotosEstructuradasArchivos['vistaSerialCarroceria']"></i>
-                </div>
-              </div>
-            </div>
-            <!-- 6. BIEN NACIONAL -->
-            <div class="col-4 col-md-4 text-center">
-              <span class="text-white-50 fs-xs fw-bold d-block mb-2 text-truncate" title="6. BIEN NACIONAL">6. BIEN NAC.</span>
-              <div class="upload-drop-zone p-2 rounded-3 text-center position-relative cursor-pointer transition-all d-flex flex-column justify-content-center" 
-                   [ngClass]="fotosEstructuradasArchivos['vistaNumeroBien'] ? 'border-primary bg-primary-glow' : 'border-secondary bg-transparent'" style="height: 75px;">
-                <input type="file" class="position-absolute top-0 start-0 w-100 h-100 opacity-0 cursor-pointer z-3" accept="image/*" (change)="cargarFotoEspecifica($event, 'vistaNumeroBien')">
-                <div class="z-1 position-relative pointer-events-none">
-                  <i class="bi bi-camera fs-5 text-white-50" *ngIf="!fotosEstructuradasArchivos['vistaNumeroBien']"></i>
-                  <i class="bi bi-check-circle-fill text-primary fs-5" *ngIf="fotosEstructuradasArchivos['vistaNumeroBien']"></i>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Formulario de Datos Identificativos y Especificaciones -->
-      <div class="col-12">
-        <div class="glass-panel p-4 rounded-4">
-          <h6 class="text-white fw-bold mb-4 border-bottom border-secondary border-opacity-25 pb-2">
-            <i class="bi bi-sliders text-primary me-2"></i>Especificaciones Técnicas e Institucionales
-          </h6>
-          
-          <div class="row g-3">
-          <div class="col-12 col-md-6">
-              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">DEPENDENCIA / ÁREA <span class="text-danger">*</span></label>
-              <input type="text" class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input" 
-                     [(ngModel)]="nuevoVehiculo.dependencia" name="dependencia" maxlength="30" placeholder="Ej: Gerencia de Logística">
-            </div>
-
-            <div class="col-6 col-md-3">
-              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">N° BIEN NACIONAL</label>
-              <input type="text" class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input" 
-                     [(ngModel)]="nuevoVehiculo.numeroBien" name="numeroBien" maxlength="9" (keypress)="soloNumeros($event)" placeholder="Ej: 123456789">
-            </div>
-
-            <div class="col-6 col-md-3">
-              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">PLACA <span class="text-danger">*</span></label>
-              <input type="text" class="form-control bg-dark text-white border-secondary border-opacity-50 text-uppercase font-monospace touch-input" [(ngModel)]="nuevoVehiculo.placa" (input)="validarAlfanumerico($event, 'placa')" maxlength="7" placeholder="Ej: A82BC3">
-            </div>
-
-            <div class="col-6 col-md-4">
-              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">TIPO DE UNIDAD <span class="text-danger">*</span></label>
-              <select class="form-select bg-dark text-white border-secondary border-opacity-50 touch-input" [(ngModel)]="nuevoVehiculo.tipoVehiculo">
-                <option value="" disabled selected>Seleccione...</option>
-                <option value="Auto Sedán">Auto Sedán</option>
-                <option value="Camión Ligero">Camión Ligero</option>
-                <option value="Camión Pesado">Camión Pesado</option>
-                <option value="Chuto">Chuto / Remolcador</option>
-                <option value="Furgón">Furgón</option>
-                <option value="Camioneta">Camioneta Pick-up</option>
-                <option value="Moto">Motocicleta</option>
-              </select>
-            </div>
-
-            <div class="col-6 col-md-4">
-              <div class="d-flex justify-content-between">
-                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">IDENTIFICADOR <span class="text-danger">*</span></label>
-                <span class="text-primary fs-xs">{{ nuevoVehiculo.identificador?.length || 0 }}/30</span>
-              </div>
-              <input type="text" class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input" [(ngModel)]="nuevoVehiculo.identificador" maxlength="30" placeholder="Ej: Plataforma 01">
-            </div>
-
-            <div class="col-12 col-md-4">
-              <div class="d-flex justify-content-between">
-                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">MARCA Y MODELO <span class="text-danger">*</span></label>
-                <span class="text-primary fs-xs">{{ nuevoVehiculo.marcaModelo?.length || 0 }}/30</span>
-              </div>
-              <input type="text" class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input" [(ngModel)]="nuevoVehiculo.marcaModelo" maxlength="30" placeholder="Ej: Ford Triton V8">
-            </div>
-
-            <div class="col-6 col-md-3">
-              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">AÑO <span class="text-danger">*</span></label>
-              <select class="form-select bg-dark text-white border-secondary border-opacity-50 touch-input" [(ngModel)]="nuevoVehiculo.anio">
-                <option value="" disabled selected>Seleccione...</option>
-                <option *ngFor="let a of anios" [value]="a">{{ a }}</option>
-              </select>
-            </div>
-
-            <div class="col-6 col-md-3">
-              <div class="d-flex justify-content-between">
-                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">COLOR</label>
-                <span class="text-primary fs-xs">{{ nuevoVehiculo.color?.length || 0 }}/15</span>
-              </div>
-              <input type="text" class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input" [(ngModel)]="nuevoVehiculo.color" maxlength="15" placeholder="Ej: Blanco">
-            </div>
-
-            <div class="col-12 col-md-6">
-              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">SERIAL VIN (CARROCERÍA)</label>
-              <input type="text" class="form-control bg-dark text-white border-secondary border-opacity-50 font-monospace touch-input" [(ngModel)]="nuevoVehiculo.vin" (input)="validarAlfanumerico($event, 'vin')" maxlength="17" placeholder="Solo dígitos o letras">
-            </div>
-
-            <div class="col-6 col-md-3">
-              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">CARGA (KG) <span class="text-danger">*</span></label>
-              <select class="form-select bg-dark text-white border-secondary border-opacity-50 touch-input" [(ngModel)]="nuevoVehiculo.capacidadCarga">
-                <option value="" disabled selected>Seleccione...</option>
-                <option *ngFor="let c of cargasKg" [value]="c">
-                  {{ c | number }} Kg {{ c >= 1000 ? '(' + (c / 1000) + ' Ton)' : '' }}
-                </option>
-              </select>
-            </div>
-
-            <div class="col-6 col-md-3">
-              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">KILÓMETROS <span class="text-danger">*</span></label>
-              <input 
-                type="number" 
-                min="0" 
-                max="400000" 
-                class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input input-no-arrows" 
-                [(ngModel)]="nuevoVehiculo.kilometraje" 
-                (input)="validarKilometraje($event)" 
-                placeholder="Ej: 45000">
-            </div>
-
-            <div class="col-12">
-              <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">OBSERVACIONES TÉCNICO / LEGALES</label>
-              <textarea class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input" rows="2" [(ngModel)]="nuevoVehiculo.observaciones" placeholder="Detalles de carrocería, estado mecánico o de documentación..."></textarea>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Botones de Acción -->
-      <div class="col-12 d-flex justify-content-end gap-3 mt-4">
-        <button class="btn btn-outline-light px-4 py-2 rounded-pill fw-bold btn-touch-action" [disabled]="guardandoVehiculo" (click)="alternarRegistro()">Cancelar</button>
-        <button class="btn btn-success-neon px-5 py-2 rounded-pill fw-bold shadow-lg text-white d-flex align-items-center gap-2 btn-touch-action" (click)="guardarVehiculo()" [disabled]="!fotoPerfilVehiculo || guardandoVehiculo">
-          <span *ngIf="guardandoVehiculo" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-          <span *ngIf="!guardandoVehiculo"><i class="bi bi-cloud-arrow-up-fill fs-5"></i> Guardar Unidad</span>
-          <span *ngIf="guardandoVehiculo">Guardando...</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==========================================
+    <!-- ==========================================
        MODAL 2: VISOR DE GALERÍA (CARRUSEL)
        ========================================== -->
-  <div class="modal d-block modal-backdrop-glass d-print-none" tabindex="-1" *ngIf="mostrarCarrusel" (click)="cerrarCarrusel()">
-    <div class="modal-dialog modal-lg modal-dialog-centered" (click)="$event.stopPropagation()">
-      <div class="modal-content bg-transparent border-0 text-white overflow-hidden">
-        <button type="button" class="btn btn-outline-light rounded-circle position-absolute top-0 end-0 m-3 z-3 shadow-lg" (click)="cerrarCarrusel()"><i class="bi bi-x-lg"></i></button>
-        <div class="modal-body p-0 d-flex align-items-center justify-content-center position-relative" style="min-height: 400px; max-height: 85vh;">
-          <div class="position-absolute top-50 start-50 translate-middle" *ngIf="!imagenesCargadas['carrusel']">
-            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+    <div class="modal d-block modal-backdrop-glass d-print-none" tabindex="-1" *ngIf="mostrarCarrusel"
+      (click)="cerrarCarrusel()">
+      <div class="modal-dialog modal-lg modal-dialog-centered" (click)="$event.stopPropagation()">
+        <div class="modal-content bg-transparent border-0 text-white overflow-hidden">
+          <button type="button"
+            class="btn btn-outline-light rounded-circle position-absolute top-0 end-0 m-3 z-3 shadow-lg"
+            (click)="cerrarCarrusel()"><i class="bi bi-x-lg"></i></button>
+          <div class="modal-body p-0 d-flex align-items-center justify-content-center position-relative"
+            style="min-height: 400px; max-height: 85vh;">
+            <div class="position-absolute top-50 start-50 translate-middle" *ngIf="!imagenesCargadas['carrusel']">
+              <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+            </div>
+            <img [src]="fotosCarrusel[indiceFotoActual]"
+              class="img-fluid mh-100 object-fit-contain rounded-4 shadow-lg transition-opacity"
+              [style.opacity]="imagenesCargadas['carrusel'] ? 1 : 0" (load)="imagenesCargadas['carrusel'] = true"
+              alt="Auditoría Foto">
+            <button class="touch-nav-btn start-0 ms-3" (click)="anteriorFoto()" *ngIf="fotosCarrusel.length > 1"><i
+                class="bi bi-chevron-left fs-3"></i></button>
+            <button class="touch-nav-btn end-0 me-3" (click)="siguienteFoto()" *ngIf="fotosCarrusel.length > 1"><i
+                class="bi bi-chevron-right fs-3"></i></button>
           </div>
-          <img [src]="fotosCarrusel[indiceFotoActual]" 
-               class="img-fluid mh-100 object-fit-contain rounded-4 shadow-lg transition-opacity" 
-               [style.opacity]="imagenesCargadas['carrusel'] ? 1 : 0"
-               (load)="imagenesCargadas['carrusel'] = true" 
-               alt="Auditoría Foto">
-          <button class="touch-nav-btn start-0 ms-3" (click)="anteriorFoto()" *ngIf="fotosCarrusel.length > 1"><i class="bi bi-chevron-left fs-3"></i></button>
-          <button class="touch-nav-btn end-0 me-3" (click)="siguienteFoto()" *ngIf="fotosCarrusel.length > 1"><i class="bi bi-chevron-right fs-3"></i></button>
-        </div>
-        <div class="text-center mt-3">
-          <span class="badge bg-dark border border-secondary px-3 py-2 fs-6">{{ indiceFotoActual + 1 }} / {{ fotosCarrusel.length }}</span>
-        </div>
-        <div class="modal-footer border-top border-dark-subtle p-3 justify-content-center gap-2 overflow-x-auto" *ngIf="fotosCarrusel.length > 1">
-          <div 
-            *ngFor="let foto of fotosCarrusel; let i = index" 
-            class="carousel-thumbnail rounded-2 overflow-hidden" 
-            [class.active]="i === indiceFotoActual"
-            (click)="seleccionarFoto(i)">
-            <img [src]="foto" class="w-100 h-100 object-fit-cover" alt="Miniatura">
+          <div class="text-center mt-3">
+            <span class="badge bg-dark border border-secondary px-3 py-2 fs-6">{{ indiceFotoActual + 1 }} / {{
+              fotosCarrusel.length }}</span>
+          </div>
+          <div class="modal-footer border-top border-dark-subtle p-3 justify-content-center gap-2 overflow-x-auto"
+            *ngIf="fotosCarrusel.length > 1">
+            <div *ngFor="let foto of fotosCarrusel; let i = index" class="carousel-thumbnail rounded-2 overflow-hidden"
+              [class.active]="i === indiceFotoActual" (click)="seleccionarFoto(i)">
+              <img [src]="foto" class="w-100 h-100 object-fit-cover" alt="Miniatura">
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
 
   </div> <!-- FIN DEL CONTENEDOR PRINCIPAL DE LA APP (d-print-none) -->
 
@@ -634,7 +750,8 @@
        SECCIONES EXCLUSIVAS PARA IMPRESIÓN (FUERA DE LA APP Y MODALES)
        ========================================== -->
   <div *ngIf="vehiculoSeleccionado" id="ficha-print-section" class="d-none w-100 bg-white text-black print-container">
-    <table class="table table-bordered border-dark w-100 m-0" style="font-size: 11px; border-width: 2px !important; border-color: #000 !important;">
+    <table class="table table-bordered border-dark w-100 m-0"
+      style="font-size: 11px; border-width: 2px !important; border-color: #000 !important;">
       <tr>
         <td colspan="4" class="align-middle border-dark" style="border-width: 2px !important;">
           <div class="d-flex align-items-center">
@@ -647,57 +764,73 @@
         </td>
       </tr>
       <tr>
-        <td colspan="6" class="text-center border-dark" style="border-width: 2px !important; background-color: #f0f0f0 !important;">
+        <td colspan="6" class="text-center border-dark"
+          style="border-width: 2px !important; background-color: #f0f0f0 !important;">
           <h5 class="mb-0 py-1 fw-bold text-uppercase">FICHA TÉCNICA VEHICULAR</h5>
         </td>
       </tr>
       <tr>
-        <td colspan="2" class="border-dark" style="width: 33%;">3. DEPENDENCIA:<br> <strong>{{ vehiculoSeleccionado.dependencia }}</strong></td>
+        <td colspan="2" class="border-dark" style="width: 33%;">3. DEPENDENCIA:<br> <strong>{{
+            vehiculoSeleccionado.dependencia }}</strong></td>
         <td class="border-dark">4. MARCA:<br> <strong>{{ vehiculoSeleccionado.marcaModelo }}</strong></td>
         <td class="border-dark">5. MODELO:<br> <strong>{{ vehiculoSeleccionado.marcaModelo }}</strong></td>
         <td class="border-dark">6. PLACA N°:<br> <strong>{{ vehiculoSeleccionado.placa }}</strong></td>
         <td class="border-dark">7. AÑO:<br> <strong>{{ vehiculoSeleccionado.anio }}</strong></td>
       </tr>
       <tr>
-        <td colspan="3" class="border-dark" style="width: 50%;">8. SERIAL DE CARROCERÍA:<br> <strong>{{ vehiculoSeleccionado.vin }}</strong></td>
-        <td colspan="2" class="border-dark" style="width: 33%;">9. COLOR:<br> <strong>{{ vehiculoSeleccionado.color }}</strong></td>
+        <td colspan="3" class="border-dark" style="width: 50%;">8. SERIAL DE CARROCERÍA:<br> <strong>{{
+            vehiculoSeleccionado.vin }}</strong></td>
+        <td colspan="2" class="border-dark" style="width: 33%;">9. COLOR:<br> <strong>{{ vehiculoSeleccionado.color
+            }}</strong></td>
         <td class="border-dark">10. N° BIEN:<br> <strong>{{ vehiculoSeleccionado.numeroBien }}</strong></td>
       </tr>
       <tr>
-        <td colspan="6" class="text-center bg-light border-dark fw-bold py-1" style="border-width: 2px !important; background-color: #f0f0f0 !important;">
+        <td colspan="6" class="text-center bg-light border-dark fw-bold py-1"
+          style="border-width: 2px !important; background-color: #f0f0f0 !important;">
           11. MEMORIA FOTOGRÁFICA
         </td>
       </tr>
       <tr>
         <td colspan="3" class="text-center p-2 border-dark" style="height: 180px;">
-          <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaFrontal || vehiculoSeleccionado.fotos?.[0] || ''" style="max-height: 140px; max-width: 100%;">
+          <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaFrontal || vehiculoSeleccionado.fotos?.[0] || ''"
+            style="max-height: 140px; max-width: 100%;">
           <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 1<br>VISTA FRONTAL DEL VEHÍCULO</div>
         </td>
         <td colspan="3" class="text-center p-2 border-dark" style="height: 180px;">
-          <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaTrasera || vehiculoSeleccionado.fotos?.[1] || ''" style="max-height: 140px; max-width: 100%;">
+          <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaTrasera || vehiculoSeleccionado.fotos?.[1] || ''"
+            style="max-height: 140px; max-width: 100%;">
           <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 2<br>VISTA TRASERA DEL VEHÍCULO</div>
         </td>
       </tr>
       <tr>
         <td colspan="3" class="text-center p-2 border-dark" style="height: 180px;">
-          <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralDerecha || vehiculoSeleccionado.fotos?.[2] || ''" style="max-height: 140px; max-width: 100%;">
+          <img
+            [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralDerecha || vehiculoSeleccionado.fotos?.[2] || ''"
+            style="max-height: 140px; max-width: 100%;">
           <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 3<br>VISTA LATERAL DERECHA DEL VEHÍCULO</div>
         </td>
         <td colspan="3" class="text-center p-2 border-dark" style="height: 180px;">
-          <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralIzquierda || vehiculoSeleccionado.fotos?.[3] || ''" style="max-height: 140px; max-width: 100%;">
+          <img
+            [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralIzquierda || vehiculoSeleccionado.fotos?.[3] || ''"
+            style="max-height: 140px; max-width: 100%;">
           <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 4<br>VISTA LATERAL IZQUIERDO DEL VEHÍCULO</div>
         </td>
       </tr>
       <tr>
         <td colspan="6" class="text-center p-2 border-dark" style="height: 180px;">
-          <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaSerialCarroceria || vehiculoSeleccionado.fotos?.[4] || ''" style="max-height: 140px; max-width: 100%;">
-          <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 5<br>VISTA DEL SERIAL DE CARROCERIA DEL VEHÍCULO</div>
+          <img
+            [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaSerialCarroceria || vehiculoSeleccionado.fotos?.[4] || ''"
+            style="max-height: 140px; max-width: 100%;">
+          <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 5<br>VISTA DEL SERIAL DE CARROCERIA DEL VEHÍCULO
+          </div>
         </td>
       </tr>
       <tr>
         <td colspan="6" class="text-center p-2 border-dark" style="height: 180px;">
-          <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaNumeroBien || vehiculoSeleccionado.fotos?.[5] || ''" style="max-height: 140px; max-width: 100%;">
-          <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 6<br>VISTA DEL NUMERO DE BIEN NACIONAL DEL VEHÍCULO</div>
+          <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaNumeroBien || vehiculoSeleccionado.fotos?.[5] || ''"
+            style="max-height: 140px; max-width: 100%;">
+          <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 6<br>VISTA DEL NUMERO DE BIEN NACIONAL DEL VEHÍCULO
+          </div>
         </td>
       </tr>
       <tr>
@@ -713,7 +846,8 @@
           <div>N° TLF:</div>
         </td>
         <td colspan="3" class="border-dark p-2" style="vertical-align: top; height: 100px; width: 50%;">
-          <ng-container *ngIf="obtenerDetallesConductor(vehiculoSeleccionado.conductorId, conductores) as conductor; else sinConductorPrint">
+          <ng-container
+            *ngIf="obtenerDetallesConductor(vehiculoSeleccionado.conductorId, conductores) as conductor; else sinConductorPrint">
             <div class="mb-3">14. RESPONSABLE DEL VEHÍCULO:</div>
             <div class="mb-2">Nombres y Apellidos: <strong>{{ conductor.nombre }}</strong></div>
             <div class="mb-2">N° C.I.: <strong>{{ conductor.cedula }}</strong></div>
@@ -730,11 +864,14 @@
     </table>
   </div>
 
-  <div *ngIf="vehiculoSeleccionado" id="qr-print-section" class="d-none w-100 text-center bg-white text-black pt-5 print-container">
+  <div *ngIf="vehiculoSeleccionado" id="qr-print-section"
+    class="d-none w-100 text-center bg-white text-black pt-5 print-container">
     <div class="mt-5 pt-5">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}" style="width: 400px; height: 400px;">
+      <img
+        src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}"
+        style="width: 400px; height: 400px;">
       <h1 class="mt-4 display-3 fw-bold text-black font-monospace">{{ vehiculoSeleccionado.placa }}</h1>
       <h3 class="mt-2 text-dark">{{ vehiculoSeleccionado.identificador }}</h3>
     </div>
   </div>
-<!-- FIN DE FLEET MOBILE CONTAINER -->
+  <!-- FIN DE FLEET MOBILE CONTAINER -->
