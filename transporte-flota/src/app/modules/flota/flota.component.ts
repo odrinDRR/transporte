@@ -213,7 +213,18 @@ export class FlotaComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error guardando en BD', err);
-          alert('Ocurrió un error al intentar guardar el vehículo.');
+          let mensajeError = 'Ocurrió un error al intentar guardar el vehículo.';
+          
+          if (err.error && err.error.error) {
+            mensajeError = err.error.error;
+          } else if (err.status === 400 && typeof err.error === 'string') {
+            try {
+              const parsed = JSON.parse(err.error);
+              if (parsed.error) mensajeError = parsed.error;
+            } catch (e) { }
+          }
+          
+          alert(mensajeError);
           this.guardandoVehiculo = false;
         }
       });
@@ -235,6 +246,21 @@ export class FlotaComponent implements OnInit {
         error: (err) => console.error('Error al eliminar', err)
       });
     }
+  }
+
+  // Obtener ícono dinámico según el tipo de vehículo
+  getIconoVehiculo(): string {
+    return this.getIconoPorTipo(this.vehiculoSeleccionado?.tipoVehiculo || '');
+  }
+
+  getIconoPorTipo(tipoVehiculo: string): string {
+    if (!tipoVehiculo) return 'bi-car-front';
+    const tipo = tipoVehiculo.toLowerCase();
+    if (tipo.includes('moto')) return 'bi-bicycle';
+    if (tipo.includes('camión') || tipo.includes('camion')) return 'bi-truck';
+    if (tipo.includes('camioneta') || tipo.includes('suv')) return 'bi-truck-front';
+    if (tipo.includes('maquinaria')) return 'bi-cone-striped';
+    return 'bi-car-front';
   }
 
   // --- MÉTODOS DE UTILIDAD Y UI ---

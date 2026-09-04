@@ -427,8 +427,8 @@
                 accept="image/*" (change)="cargarFotoPerfil($event)">
 
               <div class="z-1 position-relative pointer-events-none">
-                <i class="bi bi-cloud-arrow-up-fill fs-5" *ngIf="!fotoPerfilVehiculo"></i>
-                <i class="bi bi-check-lg fs-5" *ngIf="fotoPerfilVehiculo"></i>
+                <i class="bi fs-1 mb-2 d-block text-white-50" [ngClass]="getIconoVehiculo()" *ngIf="!fotoPerfilVehiculo"></i>
+                <i class="bi bi-check-lg fs-1 mb-2 d-block text-primary" *ngIf="fotoPerfilVehiculo"></i>
 
                 <p class="text-white mb-1 fw-semibold fs-sm">{{ fotoPerfilVehiculo ? 'Archivo seleccionado' : 'Haz clic
                   para seleccionar Imagen' }}</p>
