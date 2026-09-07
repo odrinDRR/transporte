@@ -59,6 +59,16 @@ export class AuditoriaComponent {
     return String(this.inspeccionActiva[campo]) !== String(this.inspeccionAuditor[campo]);
   }
 
+  get isCamion(): boolean {
+    const t = this.vehiculoAuditoria?.tipoVehiculo?.toUpperCase() || this.vehiculoAuditoria?.tipo?.toUpperCase() || '';
+    return t.includes('CAMI') || t.includes('CHUTO') || t.includes('FURGON');
+  }
+
+  get isMoto(): boolean {
+    const t = this.vehiculoAuditoria?.tipoVehiculo?.toUpperCase() || this.vehiculoAuditoria?.tipo?.toUpperCase() || '';
+    return t.includes('MOTO');
+  }
+
   aprobar() {
     const userId = this.authService.getUsuarioId();
     const auditorId = userId ? Number(userId) : 1; // Fallback temporal

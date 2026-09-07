@@ -339,4 +339,9 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     const t = this.vehiculoActual?.tipoVehiculo?.toUpperCase() || this.vehiculoActual?.tipo?.toUpperCase() || '';
     return t.includes('MOTO');
   }
+
+  get isCamion(): boolean {
+    const t = this.vehiculoActual?.tipoVehiculo?.toUpperCase() || this.vehiculoActual?.tipo?.toUpperCase() || '';
+    return t.includes('CAMI') || t.includes('CHUTO') || t.includes('FURGON');
+  }
 }
