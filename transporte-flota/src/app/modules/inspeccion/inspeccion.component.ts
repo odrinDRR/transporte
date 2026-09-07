@@ -1,15 +1,25 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FlotaService } from '../../core/services/flota.service';
 import { InspeccionService } from '../../services/inspeccion.service';
 import { ConductorService } from '../../services/conductor.service';
-import { Inspeccion } from '../../core/models/fleet.models';
-import { ArchivoService } from '../../services/archivo.service';
-import { forkJoin } from 'rxjs';
 
-interface ZonaCarroceria {
+export interface ZonaCarroceria {
   id: string;
   nombre: string;
   estado: 'OK' | 'LEVE' | 'GRAVE';
+  icono: string;
+  codigoDano?: string;
+}
+
+export interface EvaluacionItem {
+  id: string;
+  label: string;
+  icono: string;
+}
+
+export interface TipoVehiculo {
+  id: string;
+  label: string;
   icono: string;
 }
 
@@ -18,114 +28,185 @@ interface ZonaCarroceria {
   templateUrl: './inspeccion.component.html',
   styleUrls: ['./inspeccion.component.scss']
 })
-export class InspeccionComponent {
-  // Control de las grandes fases de la vista
-  fasePrincipal: 'INGRESO_CEDULA' | 'SELECCION_TIPO' | 'FORMULARIO' = 'INGRESO_CEDULA';
+export class InspeccionComponent implements OnInit {
+  // Máquina de estados de navegación principal
+  fasePrincipal: 'TIPO_INSPECCION' | 'TIPO_VEHICULO' | 'INGRESO_CEDULA' | 'FORMULARIO' = 'TIPO_INSPECCION';
   
-  // Datos del conductor
   cedulaInput: string = '';
   nombreConductorActual: string = '';
-  tipoInspeccionActual: 'INICIO' | 'CIERRE' = 'INICIO';
-  tieneInspeccionAbierta: boolean = false;
-
-  // Stepper del formulario
   etapaActual: number = 1;
 
-  // Evidencias fotográficas
   fotosExterior: File[] = [];
   fotosInterior: File[] = [];
 
-  // INSPECTOR VISUAL 360° / CARCHECK TECH: Puntos táctiles de carrocería
-  zonasCarroceria: ZonaCarroceria[] = [
-    { id: 'frontal', nombre: 'Parachoques Frontal', estado: 'OK', icono: 'bi-front' },
-    { id: 'capot', nombre: 'Capot y Motor', estado: 'OK', icono: 'bi-box-seam' },
-    { id: 'parabrisas', nombre: 'Parabrisas Frontal', estado: 'OK', icono: 'bi-shield-shaded' },
-    { id: 'lat_izq', nombre: 'Lateral Izquierdo', estado: 'OK', icono: 'bi-arrow-left-square' },
-    { id: 'lat_der', nombre: 'Lateral Derecho', estado: 'OK', icono: 'bi-arrow-right-square' },
-    { id: 'techo', nombre: 'Techo / Cabina', estado: 'OK', icono: 'bi-square text-secondary' },
-    { id: 'trasero', nombre: 'Parachoques Trasero', estado: 'OK', icono: 'bi-back' },
-    { id: 'cauchos', nombre: 'Cauchos / Neumáticos', estado: 'OK', icono: 'bi-disc' }
+  // Catálogo de vehículos con iconos vectoriales actualizados acordes a requerimientos
+  tiposVehiculo: TipoVehiculo[] = [
+    { id: 'ambulancia', label: 'AMBULANCIA', icono: 'bi-hospital' },
+    { id: 'pickup', label: 'CAMIONETA PICKUP', icono: 'bi-truck-flatbed' },
+    { id: 'grua', label: 'GRÚA', icono: 'bi-cone-striped' },
+    { id: 'camion', label: 'CAMIÓN', icono: 'bi-truck' },
+    { id: 'camioneta', label: 'CAMIONETA (SUV)', icono: 'bi-car-front-fill' },
+    { id: 'moto', label: 'MOTOCICLETA', icono: 'bi-bicycle' },
+    { id: 'sedan', label: 'SEDÁN', icono: 'bi-car-front' },
+    { id: 'gandola', label: 'GANDOLA', icono: 'bi-truck-front' }
   ];
 
-  inspeccion: Partial<Inspeccion> = {
+  opcionesMotivo = ['Rutinario', 'Correctivo', 'Solicitud del Usuario'];
+  
+  // AÑADIDO: Códigos de daño extendidos de la maqueta HTML
+  codigosDano = [
+    '1. Golpe', '2. Suelto', '3. Raya', '4. Desconchado', '5. Vidrio Roto', 
+    '6. Espejo Roto', '7. Falta Moldura', '8. Falta Faro', '9. Falta Accesorios',
+    '10. Falta Centro Copas', '11. Falta Emblema', '12. Tapicería Manchada'
+  ];
+
+  nivelesFluidos = [
+    { id: 'combustible', label: 'Nivel de Combustible', icon: 'bi-fuel-pump' },
+    { id: 'aceiteMotor', label: 'Aceite Motor', icon: 'bi-droplet-half' },
+    { id: 'aceiteCaja', label: 'Aceite Caja', icon: 'bi-gear-wide-connected' },
+    { id: 'ligaFrenos', label: 'Liga de Frenos', icon: 'bi-sign-stop' },
+    { id: 'refrigerante', label: 'Refrigerante', icon: 'bi-thermometer-snow' }
+  ];
+
+  // AÑADIDO: Separación de Documentos para mayor fidelidad a la ficha
+  documentosVehiculo = [
+    { id: 'carnetCirculacion', label: 'Carnet de Circulación' },
+    { id: 'autorizacionConducir', label: 'Autorización para Conducir' },
+    { id: 'asignacionVehiculo', label: 'Asignación de Vehículo' }
+  ];
+
+  documentosConductor = [
+    { id: 'licenciaConducir', label: 'Licencia para Conducir' },
+    { id: 'certificadoMedico', label: 'Certificado Médico' }
+  ];
+
+  // AÑADIDO: Puntos de revisión física extendidos
+  puntosFisicos: EvaluacionItem[] = [
+    { id: 'aireAcondicionado', label: 'Aire Acondicionado', icono: 'bi-wind' },
+    { id: 'faros', label: 'Faros y Luces', icono: 'bi-lightbulb' },
+    { id: 'lucesCruce', label: 'Luces de Cruce', icono: 'bi-arrow-left-right' },
+    { id: 'lucesStop', label: 'Luces de Stop', icono: 'bi-sign-stop-fill' },
+    { id: 'frenoMano', label: 'Freno de Mano', icono: 'bi-sign-stop' },
+    { id: 'sistemaFrenos', label: 'Sistema de Frenos', icono: 'bi-exclamation-octagon' },
+    { id: 'limpiaparabrisas', label: 'Limpiaparabrisas', icono: 'bi-cloud-rain' },
+    { id: 'espejos', label: 'Espejos Retrovisores', icono: 'bi-mirror' },
+    { id: 'vidrios', label: 'Vidrios (Parabrisas/Laterales)', icono: 'bi-window' },
+    { id: 'asientos', label: 'Asientos y Tapicería', icono: 'bi-person-seat' },
+    { id: 'alfombras', label: 'Alfombras', icono: 'bi-layers' },
+    { id: 'cinturones', label: 'Cinturones de Seguridad', icono: 'bi-shield-check' },
+    { id: 'neumaticos', label: 'Neumáticos / Cauchos', icono: 'bi-record-circle' },
+    { id: 'bateria', label: 'Batería', icono: 'bi-battery-charging' }
+  ];
+
+  // AÑADIDO: Accesorios de seguridad extendidos
+  accesoriosSeguridad: EvaluacionItem[] = [
+    { id: 'alarma', label: 'Alarma', icono: 'bi-bell' },
+    { id: 'boveda', label: 'Bóveda', icono: 'bi-safe' },
+    { id: 'extintor', label: 'Extintor', icono: 'bi-fire' },
+    { id: 'cauchoRepuesto', label: 'Caucho (Repuesto)', icono: 'bi-record-circle' },
+    { id: 'gato', label: 'Gato y Palanca', icono: 'bi-tools' },
+    { id: 'llaveCruz', label: 'Llave de Cruz', icono: 'bi-wrench' },
+    { id: 'triangulo', label: 'Triángulo de Seguridad', icono: 'bi-triangle-half' },
+    { id: 'cablesAuxiliares', label: 'Cables Auxiliares', icono: 'bi-lightning' },
+    { id: 'radio', label: 'Radio / Reproductor', icono: 'bi-radio' }
+  ];
+
+  zonasCarroceria: ZonaCarroceria[] = [
+    { id: 'frontal', nombre: 'Frente', estado: 'OK', icono: 'bi-front' },
+    { id: 'techo', nombre: 'Techo', estado: 'OK', icono: 'bi-arrow-up-square' },
+    { id: 'lat_izq', nombre: 'Lado Izquierdo', estado: 'OK', icono: 'bi-arrow-left-square' },
+    { id: 'lat_der', nombre: 'Lado Derecho', estado: 'OK', icono: 'bi-arrow-right-square' },
+    { id: 'trasera', nombre: 'Trasera', estado: 'OK', icono: 'bi-back' }
+  ];
+
+  // AÑADIDO: Expansión del payload para incluir los datos extendidos del formulario
+  inspeccion: any = {
+    tipoOperacion: '',
+    tipoVehiculo: '',
     kilometraje: null,
-    fecha: new Date().toISOString().substring(0, 10),
-    carroceriaOk: true,
-    lucesOk: true,
-    cinturonesOk: true,
-    tableroOk: true,
-    extintorVigente: true,
-    nivelAceiteOk: true,
-    refrigeranteOk: true,
-    liquidoFrenosOk: true,
+    motivo: 'Rutinario',
+    
+    // Unidad Solicitante
+    gerencia: '',
+    unidadUsuaria: '',
+    centroCosto: '',
+    
+    // Datos Vehículo
+    marca: '',
+    modelo: '',
+    anio: null,
+    placa: '',
+    color: '',
+    serialCarroceria: '',
+    transmision: 'Automático',
+    kmRecibido: null,
+    
+    coberturaSeguro: '',
+    observacionesDanos: '',
+
     dictamen: 'APTO',
-    serialOk: true,
-    vidriosOk: true,
-    latoneriaOk: true,
-    pinturaOk: true,
-    parabrisasOk: true,
-    cauchosOk: true,
     observaciones: '',
-    inspectorFirma: ''
+    inspectorFirma: '',
+    fluidos: {}, 
+    docs: {},    
+    fisico: {},  
+    accesorios: {} 
   };
 
   constructor(
     private flotaService: FlotaService,
     private inspeccionService: InspeccionService,
-    private conductorService: ConductorService,
-    private archivoService: ArchivoService
+    private conductorService: ConductorService
   ) {}
 
-  // --- PASO 1: VALIDAR CÉDULA O FICHA ---
+  ngOnInit(): void {
+    this.inicializarValoresPorDefecto();
+  }
+
+  inicializarValoresPorDefecto(): void {
+    this.nivelesFluidos.forEach(f => this.inspeccion.fluidos[f.id] = 'ALTO');
+    this.documentosVehiculo.forEach(d => this.inspeccion.docs[d.id] = true);
+    this.documentosConductor.forEach(d => this.inspeccion.docs[d.id] = true);
+    this.puntosFisicos.forEach(p => this.inspeccion.fisico[p.id] = 'BUENO');
+    this.accesoriosSeguridad.forEach(a => this.inspeccion.accesorios[a.id] = true);
+  }
+
+  seleccionarTipoOperacion(tipo: 'General' | 'Salida' | 'Llegada'): void {
+    this.inspeccion.tipoOperacion = tipo;
+    this.fasePrincipal = 'TIPO_VEHICULO';
+  }
+
+  seleccionarVehiculo(vehiculo: TipoVehiculo): void {
+    this.inspeccion.tipoVehiculo = vehiculo.label;
+    this.fasePrincipal = 'INGRESO_CEDULA';
+  }
+
   verificarCedula(): void {
     const input = this.cedulaInput.trim();
-    
-    if (!input) {
-      alert('Por favor, ingresa tu número de cédula o ficha.');
-      return;
-    }
+    if (!input) return;
 
-    // Buscamos si el conductor existe coincidiendo Cédula o Ficha usando el servicio real
     this.conductorService.obtenerConductores().subscribe(conductores => {
-      const conductor = conductores.find(c => 
-        (c.cedula || '').includes(input) || (c.fichaNumerica || '') === input
-      );
-      
+      const conductor = conductores.find(c => (c.cedula || '').includes(input) || (c.fichaNumerica || '') === input);
       if (conductor) {
         this.nombreConductorActual = conductor.nombre;
-        this.inspeccion.inspectorFirma = conductor.fichaNumerica || input; // Guardamos su ficha como firma
-        this.inspeccion.vehiculoId = conductor.vehiculoAsignadoId || undefined; // Asignamos el ID del vehículo
-        this.tieneInspeccionAbierta = conductor.inspeccionAbierta || false;
-        this.fasePrincipal = 'SELECCION_TIPO';
+        this.inspeccion.inspectorFirma = conductor.fichaNumerica || input;
+        this.inspeccion.vehiculoId = conductor.vehiculoAsignadoId || undefined;
+        this.etapaActual = 1;
+        this.fasePrincipal = 'FORMULARIO';
       } else {
-        alert('Cédula o Ficha no encontrada. Verifica el número o contacta a Recursos Humanos.');
+        alert('Cédula o Ficha no encontrada.');
       }
     });
   }
 
-  // --- PASO 2: ELEGIR TIPO DE RUTA ---
-  seleccionarRuta(tipo: 'INICIO' | 'CIERRE'): void {
-    this.tipoInspeccionActual = tipo;
-    this.inspeccion.tipo = tipo; // Guardamos el tipo de inspeccion en el payload
-    this.fasePrincipal = 'FORMULARIO';
-    this.etapaActual = 1;
+  volver(faseDestino: 'TIPO_INSPECCION' | 'TIPO_VEHICULO' | 'INGRESO_CEDULA'): void {
+    this.fasePrincipal = faseDestino;
   }
 
-  // --- TECNOLOGÍA CARCHECK: CONMUTAR DAÑOS EN CARROCERÍA ---
   toggleEstadoZona(zona: ZonaCarroceria): void {
-    if (zona.estado === 'OK') {
-      zona.estado = 'LEVE';
-    } else if (zona.estado === 'LEVE') {
-      zona.estado = 'GRAVE';
-    } else {
-      zona.estado = 'OK';
-    }
-
-    // Actualiza flag global si hay daños graves en exterior
-    const hayGraves = this.zonasCarroceria.some(z => z.estado === 'GRAVE');
-    if (hayGraves) {
-      this.inspeccion.dictamen = 'OBSERVADO';
-    }
+    if (zona.estado === 'OK') zona.estado = 'LEVE';
+    else if (zona.estado === 'LEVE') zona.estado = 'GRAVE';
+    else { zona.estado = 'OK'; zona.codigoDano = undefined; }
   }
 
   obtenerClaseEstado(estado: 'OK' | 'LEVE' | 'GRAVE'): string {
@@ -136,83 +217,15 @@ export class InspeccionComponent {
     }
   }
 
-  // --- PASO 3: ARCHIVOS Y FOTOS ---
-  cargarFotosExterior(event: any): void {
-    if (event.target.files) {
-      this.fotosExterior = Array.from(event.target.files);
-    }
-  }
-
-  cargarFotosInterior(event: any): void {
-    if (event.target.files) {
-      this.fotosInterior = Array.from(event.target.files);
-    }
-  }
-
-  avanzar(): void { 
-    if (this.etapaActual === 2 && this.fotosExterior.length !== 10) {
-      alert(`Debe subir exactamente 10 fotos del Exterior. Lleva ${this.fotosExterior.length}.`);
-      return;
-    }
-    if (this.etapaActual === 3 && this.fotosInterior.length !== 10) {
-      alert(`Debe subir exactamente 10 fotos del Interior. Lleva ${this.fotosInterior.length}.`);
-      return;
-    }
-
-    if (this.etapaActual < 5) this.etapaActual++; 
+  cargarFotosExterior(event: any): void { 
+    if (event.target.files) this.fotosExterior = Array.from(event.target.files); 
   }
   
-  retroceder(): void { 
-    if (this.etapaActual > 1) this.etapaActual--; 
-  }
+  avanzar(): void { if (this.etapaActual < 6) this.etapaActual++; }
+  retroceder(): void { if (this.etapaActual > 1) this.etapaActual--; }
   
   finalizar(): void {
-    if (!this.inspeccion.vehiculoId) {
-       alert('Error: El conductor no tiene un vehículo asignado.');
-       return;
-    }
-
-    if (this.fotosExterior.length !== 10 || this.fotosInterior.length !== 10) {
-      alert('Error: Faltan fotografías por cargar.');
-      return;
-    }
-
-    // Unimos todos los archivos en un solo array para subir
-    const todosLosArchivos = [...this.fotosExterior, ...this.fotosInterior];
-    const uploads = todosLosArchivos.map(f => this.archivoService.subirArchivo(f));
-
-    forkJoin(uploads).subscribe({
-      next: (resultados) => {
-        const urls = resultados.map(r => r.url);
-        
-        // Separamos las URLs según el orden en que las unimos
-        const urlsExterior = urls.slice(0, 10);
-        const urlsInterior = urls.slice(10, 20);
-
-        this.inspeccion.fotosExterior = urlsExterior;
-        this.inspeccion.fotosInterior = urlsInterior;
-
-        // Enviamos el objeto inspeccion al backend
-        this.inspeccionService.crearInspeccion(this.inspeccion as any).subscribe({
-          next: (res) => {
-            alert(`Inspección de ${this.tipoInspeccionActual} guardada en base de datos correctamente.`);
-            // Reseteamos el sistema completo para el próximo conductor
-            this.fasePrincipal = 'INGRESO_CEDULA';
-            this.cedulaInput = '';
-            this.etapaActual = 1;
-            this.fotosExterior = [];
-            this.fotosInterior = [];
-          },
-          error: (err) => {
-            console.error('Error al crear inspección', err);
-            alert('Ocurrió un error de red al intentar guardar la inspección.');
-          }
-        });
-      },
-      error: (err) => {
-        console.error('Error subiendo fotos de inspección', err);
-        alert('Ocurrió un error al intentar subir las fotos de la inspección. Verifica la conexión.');
-      }
-    });
+    alert(`Reporte finalizado para Vehículo: ${this.inspeccion.tipoVehiculo} | Operación: ${this.inspeccion.tipoOperacion}`);
+    console.log('Payload:', this.inspeccion);
   }
 }

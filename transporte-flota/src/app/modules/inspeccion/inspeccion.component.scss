@@ -1,35 +1,251 @@
-.zona-card {
-  transition: all 0.2s ease-in-out;
-  user-select: none;
+// Paleta de Colores
+$bg-main: #141824;
+$bg-card-section: #1b2130;
+$border-color: rgba(255, 255, 255, 0.08);
+
+$text-muted: #8a94a6;
+$teal-accent: #5e8b8a;
+
+$cyan-color: #00d2ff;
+$green-color: #00e676;
+$yellow-color: #ffd600;
+
+$vehicle-card-bg: #223f6b;
+$vehicle-card-hover: #2b5088;
+
+.app-container {
+  background-color: $bg-main;
+  overflow: hidden;
+}
+
+.bg-card-section {
+  background-color: $bg-card-section;
+}
+
+.border-custom {
+  border: 1px solid $border-color !important;
+}
+
+.text-custom-muted { color: $text-muted !important; }
+.text-custom-teal { color: $teal-accent !important; }
+.tracking-wide { letter-spacing: 1.5px; }
+
+/* =======================================
+   FASE 1: TARJETAS NEÓN
+   ======================================= */
+.op-card {
+  background-color: transparent;
+  border-width: 2px;
+  border-style: solid;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  &:hover {
+    transform: translateY(-8px) scale(1.02);
+    &::before { opacity: 1; }
+  }
+}
+
+.card-cyan {
+  border-color: rgba($cyan-color, 0.5);
+  &:hover {
+    border-color: $cyan-color;
+    box-shadow: 0 0 25px rgba($cyan-color, 0.35), inset 0 0 15px rgba($cyan-color, 0.15);
+  }
+}
+.icon-cyan { color: $cyan-color; }
+
+.card-green {
+  border-color: rgba($green-color, 0.5);
+  &:hover {
+    border-color: $green-color;
+    box-shadow: 0 0 25px rgba($green-color, 0.35), inset 0 0 15px rgba($green-color, 0.15);
+  }
+}
+.icon-green { color: $green-color; }
+
+.card-yellow {
+  border-color: rgba($yellow-color, 0.5);
+  &:hover {
+    border-color: $yellow-color;
+    box-shadow: 0 0 25px rgba($yellow-color, 0.35), inset 0 0 15px rgba($yellow-color, 0.15);
+  }
+}
+.icon-yellow { color: $yellow-color; }
+
+/* =======================================
+   FASE 2: TARJETAS DE VEHÍCULO
+   ======================================= */
+.vehicle-card {
+  background-color: $vehicle-card-bg;
+  border: none;
+  border-radius: 20px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+
+  &:hover {
+    background-color: $vehicle-card-hover;
+    transform: translateY(-6px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.45);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.btn-back {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* =======================================
+   INPUTS Y BOTONES PERSONALIZADOS
+   ======================================= */
+.custom-input {
+  background-color: #10141d !important;
+  color: #ffffff !important;
+  border: 1px solid $border-color !important;
   border-radius: 12px;
+
+  &:focus {
+    border-color: $cyan-color !important;
+    box-shadow: 0 0 10px rgba($cyan-color, 0.3);
+  }
+}
+
+.custom-addon {
+  background-color: #10141d;
+  border: 1px solid $border-color;
+  color: #ffffff;
+}
+
+.btn-primary-neon {
+  background: linear-gradient(135deg, #0072ff 0%, #00d2ff 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 30px;
+  box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+  transition: all 0.3s ease;
 
   &:hover {
     transform: translateY(-2px);
-    border-color: #0d6efd !important;
+    box-shadow: 0 6px 20px rgba(0, 210, 255, 0.5);
   }
+}
+
+/* =======================================
+   STEPPER & FORMULARIO
+   ======================================= */
+.stepper-container {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+
+  .step-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 20px;
+    background-color: rgba(255, 255, 255, 0.04);
+    color: $text-muted;
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+
+    &.active {
+      background-color: rgba($cyan-color, 0.15);
+      color: $cyan-color;
+      border-color: rgba($cyan-color, 0.4);
+    }
+  }
+}
+
+.segment-btn {
+  border-width: 1px;
+  font-weight: 600;
+  opacity: 0.7;
+  &:hover { opacity: 0.9; }
+}
+
+.btn-check:checked + .segment-btn {
+  opacity: 1;
+  box-shadow: inset 0 3px 5px rgba(0,0,0,0.3);
+}
+
+.zona-card {
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  user-select: none;
+  &:active { transform: scale(0.95); }
 }
 
 .badge-status {
   font-size: 0.65rem;
-  padding: 3px 6px;
-  border-radius: 6px;
+  padding: 3px 8px;
+  border-radius: 8px;
   font-weight: bold;
+  text-transform: uppercase;
 
-  &.badge-ok {
-    background-color: rgba(25, 135, 84, 0.25);
-    color: #198754;
-    border: 1px solid #198754;
-  }
+  &.badge-ok { background-color: rgba(25, 135, 84, 0.2); color: #20c997; border: 1px solid #198754; }
+  &.badge-leve { background-color: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107; }
+  &.badge-grave { background-color: rgba(220, 53, 69, 0.2); color: #ff6b6b; border: 1px solid #dc3545; }
+}
 
-  &.badge-leve {
-    background-color: rgba(255, 193, 7, 0.25);
-    color: #ffc107;
-    border: 1px solid #ffc107;
-  }
+.cursor-pointer { cursor: pointer; }
 
-  &.badge-grave {
-    background-color: rgba(220, 53, 69, 0.25);
-    color: #dc3545;
-    border: 1px solid #dc3545;
+/* =======================================
+   ANIMACIONES
+   ======================================= */
+.fade-in-up {
+  opacity: 0;
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-in-right {
+  animation: slideIn 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.pulse-btn {
+  animation: pulseShadow 2s infinite;
+}
+
+@keyframes pulseShadow {
+  0% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.5); }
+  70% { box-shadow: 0 0 0 12px rgba(25, 135, 84, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
 }
