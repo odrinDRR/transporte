@@ -130,6 +130,7 @@ export class FlotaComponent implements OnInit {
     return {
       placa: '',
       tipoVehiculo: '',
+      tipoTransmision: '',
       identificador: '',
       marca: '',
       modelo: '',

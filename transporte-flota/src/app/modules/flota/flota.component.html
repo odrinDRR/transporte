@@ -238,7 +238,7 @@
                   </div>
                   <div class="col-6 col-md-4">
                     <span class="text-white-50 fs-xs d-block">TIPO DE VEHÍCULO:</span>
-                    <strong class="text-white fs-sm">{{ vehiculoSeleccionado.tipoVehiculo || 'N/A' }}</strong>
+                    <strong class="text-white fs-sm">{{ vehiculoSeleccionado.tipoVehiculo || 'N/A' }} <span *ngIf="vehiculoSeleccionado.tipoTransmision">({{vehiculoSeleccionado.tipoTransmision}})</span></strong>
                   </div>
                   <div class="col-6 col-md-4 mt-2">
                     <span class="text-white-50 fs-xs d-block">CAPACIDAD DE CARGA:</span>
@@ -603,6 +603,19 @@
                   <option value="Furgón">Furgón</option>
                   <option value="Camioneta">Camioneta Pick-up</option>
                   <option value="Moto">Motocicleta</option>
+                </select>
+              </div>
+
+              <div class="col-6 col-md-4">
+                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">TRANSMISIÓN / TRACCIÓN <span
+                    class="text-danger">*</span></label>
+                <select class="form-select bg-dark text-white border-secondary border-opacity-50 touch-input"
+                  [(ngModel)]="nuevoVehiculo.tipoTransmision">
+                  <option value="" disabled selected>Seleccione...</option>
+                  <option value="Sincrónico">Sincrónico</option>
+                  <option value="Automático">Automático</option>
+                  <option value="4x4 Sincrónico">4x4 Sincrónico</option>
+                  <option value="4x4 Automático">4x4 Automático</option>
                 </select>
               </div>
 
