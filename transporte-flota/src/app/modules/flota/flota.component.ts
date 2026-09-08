@@ -161,9 +161,10 @@ export class FlotaComponent implements OnInit {
 
     this.guardandoVehiculo = true;
     try {
-      // 1. Preparar subida de Foto de Perfil
+      // 1. Preparar subida de Foto de Perfil (con compresión)
+      const perfilComprimido = await this.compressImage(this.fotoPerfilVehiculo);
       const perfilPromise = this.supabaseStorage.uploadFile(
-        this.fotoPerfilVehiculo,
+        perfilComprimido,
         'flota_archivos',
         'vehiculos/perfiles',
         `perfil_${this.nuevoVehiculo.placa}`
@@ -171,11 +172,12 @@ export class FlotaComponent implements OnInit {
 
       // 2. Preparar subidas de Fotos Estructuradas (6 vistas)
       const llaves = Object.keys(this.fotosEstructuradasArchivos);
-      const subidasPromises = llaves.map(llave => {
+      const subidasPromises = llaves.map(async llave => {
         const archivo = this.fotosEstructuradasArchivos[llave];
         if (archivo) {
+          const archivoComprimido = await this.compressImage(archivo);
           return this.supabaseStorage.uploadFile(
-            archivo,
+            archivoComprimido,
             'flota_archivos',
             'vehiculos/ficha_tecnica',
             `${llave}_${this.nuevoVehiculo.placa}`
@@ -376,6 +378,56 @@ export class FlotaComponent implements OnInit {
       };
       reader.readAsDataURL(file);
     }
+  }
+
+  // ==========================================
+  // COMPRESIÓN DE IMÁGENES
+  // ==========================================
+  
+  private async compressImage(file: File): Promise<File> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event: any) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() });
+              resolve(compressedFile);
+            } else {
+              resolve(file);
+            }
+          }, 'image/jpeg', 0.6); // 60% quality
+        };
+        img.onerror = () => resolve(file); // Fallback si hay error
+        img.src = event.target.result;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
   }
 
   // ==========================================

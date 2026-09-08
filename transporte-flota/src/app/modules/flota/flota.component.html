@@ -238,7 +238,8 @@
                   </div>
                   <div class="col-6 col-md-4">
                     <span class="text-white-50 fs-xs d-block">TIPO DE VEHÍCULO:</span>
-                    <strong class="text-white fs-sm">{{ vehiculoSeleccionado.tipoVehiculo || 'N/A' }} <span *ngIf="vehiculoSeleccionado.tipoTransmision">({{vehiculoSeleccionado.tipoTransmision}})</span></strong>
+                    <strong class="text-white fs-sm">{{ vehiculoSeleccionado.tipoVehiculo || 'N/A' }} <span
+                        *ngIf="vehiculoSeleccionado.tipoTransmision">({{vehiculoSeleccionado.tipoTransmision}})</span></strong>
                   </div>
                   <div class="col-6 col-md-4 mt-2">
                     <span class="text-white-50 fs-xs d-block">CAPACIDAD DE CARGA:</span>
@@ -427,7 +428,8 @@
                 accept="image/*" (change)="cargarFotoPerfil($event)">
 
               <div class="z-1 position-relative pointer-events-none">
-                <i class="bi fs-1 mb-2 d-block text-white-50" [ngClass]="getIconoVehiculo()" *ngIf="!fotoPerfilVehiculo"></i>
+                <i class="bi fs-1 mb-2 d-block text-white-50" [ngClass]="getIconoVehiculo()"
+                  *ngIf="!fotoPerfilVehiculo"></i>
                 <i class="bi bi-check-lg fs-1 mb-2 d-block text-primary" *ngIf="fotoPerfilVehiculo"></i>
 
                 <p class="text-white mb-1 fw-semibold fs-sm">{{ fotoPerfilVehiculo ? 'Archivo seleccionado' : 'Haz clic
@@ -614,8 +616,7 @@
                   <option value="" disabled selected>Seleccione...</option>
                   <option value="Sincrónico">Sincrónico</option>
                   <option value="Automático">Automático</option>
-                  <option value="4x4 Sincrónico">4x4 Sincrónico</option>
-                  <option value="4x4 Automático">4x4 Automático</option>
+                  <option value="4x4 Sincrónico">4x4</option>
                 </select>
               </div>
 
@@ -873,7 +874,8 @@
   <!-- ==========================================
        MODAL DE VISTA PREVIA (Ficha / QR)
        ========================================== -->
-  <div class="modal fade" id="previewPrintModal" tabindex="-1" aria-labelledby="previewPrintModalLabel" aria-hidden="true">
+  <div class="modal fade" id="previewPrintModal" tabindex="-1" aria-labelledby="previewPrintModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header bg-dark text-white">
@@ -912,20 +914,44 @@
     <div *ngIf="vehiculoSeleccionado" class="w-100 bg-white text-black print-container">
       <!-- Mismo código de la tabla pero en un template -->
       <style>
-        .custom-print-table { border-collapse: collapse; width: 100%; font-size: 11px; }
-        .custom-print-table th, .custom-print-table td {
+        .custom-print-table {
+          border-collapse: collapse;
+          width: 100%;
+          font-size: 11px;
+        }
+
+        .custom-print-table th,
+        .custom-print-table td {
           border: 2px solid #000 !important;
           padding: 4px 6px !important;
           vertical-align: middle !important;
           line-height: 1.3 !important;
           white-space: normal !important;
         }
-        .custom-print-table .p-0 { padding: 0 !important; }
-        .custom-print-table .p-1 { padding: 0.25rem !important; }
-        .custom-print-table .p-2 { padding: 0.5rem !important; }
-        .custom-print-table .text-center { text-align: center !important; }
-        .custom-print-table .align-middle { vertical-align: middle !important; }
-        .custom-print-table .border-top { border-top: 2px solid #000 !important; }
+
+        .custom-print-table .p-0 {
+          padding: 0 !important;
+        }
+
+        .custom-print-table .p-1 {
+          padding: 0.25rem !important;
+        }
+
+        .custom-print-table .p-2 {
+          padding: 0.5rem !important;
+        }
+
+        .custom-print-table .text-center {
+          text-align: center !important;
+        }
+
+        .custom-print-table .align-middle {
+          vertical-align: middle !important;
+        }
+
+        .custom-print-table .border-top {
+          border-top: 2px solid #000 !important;
+        }
       </style>
       <!-- OJO: Reutilizamos el #ficha-print-section pero desde el template -->
       <table class="custom-print-table m-0">
@@ -941,26 +967,26 @@
           </td>
         </tr>
         <tr>
-          <td colspan="6" class="text-center"
-            style="background-color: #f0f0f0 !important;">
+          <td colspan="6" class="text-center" style="background-color: #f0f0f0 !important;">
             <h5 class="mb-0 py-1 fw-bold text-uppercase">FICHA TÉCNICA VEHICULAR</h5>
           </td>
         </tr>
         <tr>
-          <td colspan="2" style="width: 33%;">3. DEPENDENCIA:<br> <strong>{{ vehiculoSeleccionado.dependencia }}</strong></td>
+          <td colspan="2" style="width: 33%;">3. DEPENDENCIA:<br> <strong>{{ vehiculoSeleccionado.dependencia
+              }}</strong></td>
           <td>4. MARCA:<br> <strong>{{ vehiculoSeleccionado.marcaModelo }}</strong></td>
           <td>5. MODELO:<br> <strong>{{ vehiculoSeleccionado.marcaModelo }}</strong></td>
           <td>6. PLACA N°:<br> <strong>{{ vehiculoSeleccionado.placa }}</strong></td>
           <td>7. AÑO:<br> <strong>{{ vehiculoSeleccionado.anio }}</strong></td>
         </tr>
         <tr>
-          <td colspan="3" style="width: 50%;">8. SERIAL DE CARROCERÍA:<br> <strong>{{ vehiculoSeleccionado.vin }}</strong></td>
+          <td colspan="3" style="width: 50%;">8. SERIAL DE CARROCERÍA:<br> <strong>{{ vehiculoSeleccionado.vin
+              }}</strong></td>
           <td colspan="2" style="width: 33%;">9. COLOR:<br> <strong>{{ vehiculoSeleccionado.color }}</strong></td>
           <td>10. N° BIEN:<br> <strong>{{ vehiculoSeleccionado.numeroBien }}</strong></td>
         </tr>
         <tr>
-          <td colspan="6" class="text-center fw-bold py-1"
-            style="background-color: #f0f0f0 !important;">
+          <td colspan="6" class="text-center fw-bold py-1" style="background-color: #f0f0f0 !important;">
             11. MEMORIA FOTOGRÁFICA
           </td>
         </tr>
@@ -978,28 +1004,34 @@
         </tr>
         <tr>
           <td colspan="3" class="text-center p-2" style="height: 120px; width: 50%;">
-            <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralDerecha || vehiculoSeleccionado.fotos?.[2] || ''"
+            <img
+              [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralDerecha || vehiculoSeleccionado.fotos?.[2] || ''"
               style="max-height: 90px; max-width: 100%;">
             <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 3<br>VISTA LATERAL DERECHA DEL VEHÍCULO</div>
           </td>
           <td colspan="3" class="text-center p-2" style="height: 120px; width: 50%;">
-            <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralIzquierda || vehiculoSeleccionado.fotos?.[3] || ''"
+            <img
+              [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaLateralIzquierda || vehiculoSeleccionado.fotos?.[3] || ''"
               style="max-height: 90px; max-width: 100%;">
             <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 4<br>VISTA LATERAL IZQUIERDO DEL VEHÍCULO</div>
           </td>
         </tr>
         <tr>
           <td colspan="6" class="text-center p-2" style="height: 120px;">
-            <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaSerialCarroceria || vehiculoSeleccionado.fotos?.[4] || ''"
+            <img
+              [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaSerialCarroceria || vehiculoSeleccionado.fotos?.[4] || ''"
               style="max-height: 90px; max-width: 100%;">
-            <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 5<br>VISTA DEL SERIAL DE CARROCERIA DEL VEHÍCULO</div>
+            <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 5<br>VISTA DEL SERIAL DE CARROCERIA DEL VEHÍCULO
+            </div>
           </td>
         </tr>
         <tr>
           <td colspan="6" class="text-center p-2" style="height: 120px;">
-            <img [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaNumeroBien || vehiculoSeleccionado.fotos?.[5] || ''"
+            <img
+              [src]="vehiculoSeleccionado.fotosEstructuradas?.vistaNumeroBien || vehiculoSeleccionado.fotos?.[5] || ''"
               style="max-height: 90px; max-width: 100%;">
-            <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 6<br>VISTA DEL NUMERO DE BIEN NACIONAL DEL VEHÍCULO</div>
+            <div class="mt-1 fw-bold" style="font-size: 10px;">FOTO N° 6<br>VISTA DEL NUMERO DE BIEN NACIONAL DEL
+              VEHÍCULO</div>
           </td>
         </tr>
         <tr>
@@ -1015,7 +1047,8 @@
             <div>N° TLF:</div>
           </td>
           <td colspan="3" class="p-2" style="vertical-align: top; height: 100px; width: 50%;">
-            <ng-container *ngIf="obtenerDetallesConductor(vehiculoSeleccionado.conductorId, conductores) as conductor; else sinConductorPrint">
+            <ng-container
+              *ngIf="obtenerDetallesConductor(vehiculoSeleccionado.conductorId, conductores) as conductor; else sinConductorPrint">
               <div class="mb-3">14. RESPONSABLE DEL VEHÍCULO:</div>
               <div class="mb-2">Nombres y Apellidos: <strong>{{ conductor.nombre }}</strong></div>
               <div class="mb-2">N° C.I.: <strong>{{ conductor.cedula }}</strong></div>
@@ -1036,7 +1069,8 @@
   <ng-template #qrContent>
     <div *ngIf="vehiculoSeleccionado" class="w-100 text-center bg-white text-black pt-5 print-container">
       <div class="mt-5 pt-5">
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}"
+        <img
+          src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}"
           style="width: 400px; height: 400px;">
         <h1 class="mt-4 display-3 fw-bold text-black font-monospace">{{ vehiculoSeleccionado.placa }}</h1>
         <h3 class="mt-2 text-dark">{{ vehiculoSeleccionado.identificador }}</h3>
