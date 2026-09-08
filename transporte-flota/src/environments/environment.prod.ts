@@ -1,4 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://transporte-backend-1.onrender.com/api'
+  apiUrl: 'https://transporte-backend-1.onrender.com/api',
+  supabaseUrl: 'https://eztnztqnjzobfvjxlrdl.supabase.co',
+  supabaseKey: 'sb_publishable_SNerF-lCbcgCYxa_KLcTcw_VW9rGsvl'
 };

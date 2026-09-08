@@ -2,7 +2,7 @@ import { Component, Output, EventEmitter } from '@angular/core';
 import { RolUsuario } from '../../core/models/fleet.models';
 import { FlotaService } from '../../core/services/flota.service';
 import { AuthService } from '../../services/auth.service';
-import { ArchivoService } from '../../services/archivo.service';
+import { SupabaseStorageService } from '../../services/supabase-storage.service';
 
 @Component({
   selector: 'app-login',
@@ -26,26 +26,33 @@ export class LoginComponent {
   archivoLicenciaNombre: string = '';
   archivoMedico: File | null = null;
   archivoMedicoNombre: string = '';
+  archivoFoto: File | null = null;
+  archivoFotoNombre: string = '';
 
   nuevoUsuario = {
     nombre: '',
     apellido: '',
     cedula: '',
+    telefono: '',
     edad: null as number | null,
     cargo: '' as RolUsuario | '',
     categoriaLicencia: '2da',
     username: '',
     correo: '',
     password: '',
+    fotoUrl: '',
     estado: 'PENDIENTE',
     fechaVencimientoLicencia: '',
     fechaVencimientoCertificadoMedico: ''
   };
 
+  prefijoTelefono: string = '0414';
+  numeroTelefono: string = '';
+
   constructor(
     private flotaService: FlotaService, 
     private authService: AuthService,
-    private archivoService: ArchivoService
+    private supabaseStorage: SupabaseStorageService
   ) {}
 
   getRoleName(rol: RolUsuario | string | null): string {
@@ -115,32 +122,48 @@ export class LoginComponent {
   this.nuevoUsuario.cedula = valor;
 }
 
-  onFileSelected(event: Event, tipo: 'licencia' | 'medico'): void {
+  soloNumeros(event: KeyboardEvent): boolean {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      return false;
+    }
+    return true;
+  }
+
+  onFileSelected(event: Event, tipo: 'licencia' | 'medico' | 'foto'): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
       if (tipo === 'licencia') {
         this.archivoLicencia = file;
         this.archivoLicenciaNombre = file.name;
-      } else {
+      } else if (tipo === 'medico') {
         this.archivoMedico = file;
         this.archivoMedicoNombre = file.name;
+      } else if (tipo === 'foto') {
+        this.archivoFoto = file;
+        this.archivoFotoNombre = file.name;
       }
     }
   }
 
+  cargandoLogin = false;
+
   ingresar(): void {
     if (this.usuario.trim() !== '' && this.clave.trim() !== '') {
+      this.cargandoLogin = true;
       // Limpiamos cualquier sesión previa antes de intentar el login
       this.authService.logout();
       
       this.authService.login(this.usuario.trim(), this.clave.trim()).subscribe({
         next: (res) => {
           this.flotaService.iniciarSesion(res.rol); // Mantenemos compatibilidad con flotaService
+          this.cargandoLogin = false;
           this.loginCompletado.emit();
         },
         error: (err) => {
           console.error(err);
+          this.cargandoLogin = false;
           alert(err.error || 'Credenciales inválidas o usuario inactivo');
         }
       });
@@ -166,30 +189,44 @@ export class LoginComponent {
         nombre: '',
         apellido: '',
         cedula: '',
+        telefono: '',
         edad: null,
         cargo: '',
         categoriaLicencia: '2da',
         username: '',
         correo: '',
         password: '',
+        fotoUrl: '',
         estado: 'PENDIENTE',
         fechaVencimientoLicencia: '',
         fechaVencimientoCertificadoMedico: ''
       };
+      this.prefijoTelefono = '0414';
+      this.numeroTelefono = '';
     }
   }
 
- avanzarRegistro(): void {
-  if (this.pasoRegistro === 1) {
-    if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.apellido || !this.nuevoUsuario.cedula || !this.nuevoUsuario.cargo) {
-      alert('Por favor completa todos los datos obligatorios.');
-      return;
-    }
+  avanzarRegistro(): void {
+    if (this.pasoRegistro === 1) {
+      if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.apellido || !this.nuevoUsuario.cedula || !this.nuevoUsuario.cargo) {
+        alert('Por favor completa todos los datos obligatorios.');
+        return;
+      }
+      
+      if (!this.numeroTelefono || this.numeroTelefono.length < 7) {
+        alert('Por favor ingresa un número de teléfono válido.');
+        return;
+      }
+      
+      if (!this.archivoFoto) {
+        alert('Debes adjuntar tu foto de perfil.');
+        return;
+      }
 
-    if (this.nuevoUsuario.cedula.length > 8) {
-      alert('La cédula no puede exceder los 8 dígitos.');
-      return;
-    }
+      if (this.nuevoUsuario.cedula.length > 8) {
+        alert('La cédula no puede exceder los 8 dígitos.');
+        return;
+      }
 
     if (this.nuevoUsuario.edad === null || this.nuevoUsuario.edad < 18 || this.nuevoUsuario.edad > 80) {
       alert('La edad permitida debe estar comprendida entre 18 y 80 años.');
@@ -216,6 +253,8 @@ export class LoginComponent {
     }
   }
 
+  cargandoRegistro = false;
+
   async enviarParaAprobacion(): Promise<void> {
     if (!this.nuevoUsuario.username || !this.nuevoUsuario.password) {
       alert('Indica un usuario y contraseña válidos.');
@@ -228,36 +267,66 @@ export class LoginComponent {
       return;
     }
 
+    this.cargandoRegistro = true;
+
     try {
       let urlLicencia = null;
       let urlMedico = null;
+      let urlFoto = null;
+
+      if (this.archivoFoto) {
+        const urlFotoSupabase = await this.supabaseStorage.uploadFile(
+          this.archivoFoto,
+          'flota_archivos',
+          'usuarios/fotos',
+          `foto_${this.nuevoUsuario.cedula}`
+        );
+        urlFoto = urlFotoSupabase;
+      }
 
       if (this.archivoLicencia) {
-        const resLicencia = await this.archivoService.subirArchivo(this.archivoLicencia).toPromise();
-        urlLicencia = resLicencia?.url;
+        const urlLicenciaSupabase = await this.supabaseStorage.uploadFile(
+          this.archivoLicencia,
+          'flota_archivos',
+          'usuarios/documentos',
+          `licencia_${this.nuevoUsuario.cedula}`
+        );
+        urlLicencia = urlLicenciaSupabase;
       }
 
       if (this.archivoMedico) {
-        const resMedico = await this.archivoService.subirArchivo(this.archivoMedico).toPromise();
-        urlMedico = resMedico?.url;
+        const urlMedicoSupabase = await this.supabaseStorage.uploadFile(
+          this.archivoMedico,
+          'flota_archivos',
+          'usuarios/documentos',
+          `certmedico_${this.nuevoUsuario.cedula}`
+        );
+        urlMedico = urlMedicoSupabase;
       }
 
       const payload = {
         ...this.nuevoUsuario,
+        telefono: `${this.prefijoTelefono}-${this.numeroTelefono}`,
         urlLicencia,
-        urlCertificadoMedico: urlMedico
+        urlCertificadoMedico: urlMedico,
+        fotoUrl: urlFoto,
+        fechaVencimientoLicencia: this.nuevoUsuario.fechaVencimientoLicencia ? this.nuevoUsuario.fechaVencimientoLicencia : null,
+        fechaVencimientoCertificadoMedico: this.nuevoUsuario.fechaVencimientoCertificadoMedico ? this.nuevoUsuario.fechaVencimientoCertificadoMedico : null
       };
 
       this.authService.register(payload).subscribe({
         next: (res) => {
+          this.cargandoRegistro = false;
           alert(res || 'Solicitud registrada. La documentación en PDF/Foto fue enviada a revisión.');
           this.alternarRegistro();
         },
         error: (err) => {
+          this.cargandoRegistro = false;
           alert(err.error || 'Ocurrió un error al registrarse.');
         }
       });
     } catch (error) {
+      this.cargandoRegistro = false;
       console.error('Error subiendo archivos', error);
       alert('Hubo un problema subiendo los documentos. Inténtalo de nuevo.');
     }

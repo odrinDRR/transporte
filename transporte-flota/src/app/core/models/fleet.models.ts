@@ -30,6 +30,7 @@ export interface Vehiculo {
   marcaModelo?: string;
   tipo?: string;
   tipoVehiculo?: string;
+  tipoTransmision?: string;
   anio?: number;
   vin?: string; // Serial de Carrocería
   kilometraje?: number;

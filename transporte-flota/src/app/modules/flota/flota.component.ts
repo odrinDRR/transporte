@@ -1,15 +1,13 @@
-import { Component, OnInit } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
-
-// ==========================================
-// IMPORTACIÓN DEL MODELO GLOBAL
-// ==========================================
-import { FotosFichaTecnica, Vehiculo } from 'src/app/core/models/fleet.models';
-
-export interface Conductor {
-  id: number;
-  nombre: string;
-}
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Observable, combineLatest, BehaviorSubject, of } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { FlotaService } from '../../core/services/flota.service';
+import { VehiculoService } from '../../services/vehiculo.service';
+import { ConductorService } from '../../services/conductor.service';
+import { ArchivoService } from '../../services/archivo.service';
+import { SupabaseStorageService } from '../../services/supabase-storage.service';
+import { DependenciaService, Dependencia } from '../../services/dependencia.service';
+import { Vehiculo, Conductor, FotosFichaTecnica } from '../../core/models/fleet.models';
 
 @Component({
   selector: 'app-flota',
@@ -18,19 +16,31 @@ export interface Conductor {
 })
 export class FlotaComponent implements OnInit {
 
+  sidebarAbierto = false;
+
+  listaDependencias: Dependencia[] = [];
+
   // ==========================================
   // ESTADOS Y PROPIEDADES DEL COMPONENTE
   // ==========================================
   mostrarRegistro: boolean = false;
+  
+  // Vista Previa de Impresión
+  previewMode: 'FICHA' | 'QR' = 'FICHA';
+  previewTitle: string = '';
+  guardandoVehiculo: boolean = false;
   mostrarCarrusel: boolean = false;
   vehiculoSeleccionado: Vehiculo | null = null;
+  imagenesCargadas: { [key: string]: boolean } = {};
+  modoImpresion: 'FICHA' | 'QR' | 'NADA' = 'NADA';
   
   // Gestión de Galería/Carrusel (Se mantiene para ver fotos en la ficha)
   fotosCarrusel: string[] = [];
   indiceFotoActual: number = 0;
 
-  // Carga de Archivos (Solo foto de perfil, la galería general se eliminó)
-  fotoPerfilVehiculo: string | null = null;
+  // Carga de Archivos
+  fotoPerfilVehiculo: File | null = null;
+  fotosEstructuradasArchivos: { [key: string]: File } = {};
 
   // Arrays Dinámicos para Selects
   anios: number[] = Array.from({ length: 2026 - 1980 + 1 }, (_, i) => 2026 - i);
@@ -39,59 +49,92 @@ export class FlotaComponent implements OnInit {
   // Modelo de Formulario
   nuevoVehiculo: Partial<Vehiculo> = this.inicializarFormulario();
 
-  // Mock de Servicios y Observables para RxJS
-  conductores$: Observable<Conductor[]> = of([
-    { id: 1, nombre: 'Carlos Mendoza' },
-    { id: 2, nombre: 'José Rodríguez' },
-    { id: 3, nombre: 'Luis Alvarado' }
-  ]);
+  prefijoTelefono: string = '0414';
+  numeroTelefono: string = '';
 
-  private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([
-    {
-      id: 1,
-      placa: 'A82BC3',
-      tipoVehiculo: 'Camión Ligero',
-      identificador: 'Plataforma 01',
-      marcaModelo: 'Ford Triton V8',
-      anio: 2022,
-      color: 'Blanco',
-      vin: '839201928301',
-      capacidadCarga: 3500,
-      kilometraje: 45000,
-      estado: 'OPERATIVO',
-      conductorId: 1,
-      fotos: ['https://images.unsplash.com/photo-1586191582119-940dd7e273f5?q=80&w=600']
-    },
-    {
-      id: 2,
-      placa: 'A91XY8',
-      tipoVehiculo: 'Furgón',
-      identificador: 'Reparto Zona Norte',
-      marcaModelo: 'Chevrolet N300',
-      anio: 2021,
-      color: 'Gris',
-      vin: '109283746501',
-      capacidadCarga: 1500,
-      kilometraje: 82000,
-      estado: 'TALLER',
-      conductorId: 2,
-      fotos: ['https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?q=80&w=600']
-    }
-  ]);
+  private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([]);
+  public vehiculos$: Observable<Vehiculo[]> = this.vehiculosSubject.asObservable();
 
-  vehiculosFiltrados$: BehaviorSubject<Vehiculo[]> = new BehaviorSubject<Vehiculo[]>([]);
-  
-  flotaService = {
-    vehiculos$: this.vehiculosSubject.asObservable(),
-    puedeEditarOEliminar: () => true
-  };
-  
-  flota: Vehiculo[] | null = null;
-fotosVehiculo: any;
+  private conductoresSubject = new BehaviorSubject<Conductor[]>([]);
+  public conductores$: Observable<Conductor[]> = this.conductoresSubject.asObservable();
+
+  filtroTexto$ = new BehaviorSubject<string>('');
+  filtroEstado$ = new BehaviorSubject<string>('TODOS');
+  vehiculosFiltrados$!: Observable<Vehiculo[]>;
+
+  constructor(
+    public flotaService: FlotaService, 
+    private vehiculoService: VehiculoService,
+    private conductorService: ConductorService,
+    private dependenciaService: DependenciaService,
+    private archivoService: ArchivoService,
+    private supabaseStorage: SupabaseStorageService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
-    this.vehiculosSubject.subscribe(lista => {
-      this.vehiculosFiltrados$.next(lista);
+    this.cargarDatosBackend();
+    this.cargarDependencias();
+
+    this.vehiculosFiltrados$ = combineLatest([
+      this.vehiculos$,
+      this.filtroTexto$,
+      this.filtroEstado$
+    ]).pipe(
+      map(([vehiculos, texto, estado]) => {
+        let resultado = vehiculos;
+        if (estado !== 'TODOS') {
+          resultado = resultado.filter(v => v.estado === estado);
+        }
+        if (texto) {
+          const term = texto.toLowerCase();
+          resultado = resultado.filter(v => 
+            (v.placa && v.placa.toLowerCase().includes(term)) ||
+            (v.marcaModelo && v.marcaModelo.toLowerCase().includes(term)) ||
+            (v.identificador && v.identificador.toLowerCase().includes(term))
+          );
+        }
+        return resultado;
+      })
+    );
+  }
+
+  cargarDependencias(): void {
+    this.dependenciaService.obtenerDependencias().subscribe({
+      next: (data) => {
+        this.listaDependencias = data;
+      },
+      error: (err) => console.error('Error al cargar dependencias', err)
+    });
+  }
+
+  cargandoVehiculos = false;
+  cargandoConductores = false;
+
+  // --- MÉTODOS HTTP (CONEXIÓN A SPRING BOOT) ---
+  cargarDatosBackend(): void {
+    this.cargandoVehiculos = true;
+    this.vehiculoService.obtenerVehiculos().subscribe({
+      next: (data) => {
+        this.vehiculosSubject.next(data);
+        this.cargandoVehiculos = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar vehículos', err);
+        this.cargandoVehiculos = false;
+      }
+    });
+
+    this.cargandoConductores = true;
+    this.conductorService.obtenerConductores().subscribe({
+      next: (data) => {
+        this.conductoresSubject.next(data);
+        this.cargandoConductores = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar conductores', err);
+        this.cargandoConductores = false;
+      }
     });
   }
 
@@ -103,6 +146,7 @@ fotosVehiculo: any;
     return {
       placa: '',
       tipoVehiculo: '',
+      tipoTransmision: '',
       identificador: '',
       marca: '',
       modelo: '',
@@ -116,12 +160,198 @@ fotosVehiculo: any;
       kilometraje: undefined,
       estado: 'OPERATIVO',
       observaciones: '',
-      responsableVerificacion: { nombre: '', ci: '', telefono: '' },
-      responsableVehiculo: { nombre: '', ci: '', telefono: '' },
       fotosEstructuradas: {}
     };
   }
 
+  async guardarVehiculo() {
+    if (!this.nuevoVehiculo.placa || !this.nuevoVehiculo.identificador) {
+      alert('Por favor, completa los datos básicos.');
+      return;
+    }
+
+    if (!this.fotoPerfilVehiculo) {
+      alert('Debes adjuntar la foto de perfil.');
+      return;
+    }
+
+    this.guardandoVehiculo = true;
+    try {
+      // 1. Preparar subida de Foto de Perfil (con compresión)
+      const perfilComprimido = await this.compressImage(this.fotoPerfilVehiculo);
+      const perfilPromise = this.supabaseStorage.uploadFile(
+        perfilComprimido,
+        'flota_archivos',
+        'vehiculos/perfiles',
+        `perfil_${this.nuevoVehiculo.placa}`
+      );
+
+      // 2. Preparar subidas de Fotos Estructuradas (6 vistas)
+      const llaves = Object.keys(this.fotosEstructuradasArchivos);
+      const subidasPromises = llaves.map(async llave => {
+        const archivo = this.fotosEstructuradasArchivos[llave];
+        if (archivo) {
+          const archivoComprimido = await this.compressImage(archivo);
+          return this.supabaseStorage.uploadFile(
+            archivoComprimido,
+            'flota_archivos',
+            'vehiculos/ficha_tecnica',
+            `${llave}_${this.nuevoVehiculo.placa}`
+          ).then(url => ({ llave, url }));
+        }
+        return Promise.resolve(null);
+      });
+
+      // Ejecutar TODAS las subidas en paralelo para máxima velocidad
+      const [urlPerfil, resultadosEstructuradas] = await Promise.all([
+        perfilPromise,
+        Promise.all(subidasPromises)
+      ]);
+
+      const urlsEstructuradas: FotosFichaTecnica = {};
+      resultadosEstructuradas.forEach(res => {
+        if (res) {
+          urlsEstructuradas[res.llave as keyof FotosFichaTecnica] = res.url;
+        }
+      });
+
+      // 3. Construir Payload
+      
+      const payload = {
+        ...this.nuevoVehiculo,
+        urlFotoPerfil: urlPerfil,
+        fotosEstructuradas: urlsEstructuradas,
+        fotos: Object.values(urlsEstructuradas).filter(url => url !== undefined),
+        capacidadCarga: this.nuevoVehiculo.capacidadCarga ? Number(this.nuevoVehiculo.capacidadCarga) : undefined
+      };
+
+      // 4. Guardar en Backend
+      this.vehiculoService.crearVehiculo(payload as any).subscribe({
+        next: (vehiculoDb) => {
+          alert(`¡Vehículo ${vehiculoDb.placa} registrado con éxito!`);
+          this.cargarDatosBackend();
+          this.alternarRegistro();
+          this.resetearFormulario();
+          this.guardandoVehiculo = false;
+        },
+        error: (err) => {
+          console.error('Error guardando en BD', err);
+          let mensajeError = 'Ocurrió un error al intentar guardar el vehículo.';
+          
+          if (err.error && err.error.error) {
+            mensajeError = err.error.error;
+          } else if (err.status === 400 && typeof err.error === 'string') {
+            try {
+              const parsed = JSON.parse(err.error);
+              if (parsed.error) mensajeError = parsed.error;
+            } catch (e) { }
+          }
+          
+          alert(mensajeError);
+          this.guardandoVehiculo = false;
+        }
+      });
+    } catch (error) {
+      console.error('Error subiendo imágenes a Supabase', error);
+      alert('Error subiendo las imágenes. Por favor, intenta de nuevo.');
+      this.guardandoVehiculo = false;
+    }
+  }
+
+  eliminar(id?: number): void {
+    if (!id) return;
+    if (confirm('¿Eliminar definitivamente esta unidad de la base de datos?')) {
+      this.vehiculoService.eliminarVehiculo(id).subscribe({
+        next: () => {
+          alert('Vehículo eliminado');
+          this.cargarDatosBackend(); 
+        },
+        error: (err) => console.error('Error al eliminar', err)
+      });
+    }
+  }
+
+  // Obtener ícono dinámico según el tipo de vehículo
+  getIconoVehiculo(): string {
+    return this.getIconoPorTipo(this.vehiculoSeleccionado?.tipoVehiculo || '');
+  }
+
+  getIconoPorTipo(tipoVehiculo: string): string {
+    if (!tipoVehiculo) return 'bi-car-front';
+    const tipo = tipoVehiculo.toLowerCase();
+    if (tipo.includes('moto')) return 'bi-bicycle';
+    if (tipo.includes('camión') || tipo.includes('camion')) return 'bi-truck';
+    if (tipo.includes('camioneta') || tipo.includes('suv')) return 'bi-truck-front';
+    if (tipo.includes('maquinaria')) return 'bi-cone-striped';
+    return 'bi-car-front';
+  }
+
+  // --- MÉTODOS DE UTILIDAD Y UI ---
+  resetearFormulario(): void {
+    this.nuevoVehiculo = this.inicializarFormulario();
+    this.prefijoTelefono = '0414';
+    this.numeroTelefono = '';
+  }
+
+  aplicarFiltroBuscador(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.filtroTexto$.next(input.value);
+  }
+
+  filtrarPorEstado(estado: string): void {
+    this.filtroEstado$.next(estado);
+  }
+
+  obtenerNombreConductor(id?: number | null, conductores?: Conductor[] | null): string {
+    if (!id || !conductores) return 'Sin Asignar';
+    const c = conductores.find(item => item.id === id);
+    return c ? `${c.nombre}` : 'Sin Asignar';
+  }
+
+  obtenerDetallesConductor(id?: number | null, conductores?: Conductor[] | null): Conductor | null {
+    if (!id || !conductores) return null;
+    return conductores.find(item => item.id === id) || null;
+  }
+
+  alternarRegistro(): void {
+    this.mostrarRegistro = !this.mostrarRegistro;
+    this.fotosEstructuradasArchivos = {};
+    this.fotoPerfilVehiculo = null;
+    if (!this.mostrarRegistro) {
+      this.resetearFormulario();
+    }
+    
+    // Test for runtime template crash
+    try {
+      this.cdr.detectChanges();
+    } catch (e: any) {
+      console.error('Crash in template!', e);
+      alert('Error en el formulario: ' + e.message);
+    }
+  }
+
+  validarAlfanumerico(event: Event, campo: keyof Vehiculo): void {
+    const input = event.target as HTMLInputElement;
+    const valorLimpio = input.value.replace(/[^a-zA-Z0-9-]/g, '').toUpperCase();
+    input.value = valorLimpio;
+    if (this.nuevoVehiculo) (this.nuevoVehiculo as any)[campo] = valorLimpio;
+  }
+
+  validarSoloNumeros(event: Event, campo: keyof Vehiculo): void {
+    const input = event.target as HTMLInputElement;
+    const valorLimpio = input.value.replace(/[^0-9]/g, '');
+    input.value = valorLimpio;
+    if (this.nuevoVehiculo) (this.nuevoVehiculo as any)[campo] = valorLimpio;
+  }
+
+  soloNumeros(event: KeyboardEvent): boolean {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+      return false;
+    }
+    return true;
+  }
+  
   validarKilometraje(event: Event): void {
     const input = event.target as HTMLInputElement;
     let valor = parseInt(input.value, 10);
@@ -137,68 +367,24 @@ fotosVehiculo: any;
     }
   }
 
-  validarAlfanumerico(event: Event, campo: keyof Vehiculo): void {
-    const input = event.target as HTMLInputElement;
-    input.value = input.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-    (this.nuevoVehiculo as any)[campo] = input.value;
-  }
-
-  validarSoloNumeros(event: Event, campo: keyof Vehiculo): void {
-    const input = event.target as HTMLInputElement;
-    input.value = input.value.replace(/[^0-9]/g, '');
-    (this.nuevoVehiculo as any)[campo] = input.value;
-  }
-
-  soloNumeros(event: KeyboardEvent): boolean {
-    const charCode = event.which ? event.which : event.keyCode;
-    if (charCode > 31 && (charCode < 48 || charCode > 57)) {
-      return false;
-    }
-    return true;
-  }
-
-  // ==========================================
-  // GESTIÓN DE BÚSQUEDA Y FILTROS
-  // ==========================================
-
-  aplicarFiltroBuscador(event: Event): void {
-    const termino = (event.target as HTMLInputElement).value.toLowerCase();
-    const listaCompleta = this.vehiculosSubject.getValue();
-
-    const filtrados = listaCompleta.filter(v =>
-      (v.placa || '').toLowerCase().includes(termino) ||
-      (v.identificador || '').toLowerCase().includes(termino) ||
-      (v.marcaModelo || '').toLowerCase().includes(termino)
-    );
-
-    this.vehiculosFiltrados$.next(filtrados);
-  }
-
-  filtrarPorEstado(estado: string): void {
-    const listaCompleta = this.vehiculosSubject.getValue();
-    if (estado === 'TODOS') {
-      this.vehiculosFiltrados$.next(listaCompleta);
-    } else {
-      this.vehiculosFiltrados$.next(listaCompleta.filter(v => v.estado === estado));
-    }
-  }
-
   // ==========================================
   // MANEJO DE ARCHIVOS (Ficha Técnica)
   // ==========================================
 
   cargarFotoPerfil(event: any): void {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: any) => this.fotoPerfilVehiculo = e.target.result;
-      reader.readAsDataURL(file);
+    if (event.target.files && event.target.files.length > 0) {
+      this.fotoPerfilVehiculo = event.target.files[0];
     }
   }
 
   cargarFotoEspecifica(event: Event, llave: keyof FotosFichaTecnica): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
+      const file = input.files[0];
+      // Guardar el File original para enviarlo a Supabase
+      this.fotosEstructuradasArchivos[llave] = file;
+
+      // Crear preview en base64 para la UI
       const reader = new FileReader();
       reader.onload = (e: any) => {
         if (!this.nuevoVehiculo.fotosEstructuradas) {
@@ -206,42 +392,58 @@ fotosVehiculo: any;
         }
         this.nuevoVehiculo.fotosEstructuradas[llave] = e.target.result;
       };
-      reader.readAsDataURL(input.files[0]);
+      reader.readAsDataURL(file);
     }
   }
 
-  alternarRegistro(): void {
-    this.mostrarRegistro = !this.mostrarRegistro;
-    if (!this.mostrarRegistro) {
-      this.nuevoVehiculo = this.inicializarFormulario();
-      this.fotoPerfilVehiculo = null;
-    }
-  }
+  // ==========================================
+  // COMPRESIÓN DE IMÁGENES
+  // ==========================================
+  
+  private async compressImage(file: File): Promise<File> {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event: any) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200;
+          const MAX_HEIGHT = 1200;
+          let width = img.width;
+          let height = img.height;
 
-  guardarVehiculo(): void {
-    // Si no hay foto de perfil, detenemos el guardado
-    if (!this.fotoPerfilVehiculo) {
-      alert('La foto de perfil es obligatoria.');
-      return;
-    }
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
 
-    const nuevo: Vehiculo = {
-      ...(this.nuevoVehiculo as Vehiculo),
-      id: Date.now(),
-      anio: Number(this.nuevoVehiculo.anio),
-      capacidadCarga: Number(this.nuevoVehiculo.capacidadCarga),
-      fotos: [this.fotoPerfilVehiculo] // Aquí puedes agregar la lógica para integrar las 6 fotos estructuradas si lo deseas
-    };
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
 
-    const listaActual = this.vehiculosSubject.getValue();
-    this.vehiculosSubject.next([nuevo, ...listaActual]);
-    this.alternarRegistro();
-  }
-
-  eliminar(id?: number): void {
-    if (!id) return;
-    const listaActual = this.vehiculosSubject.getValue().filter(v => v.id !== id);
-    this.vehiculosSubject.next(listaActual);
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const compressedFile = new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() });
+              resolve(compressedFile);
+            } else {
+              resolve(file);
+            }
+          }, 'image/jpeg', 0.6); // 60% quality
+        };
+        img.onerror = () => resolve(file); // Fallback si hay error
+        img.src = event.target.result;
+      };
+      reader.onerror = () => resolve(file);
+      reader.readAsDataURL(file);
+    });
   }
 
   // ==========================================
@@ -250,19 +452,101 @@ fotosVehiculo: any;
 
   abrirFicha(v: Vehiculo): void {
     this.vehiculoSeleccionado = v;
+    this.imagenesCargadas = {};
   }
 
   cerrarFicha(): void {
     this.vehiculoSeleccionado = null;
   }
 
+  abrirVistaPrevia(mode: 'FICHA' | 'QR'): void {
+    this.previewMode = mode;
+    this.previewTitle = mode === 'FICHA' ? 'Vista Previa: Ficha Técnica' : 'Vista Previa: QR Vehicular';
+    
+    // Usar Bootstrap Modal API para abrir el modal
+    const modalElement = document.getElementById('previewPrintModal');
+    if (modalElement) {
+      // @ts-ignore
+      const modal = new bootstrap.Modal(modalElement);
+      modal.show();
+    }
+  }
+
+  confirmarImpresion(): void {
+    const sectionId = this.previewMode === 'FICHA' ? 'ficha-print-content' : 'qr-print-content';
+    const printContents = document.getElementById(sectionId)?.innerHTML;
+    if (printContents) {
+      this.imprimirHtml(printContents, this.previewTitle);
+    }
+  }
+
   imprimirFicha(): void {
-    window.print();
+    this.abrirVistaPrevia('FICHA');
+  }
+
+  imprimirQR(): void {
+    this.abrirVistaPrevia('QR');
+  }
+
+  private imprimirHtml(htmlContent: string, title: string): void {
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = '0';
+    document.body.appendChild(iframe);
+    
+    const doc = iframe.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(`
+        <html>
+          <head>
+            <title>${title}</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+            <style>
+              @media print {
+                @page { size: A4 portrait; margin: 0; }
+                body { 
+                  padding: 1.5cm; /* Margen interno para que no pegue del borde */
+                  background: white; 
+                  color: black;
+                  -webkit-print-color-adjust: exact; 
+                  print-color-adjust: exact;
+                }
+                .custom-print-table { border-collapse: collapse; width: 100%; font-size: 11px; }
+                .custom-print-table th, .custom-print-table td {
+                  border: 2px solid #000 !important;
+                  padding: 4px 6px !important;
+                  vertical-align: middle !important;
+                  line-height: 1.3 !important;
+                  white-space: normal !important;
+                }
+                .custom-print-table .p-0 { padding: 0 !important; }
+                .custom-print-table .p-1 { padding: 0.25rem !important; }
+                .custom-print-table .p-2 { padding: 0.5rem !important; }
+                .custom-print-table .text-center { text-align: center !important; }
+                .custom-print-table .align-middle { vertical-align: middle !important; }
+                .custom-print-table .border-top { border-top: 2px solid #000 !important; }
+              }
+              body { font-family: system-ui, -apple-system, sans-serif; background: white; }
+            </style>
+          </head>
+          <body onload="setTimeout(() => { window.print(); setTimeout(() => { window.parent.document.body.removeChild(window.frameElement); }, 100); }, 500);">
+            ${htmlContent}
+          </body>
+        </html>
+      `);
+      doc.close();
+    }
   }
 
   abrirCarrusel(v: Vehiculo): void {
     this.fotosCarrusel = v.fotos || [];
     this.indiceFotoActual = 0;
+    this.imagenesCargadas = {};
     this.mostrarCarrusel = true;
   }
 
@@ -276,6 +560,7 @@ fotosVehiculo: any;
     } else {
       this.indiceFotoActual = 0;
     }
+    this.imagenesCargadas['carrusel'] = false;
   }
 
   anteriorFoto(): void {
@@ -284,11 +569,11 @@ fotosVehiculo: any;
     } else {
       this.indiceFotoActual = this.fotosCarrusel.length - 1;
     }
+    this.imagenesCargadas['carrusel'] = false;
   }
 
-  obtenerNombreConductor(conductorId?: number | null, conductores?: Conductor[] | null): string {
-    if (!conductorId || !conductores) return 'Sin Asignar';
-    const c = conductores.find(item => item.id === conductorId);
-    return c ? c.nombre : 'Sin Asignar';
+  seleccionarFoto(index: number): void {
+    this.indiceFotoActual = index;
+    this.imagenesCargadas['carrusel'] = false;
   }
 }

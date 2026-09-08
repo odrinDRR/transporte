@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FlotaService } from '../../core/services/flota.service';
 import { VehiculoService } from '../../services/vehiculo.service';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { Vehiculo } from '../../core/models/fleet.models';
 
 @Component({
@@ -9,14 +10,26 @@ import { Vehiculo } from '../../core/models/fleet.models';
   templateUrl: './documentos.component.html'
 })
 export class DocumentosComponent implements OnInit {
-  vehiculos$!: Observable<Vehiculo[]>;
-
   constructor(
     public flotaService: FlotaService,
     private vehiculoService: VehiculoService
   ) {}
 
+  cargando = false;
+  private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([]);
+  vehiculos$ = this.vehiculosSubject.asObservable();
+
   ngOnInit(): void {
-    this.vehiculos$ = this.vehiculoService.obtenerVehiculos();
+    this.cargando = true;
+    this.vehiculoService.obtenerVehiculos().subscribe({
+      next: (data) => {
+        this.vehiculosSubject.next(data);
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar documentos', err);
+        this.cargando = false;
+      }
+    });
   }
 }

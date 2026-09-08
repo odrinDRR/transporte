@@ -4,7 +4,14 @@
     <span class="badge bg-primary">{{ solicitudesVisibles.length }} por revisar</span>
   </div>
 
-  <div class="table-responsive" *ngIf="solicitudesVisibles.length > 0">
+  <div *ngIf="cargando" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+      <span class="visually-hidden">Cargando solicitudes...</span>
+    </div>
+    <p class="text-white-50 mt-2">Cargando aprobaciones...</p>
+  </div>
+
+  <div class="table-responsive" *ngIf="!cargando && solicitudesVisibles.length > 0">
     <table class="table table-dark table-hover border-custom align-middle">
       <thead>
         <tr class="text-custom-muted">
@@ -37,7 +44,7 @@
     </table>
   </div>
 
-  <div *ngIf="solicitudesVisibles.length === 0" class="text-center p-5 text-custom-muted border border-custom rounded border-dashed">
+  <div *ngIf="!cargando && solicitudesVisibles.length === 0" class="text-center p-5 text-custom-muted border border-custom rounded border-dashed">
     <i class="bi bi-inboxes display-4 mb-3 d-block"></i>
     <h5>Bandeja limpia</h5>
     <p>No tienes solicitudes de registro pendientes por aprobar en tu nivel de acceso.</p>

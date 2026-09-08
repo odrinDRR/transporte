@@ -105,3 +105,26 @@ input::placeholder, textarea::placeholder {
     font-weight: 800;
   }
 }
+
+/* ==========================================
+   REGLAS GLOBALES DE IMPRESIÓN PARA OCULTAR EL LAYOUT
+   ========================================== */
+@media print {
+  body.impresion-activa {
+    /* Ocultar barra lateral y encabezado del layout global */
+    aside.sidebar-custom,
+    header {
+      display: none !important;
+    }
+    
+    /* Eliminar paddings y margins del main para impresión completa */
+    main {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    /* Anular colores de fondo oscuros */
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+}

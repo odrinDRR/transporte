@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { ArchivoService } from '../../services/archivo.service';
+import { SupabaseStorageService } from '../../services/supabase-storage.service';
 
 @Component({
   selector: 'app-perfil',
@@ -22,7 +23,8 @@ export class PerfilComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private usuarioService: UsuarioService,
-    private archivoService: ArchivoService
+    private archivoService: ArchivoService,
+    private supabaseStorage: SupabaseStorageService
   ) {}
 
   ngOnInit(): void {
@@ -73,13 +75,21 @@ export class PerfilComponent implements OnInit {
       let urlMedico = this.usuarioData.urlCertificadoMedico;
 
       if (this.archivoLicencia) {
-        const resLicencia = await this.archivoService.subirArchivo(this.archivoLicencia).toPromise();
-        urlLicencia = resLicencia?.url;
+        const urlLicenciaSupabase = await this.supabaseStorage.uploadFile(
+          this.archivoLicencia,
+          'flota_archivos',
+          'usuarios/documentos'
+        );
+        urlLicencia = urlLicenciaSupabase;
       }
 
       if (this.archivoMedico) {
-        const resMedico = await this.archivoService.subirArchivo(this.archivoMedico).toPromise();
-        urlMedico = resMedico?.url;
+        const urlMedicoSupabase = await this.supabaseStorage.uploadFile(
+          this.archivoMedico,
+          'flota_archivos',
+          'usuarios/documentos'
+        );
+        urlMedico = urlMedicoSupabase;
       }
 
       const payload = {

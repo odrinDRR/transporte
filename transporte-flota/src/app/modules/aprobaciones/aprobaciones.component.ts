@@ -22,11 +22,21 @@ export class AprobacionesComponent implements OnInit {
     });
   }
 
+  cargando = false;
+
   cargarUsuarios(): void {
-    this.http.get<any[]>(this.apiUrl).subscribe(usuarios => {
-      // Filtrar los que están PENDIENTES
-      this.solicitudesPendientes = usuarios.filter(u => u.estado === 'PENDIENTE');
-      this.filtrarPorNivelDeAcceso();
+    this.cargando = true;
+    this.http.get<any[]>(this.apiUrl).subscribe({
+      next: (usuarios) => {
+        // Filtrar los que están PENDIENTES
+        this.solicitudesPendientes = usuarios.filter(u => u.estado === 'PENDIENTE');
+        this.filtrarPorNivelDeAcceso();
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('Error cargando aprobaciones', err);
+        this.cargando = false;
+      }
     });
   }
 

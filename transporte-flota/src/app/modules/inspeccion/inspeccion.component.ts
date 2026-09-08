@@ -1,26 +1,13 @@
-import { Component, OnInit } from '@angular/core';
-import { FlotaService } from '../../core/services/flota.service';
-import { InspeccionService } from '../../services/inspeccion.service';
-import { ConductorService } from '../../services/conductor.service';
+import { Component, ElementRef, ViewChild, AfterViewInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { VehiculoService } from '../../services/vehiculo.service';
 
-export interface ZonaCarroceria {
-  id: string;
-  nombre: string;
-  estado: 'OK' | 'LEVE' | 'GRAVE';
-  icono: string;
-  codigoDano?: string;
-}
-
-export interface EvaluacionItem {
-  id: string;
-  label: string;
-  icono: string;
-}
-
-export interface TipoVehiculo {
-  id: string;
-  label: string;
-  icono: string;
+export interface InspeccionLivianoDanoDTO {
+  codigoDano: number;
+  nombreDano: string;
+  coordX: number;
+  coordY: number;
 }
 
 @Component({
@@ -28,204 +15,364 @@ export interface TipoVehiculo {
   templateUrl: './inspeccion.component.html',
   styleUrls: ['./inspeccion.component.scss']
 })
-export class InspeccionComponent implements OnInit {
-  // Máquina de estados de navegación principal
-  fasePrincipal: 'TIPO_INSPECCION' | 'TIPO_VEHICULO' | 'INGRESO_CEDULA' | 'FORMULARIO' = 'TIPO_INSPECCION';
+export class InspeccionComponent implements AfterViewInit, OnChanges {
+  // ---- ENTRADAS PARA MODO AUDITORIA ----
+  @Input() isAuditoria: boolean = false;
+  @Input() inspeccionOrigenId?: number;
+  @Input() vehiculoAuditoria: any = null;
+  @Input() conductorAuditoria: any = null;
+  @Output() onFinalizado = new EventEmitter<any>();
+
+  // Control de las grandes fases de la vista
+  fasePrincipal: 'SELECCION_OPERACION' | 'SELECCION_VEHICULO' | 'INGRESO_CEDULA' | 'SELECCION_TIPO' | 'FORMULARIO' = 'SELECCION_OPERACION';
   
+  operacionSeleccionada: string = '';
+  vehiculoSeleccionadoUI: string = '';
+
+  tiposVehiculosUI = [
+    { name: 'AMBULANCIA', icon: 'bi bi-hospital' },
+    { name: 'CAMIONETA PICKUP', icon: 'bi bi-truck-flatbed' },
+    { name: 'GRÚA', icon: 'bi bi-cone-striped' },
+    { name: 'CAMIÓN', icon: 'bi bi-truck' },
+    { name: 'CAMIONETA (SUV)', icon: 'bi bi-car-front' },
+    { name: 'MOTOCICLETA', icon: 'bi bi-bicycle' },
+    { name: 'SEDÁN', icon: 'bi bi-car-front-fill' },
+    { name: 'GANDOLA', icon: 'bi bi-bus-front' }
+  ];
+  
+  // Datos del conductor
   cedulaInput: string = '';
   nombreConductorActual: string = '';
+  tipoInspeccionActual: 'INICIO' | 'CIERRE' = 'INICIO';
+  tieneInspeccionAbierta: boolean = false;
+  verificando = false;
+  guardando = false;
+
+  // Stepper del formulario
   etapaActual: number = 1;
 
-  fotosExterior: File[] = [];
-  fotosInterior: File[] = [];
+  conductorActual: any = null;
+  vehiculoActual: any = null;
 
-  // Catálogo de vehículos con iconos vectoriales actualizados acordes a requerimientos
-  tiposVehiculo: TipoVehiculo[] = [
-    { id: 'ambulancia', label: 'AMBULANCIA', icono: 'bi-hospital' },
-    { id: 'pickup', label: 'CAMIONETA PICKUP', icono: 'bi-truck-flatbed' },
-    { id: 'grua', label: 'GRÚA', icono: 'bi-cone-striped' },
-    { id: 'camion', label: 'CAMIÓN', icono: 'bi-truck' },
-    { id: 'camioneta', label: 'CAMIONETA (SUV)', icono: 'bi-car-front-fill' },
-    { id: 'moto', label: 'MOTOCICLETA', icono: 'bi-bicycle' },
-    { id: 'sedan', label: 'SEDÁN', icono: 'bi-car-front' },
-    { id: 'gandola', label: 'GANDOLA', icono: 'bi-truck-front' }
-  ];
+  // Daños Canvas
+  danos: InspeccionLivianoDanoDTO[] = [];
+  codigoDanoSeleccionado = 1;
+  tipoDanoSeleccionado = 'GOLPE';
 
-  opcionesMotivo = ['Rutinario', 'Correctivo', 'Solicitud del Usuario'];
-  
-  // AÑADIDO: Códigos de daño extendidos de la maqueta HTML
-  codigosDano = [
-    '1. Golpe', '2. Suelto', '3. Raya', '4. Desconchado', '5. Vidrio Roto', 
-    '6. Espejo Roto', '7. Falta Moldura', '8. Falta Faro', '9. Falta Accesorios',
-    '10. Falta Centro Copas', '11. Falta Emblema', '12. Tapicería Manchada'
-  ];
+  // Firmas Canvas
+  @ViewChild('sig1') sig1!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('sig2') sig2!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('sig3') sig3!: ElementRef<HTMLCanvasElement>;
 
-  nivelesFluidos = [
-    { id: 'combustible', label: 'Nivel de Combustible', icon: 'bi-fuel-pump' },
-    { id: 'aceiteMotor', label: 'Aceite Motor', icon: 'bi-droplet-half' },
-    { id: 'aceiteCaja', label: 'Aceite Caja', icon: 'bi-gear-wide-connected' },
-    { id: 'ligaFrenos', label: 'Liga de Frenos', icon: 'bi-sign-stop' },
-    { id: 'refrigerante', label: 'Refrigerante', icon: 'bi-thermometer-snow' }
-  ];
+  drawing1 = false; drawing2 = false; drawing3 = false;
+  ctx1!: CanvasRenderingContext2D;
+  ctx2!: CanvasRenderingContext2D;
+  ctx3!: CanvasRenderingContext2D;
 
-  // AÑADIDO: Separación de Documentos para mayor fidelidad a la ficha
-  documentosVehiculo = [
-    { id: 'carnetCirculacion', label: 'Carnet de Circulación' },
-    { id: 'autorizacionConducir', label: 'Autorización para Conducir' },
-    { id: 'asignacionVehiculo', label: 'Asignación de Vehículo' }
-  ];
-
-  documentosConductor = [
-    { id: 'licenciaConducir', label: 'Licencia para Conducir' },
-    { id: 'certificadoMedico', label: 'Certificado Médico' }
-  ];
-
-  // AÑADIDO: Puntos de revisión física extendidos
-  puntosFisicos: EvaluacionItem[] = [
-    { id: 'aireAcondicionado', label: 'Aire Acondicionado', icono: 'bi-wind' },
-    { id: 'faros', label: 'Faros y Luces', icono: 'bi-lightbulb' },
-    { id: 'lucesCruce', label: 'Luces de Cruce', icono: 'bi-arrow-left-right' },
-    { id: 'lucesStop', label: 'Luces de Stop', icono: 'bi-sign-stop-fill' },
-    { id: 'frenoMano', label: 'Freno de Mano', icono: 'bi-sign-stop' },
-    { id: 'sistemaFrenos', label: 'Sistema de Frenos', icono: 'bi-exclamation-octagon' },
-    { id: 'limpiaparabrisas', label: 'Limpiaparabrisas', icono: 'bi-cloud-rain' },
-    { id: 'espejos', label: 'Espejos Retrovisores', icono: 'bi-mirror' },
-    { id: 'vidrios', label: 'Vidrios (Parabrisas/Laterales)', icono: 'bi-window' },
-    { id: 'asientos', label: 'Asientos y Tapicería', icono: 'bi-person-seat' },
-    { id: 'alfombras', label: 'Alfombras', icono: 'bi-layers' },
-    { id: 'cinturones', label: 'Cinturones de Seguridad', icono: 'bi-shield-check' },
-    { id: 'neumaticos', label: 'Neumáticos / Cauchos', icono: 'bi-record-circle' },
-    { id: 'bateria', label: 'Batería', icono: 'bi-battery-charging' }
-  ];
-
-  // AÑADIDO: Accesorios de seguridad extendidos
-  accesoriosSeguridad: EvaluacionItem[] = [
-    { id: 'alarma', label: 'Alarma', icono: 'bi-bell' },
-    { id: 'boveda', label: 'Bóveda', icono: 'bi-safe' },
-    { id: 'extintor', label: 'Extintor', icono: 'bi-fire' },
-    { id: 'cauchoRepuesto', label: 'Caucho (Repuesto)', icono: 'bi-record-circle' },
-    { id: 'gato', label: 'Gato y Palanca', icono: 'bi-tools' },
-    { id: 'llaveCruz', label: 'Llave de Cruz', icono: 'bi-wrench' },
-    { id: 'triangulo', label: 'Triángulo de Seguridad', icono: 'bi-triangle-half' },
-    { id: 'cablesAuxiliares', label: 'Cables Auxiliares', icono: 'bi-lightning' },
-    { id: 'radio', label: 'Radio / Reproductor', icono: 'bi-radio' }
-  ];
-
-  zonasCarroceria: ZonaCarroceria[] = [
-    { id: 'frontal', nombre: 'Frente', estado: 'OK', icono: 'bi-front' },
-    { id: 'techo', nombre: 'Techo', estado: 'OK', icono: 'bi-arrow-up-square' },
-    { id: 'lat_izq', nombre: 'Lado Izquierdo', estado: 'OK', icono: 'bi-arrow-left-square' },
-    { id: 'lat_der', nombre: 'Lado Derecho', estado: 'OK', icono: 'bi-arrow-right-square' },
-    { id: 'trasera', nombre: 'Trasera', estado: 'OK', icono: 'bi-back' }
-  ];
-
-  // AÑADIDO: Expansión del payload para incluir los datos extendidos del formulario
-  inspeccion: any = {
-    tipoOperacion: '',
-    tipoVehiculo: '',
-    kilometraje: null,
-    motivo: 'Rutinario',
-    
-    // Unidad Solicitante
-    gerencia: '',
+  dto: any = {
+    // Paso 1
+    motivo: 'RUTINARIO',
+    gerenciaSolicitante: '',
     unidadUsuaria: '',
     centroCosto: '',
-    
-    // Datos Vehículo
-    marca: '',
-    modelo: '',
-    anio: null,
-    placa: '',
-    color: '',
-    serialCarroceria: '',
-    transmision: 'Automático',
-    kmRecibido: null,
-    
-    coberturaSeguro: '',
+    kilometrajeEntregado: null,
+    kilometrajeRecibido: null,
+    transmision: 'AUTOMATICO',
+
+    // Paso 2
+    nivelCombustible: 'ALTO',
+    nivelAceiteMotor: 'ALTO',
+    nivelLigaFrenos: 'ALTO',
+    nivelAceiteCaja: 'ALTO',
+    nivelRefrigerante: 'ALTO',
+    tipoCobertura: '',
+    docCarnet: true,
+    docAutorizacion: true,
+    docAsignacion: true,
+    docLicencia: true,
+    docCertificadoMedico: true,
+
+    // Paso 3
     observacionesDanos: '',
 
-    dictamen: 'APTO',
-    observaciones: '',
-    inspectorFirma: '',
-    fluidos: {}, 
-    docs: {},    
-    fisico: {},  
-    accesorios: {} 
+    // Paso 4: Seguridad
+    segAlarma: true,
+    segBoveda: true,
+    segExtintor: true,
+    segTrancaPalanca: true,
+
+    // Paso 4: Accesorios
+    accCables: true,
+    accCauchoRepuesto: true,
+    accCornetas: true,
+    accGato: true,
+    accHerramientas: true,
+    accLlaveCruz: true,
+    accPalancaGato: true,
+    accRadio: true,
+    accRines: true,
+    accTasa: true,
+    accTriangulo: true,
+
+    // Paso 4: Estado General
+    revAire: 'B',
+    revAntena: 'B',
+    revCauchos: 'B',
+    revFaros: 'B',
+    revFrenos: 'B',
+    revVidrios: 'B',
+    revTapiceria: 'B',
+    revTablero: 'B',
+
+    // Paso 4: Especificaciones
+    batMarca: '', batModelo: '', batCodigo: '', batVida: '',
+    cauMarca: '', cauModelo: '', cauCodigo: '', cauVida: '',
+
+    // Paso 5: Firmas
+    inspectorNombre: '', inspectorCargo: '', inspectorPersonal: '',
+    entregaNombre: '', entregaCargo: '', entregaPersonal: '',
+    recibeNombre: '', recibeCargo: '', recibePersonal: '',
+    
+    // Core relations
+    vehiculoId: null,
+    usuarioId: null
   };
 
   constructor(
-    private flotaService: FlotaService,
-    private inspeccionService: InspeccionService,
-    private conductorService: ConductorService
+    private http: HttpClient,
+    private vehiculoService: VehiculoService
   ) {}
 
-  ngOnInit(): void {
-    this.inicializarValoresPorDefecto();
+  ngOnChanges(changes: SimpleChanges): void {
+    if (this.isAuditoria && this.vehiculoAuditoria && this.conductorAuditoria) {
+      this.vehiculoActual = this.vehiculoAuditoria;
+      this.conductorActual = this.conductorAuditoria;
+      this.nombreConductorActual = this.conductorActual.nombre;
+      
+      this.dto.vehiculoId = Number(this.vehiculoActual.id);
+      this.dto.usuarioId = Number(this.conductorActual.id);
+      this.dto.inspectorNombre = 'AUDITOR';
+      
+      this.tipoInspeccionActual = 'CIERRE';
+      this.dto.tipoInspeccion = 'CIERRE';
+      this.dto.inspeccionOrigenId = this.inspeccionOrigenId;
+      this.dto.motivo = 'AUDITORIA';
+      
+      this.fasePrincipal = 'FORMULARIO';
+      this.etapaActual = 1;
+    }
   }
 
-  inicializarValoresPorDefecto(): void {
-    this.nivelesFluidos.forEach(f => this.inspeccion.fluidos[f.id] = 'ALTO');
-    this.documentosVehiculo.forEach(d => this.inspeccion.docs[d.id] = true);
-    this.documentosConductor.forEach(d => this.inspeccion.docs[d.id] = true);
-    this.puntosFisicos.forEach(p => this.inspeccion.fisico[p.id] = 'BUENO');
-    this.accesoriosSeguridad.forEach(a => this.inspeccion.accesorios[a.id] = true);
+  ngAfterViewInit() {}
+
+  // --- PASO 1: VALIDAR CÉDULA O FICHA ---
+  verificarCedula(): void {
+    if(!this.cedulaInput) return;
+    this.verificando = true;
+    
+    this.http.get<any[]>(`${environment.apiUrl}/usuarios`).subscribe({
+      next: (usuarios) => {
+        const term = this.cedulaInput.trim().toLowerCase();
+        const usuarioActual = usuarios.find(u => 
+          u.cargo === 'CONDUCTOR' && 
+          u.estado !== 'PENDIENTE' &&
+          (
+            (u.cedula && u.cedula.toLowerCase() === term) ||
+            (u.ficha && u.ficha.toLowerCase() === term) ||
+            (u.licencia && u.licencia.toLowerCase() === term)
+          )
+        );
+
+        if (usuarioActual) {
+          this.vehiculoService.obtenerVehiculos().subscribe({
+            next: (vehs) => {
+              this.vehiculoActual = vehs.find(v => v.conductorId === usuarioActual.id) || null;
+              
+              if (this.vehiculoActual) {
+                this.nombreConductorActual = usuarioActual.nombre;
+                this.conductorActual = {
+                  id: usuarioActual.id,
+                  nombre: usuarioActual.nombre + ' ' + usuarioActual.apellido,
+                  cedula: usuarioActual.cedula,
+                  fichaNumerica: usuarioActual.ficha || usuarioActual.licencia || 'Sin ficha',
+                  vehiculoAsignadoId: this.vehiculoActual.id
+                };
+
+                this.dto.vehiculoId = Number(this.vehiculoActual.id);
+                this.dto.usuarioId = usuarioActual.id;
+                this.dto.inspectorNombre = this.conductorActual?.nombre;
+                this.dto.entregaNombre = this.conductorActual?.nombre;
+                
+                // Jump straight to the form (Nuevo flujo)
+                this.tipoInspeccionActual = this.operacionSeleccionada === 'LLEGADA' ? 'CIERRE' : 'INICIO';
+                if (this.operacionSeleccionada === 'GENERAL') {
+                   this.dto.motivo = 'RUTINARIO';
+                }
+                
+                // Actualizar tipoVehiculo local y tipo de gráfico
+                this.vehiculoActual.tipoVehiculo = this.vehiculoSeleccionadoUI;
+                
+                this.fasePrincipal = 'FORMULARIO';
+                this.etapaActual = 1;
+              } else {
+                alert('El conductor fue encontrado pero no tiene un vehículo asignado.');
+              }
+              this.verificando = false;
+            },
+            error: () => { alert('Error al verificar los vehículos.'); this.verificando = false; }
+          });
+        } else {
+          alert('Conductor no encontrado. Verifica la cédula o ficha ingresada.');
+          this.verificando = false;
+        }
+      },
+      error: () => { alert('Error al verificar el conductor en el servidor.'); this.verificando = false; }
+    });
   }
 
-  seleccionarTipoOperacion(tipo: 'General' | 'Salida' | 'Llegada'): void {
-    this.inspeccion.tipoOperacion = tipo;
-    this.fasePrincipal = 'TIPO_VEHICULO';
+  // --- NUEVOS MÉTODOS DE FLUJO ---
+  seleccionarOperacionUI(op: string): void {
+    this.operacionSeleccionada = op;
+    this.fasePrincipal = 'SELECCION_VEHICULO';
   }
 
-  seleccionarVehiculo(vehiculo: TipoVehiculo): void {
-    this.inspeccion.tipoVehiculo = vehiculo.label;
+  seleccionarVehiculoUI(vehiculo: any): void {
+    this.vehiculoSeleccionadoUI = vehiculo.name;
     this.fasePrincipal = 'INGRESO_CEDULA';
   }
 
-  verificarCedula(): void {
-    const input = this.cedulaInput.trim();
-    if (!input) return;
+  // --- PASO 2: ELEGIR TIPO DE RUTA (ANTIGUO) ---
+  seleccionarRuta(tipo: 'INICIO' | 'CIERRE'): void {
+    this.tipoInspeccionActual = tipo;
+    this.dto.motivo = tipo === 'INICIO' ? 'RUTINARIO' : 'RUTINARIO'; // Opcional
+    this.fasePrincipal = 'FORMULARIO';
+    this.etapaActual = 1;
+  }
 
-    this.conductorService.obtenerConductores().subscribe(conductores => {
-      const conductor = conductores.find(c => (c.cedula || '').includes(input) || (c.fichaNumerica || '') === input);
-      if (conductor) {
-        this.nombreConductorActual = conductor.nombre;
-        this.inspeccion.inspectorFirma = conductor.fichaNumerica || input;
-        this.inspeccion.vehiculoId = conductor.vehiculoAsignadoId || undefined;
-        this.etapaActual = 1;
-        this.fasePrincipal = 'FORMULARIO';
-      } else {
-        alert('Cédula o Ficha no encontrada.');
+  avanzar(): void { 
+    if (this.etapaActual < 5) this.etapaActual++; 
+    if (this.etapaActual === 5) setTimeout(() => this.initCanvasFirmas(), 300);
+  }
+  
+  retroceder(): void { 
+    if (this.etapaActual > 1) this.etapaActual--; 
+  }
+
+  seleccionarDano(codigo: number, nombre: string) {
+    this.codigoDanoSeleccionado = codigo;
+    this.tipoDanoSeleccionado = nombre;
+  }
+
+  agregarDano(event: MouseEvent) {
+    const container = event.currentTarget as HTMLElement;
+    const rect = container.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+    
+    this.danos.push({
+      codigoDano: this.codigoDanoSeleccionado,
+      nombreDano: this.tipoDanoSeleccionado,
+      coordX: x,
+      coordY: y
+    });
+  }
+
+  quitarDano(index: number) {
+    this.danos.splice(index, 1);
+  }
+
+  // --- FIRMAS ---
+  initCanvasFirmas() {
+    if(this.sig1) this.ctx1 = this.setupCanvas(this.sig1.nativeElement, 1);
+    if(this.sig2) this.ctx2 = this.setupCanvas(this.sig2.nativeElement, 2);
+    if(this.sig3) this.ctx3 = this.setupCanvas(this.sig3.nativeElement, 3);
+  }
+
+  setupCanvas(canvas: HTMLCanvasElement, num: number): CanvasRenderingContext2D {
+    const ctx = canvas.getContext('2d')!;
+    if(canvas.parentElement) {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = 150; // Fixed height for signatures
+    }
+
+    const startDraw = (x: number, y: number) => {
+      if(num===1) this.drawing1 = true;
+      if(num===2) this.drawing2 = true;
+      if(num===3) this.drawing3 = true;
+      ctx.beginPath(); ctx.moveTo(x, y);
+    };
+
+    const draw = (x: number, y: number) => {
+      const isDrawing = num===1 ? this.drawing1 : num===2 ? this.drawing2 : this.drawing3;
+      if(isDrawing) {
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = '#fff'; // White ink for dark mode
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    };
+
+    const stopDraw = () => {
+      if(num===1) this.drawing1 = false;
+      if(num===2) this.drawing2 = false;
+      if(num===3) this.drawing3 = false;
+    };
+
+    canvas.onmousedown = (e) => startDraw(e.offsetX, e.offsetY);
+    canvas.onmousemove = (e) => draw(e.offsetX, e.offsetY);
+    canvas.onmouseup = stopDraw;
+    canvas.onmouseleave = stopDraw;
+
+    canvas.ontouchstart = (e) => { e.preventDefault(); const rect = canvas.getBoundingClientRect(); startDraw(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top); };
+    canvas.ontouchmove = (e) => { e.preventDefault(); const rect = canvas.getBoundingClientRect(); draw(e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top); };
+    canvas.ontouchend = stopDraw;
+
+    return ctx;
+  }
+
+  clearSignature(num: number) {
+    if(num===1 && this.ctx1 && this.sig1) this.ctx1.clearRect(0, 0, this.sig1.nativeElement.width, this.sig1.nativeElement.height);
+    if(num===2 && this.ctx2 && this.sig2) this.ctx2.clearRect(0, 0, this.sig2.nativeElement.width, this.sig2.nativeElement.height);
+    if(num===3 && this.ctx3 && this.sig3) this.ctx3.clearRect(0, 0, this.sig3.nativeElement.width, this.sig3.nativeElement.height);
+  }
+
+  finalizarInspeccion() {
+    this.guardando = true;
+    this.dto.danos = this.danos;
+    if(this.sig1) this.dto.inspectorFirmaBase64 = this.sig1.nativeElement.toDataURL();
+    if(this.sig2) this.dto.entregaFirmaBase64 = this.sig2.nativeElement.toDataURL();
+    if(this.sig3) this.dto.recibeFirmaBase64 = this.sig3.nativeElement.toDataURL();
+
+    this.http.post(`${environment.apiUrl}/inspecciones-livianos`, this.dto).subscribe({
+      next: (response) => {
+        alert(`¡Inspección de ${this.tipoInspeccionActual} completada con éxito!`);
+        this.guardando = false;
+        
+        if (this.isAuditoria) {
+           this.onFinalizado.emit(response);
+        } else {
+           // Volver a inicio para flujo normal
+           this.fasePrincipal = 'INGRESO_CEDULA';
+           this.etapaActual = 1;
+           this.cedulaInput = '';
+           this.danos = [];
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        alert('Error al guardar la inspección');
+        this.guardando = false;
       }
     });
   }
 
-  volver(faseDestino: 'TIPO_INSPECCION' | 'TIPO_VEHICULO' | 'INGRESO_CEDULA'): void {
-    this.fasePrincipal = faseDestino;
+  get isMoto(): boolean {
+    const t = this.vehiculoActual?.tipoVehiculo?.toUpperCase() || this.vehiculoActual?.tipo?.toUpperCase() || '';
+    return t.includes('MOTO');
   }
 
-  toggleEstadoZona(zona: ZonaCarroceria): void {
-    if (zona.estado === 'OK') zona.estado = 'LEVE';
-    else if (zona.estado === 'LEVE') zona.estado = 'GRAVE';
-    else { zona.estado = 'OK'; zona.codigoDano = undefined; }
-  }
-
-  obtenerClaseEstado(estado: 'OK' | 'LEVE' | 'GRAVE'): string {
-    switch (estado) {
-      case 'OK': return 'badge-ok';
-      case 'LEVE': return 'badge-leve';
-      case 'GRAVE': return 'badge-grave';
-    }
-  }
-
-  cargarFotosExterior(event: any): void { 
-    if (event.target.files) this.fotosExterior = Array.from(event.target.files); 
-  }
-  
-  avanzar(): void { if (this.etapaActual < 6) this.etapaActual++; }
-  retroceder(): void { if (this.etapaActual > 1) this.etapaActual--; }
-  
-  finalizar(): void {
-    alert(`Reporte finalizado para Vehículo: ${this.inspeccion.tipoVehiculo} | Operación: ${this.inspeccion.tipoOperacion}`);
-    console.log('Payload:', this.inspeccion);
+  get isCamion(): boolean {
+    const t = this.vehiculoActual?.tipoVehiculo?.toUpperCase() || this.vehiculoActual?.tipo?.toUpperCase() || '';
+    return t.includes('CAMI') || t.includes('CHUTO') || t.includes('FURGON');
   }
 }

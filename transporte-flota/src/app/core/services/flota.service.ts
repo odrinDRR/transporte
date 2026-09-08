@@ -25,7 +25,11 @@ export class FlotaService {
       identificadorConductor: terminoBusqueda.trim() 
     };
 
-    return this.http.post<any>(`${this.apiUrl}/asignar-unidad`, payload);
+    return this.http.post(`${this.apiUrl}/usuarios/asignar-unidad`, payload, { responseType: 'text' });
+  }
+
+  desvincularUnidad(conductorId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/usuarios/desvincular-unidad/${conductorId}`, {}, { responseType: 'text' });
   }
 
   // --- MÉTODOS DE ROL ---

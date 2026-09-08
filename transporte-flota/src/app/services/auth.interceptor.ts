@@ -9,7 +9,11 @@ export class AuthInterceptor implements HttpInterceptor {
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = this.authService.getToken();
-    
+    // Excluir las peticiones a Supabase para no sobrescribir su propio token (anon key)
+    if (request.url.includes('supabase.co')) {
+      return next.handle(request);
+    }
+
     // Si hay un token, clonamos la petición y le agregamos el header Authorization
     if (token) {
       request = request.clone({
