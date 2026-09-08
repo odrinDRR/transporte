@@ -24,7 +24,21 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
   @Output() onFinalizado = new EventEmitter<any>();
 
   // Control de las grandes fases de la vista
-  fasePrincipal: 'INGRESO_CEDULA' | 'SELECCION_TIPO' | 'FORMULARIO' = 'INGRESO_CEDULA';
+  fasePrincipal: 'SELECCION_OPERACION' | 'SELECCION_VEHICULO' | 'INGRESO_CEDULA' | 'SELECCION_TIPO' | 'FORMULARIO' = 'SELECCION_OPERACION';
+  
+  operacionSeleccionada: string = '';
+  vehiculoSeleccionadoUI: string = '';
+
+  tiposVehiculosUI = [
+    { name: 'AMBULANCIA', icon: 'bi bi-hospital' },
+    { name: 'CAMIONETA PICKUP', icon: 'bi bi-truck-flatbed' },
+    { name: 'GRÚA', icon: 'bi bi-cone-striped' },
+    { name: 'CAMIÓN', icon: 'bi bi-truck' },
+    { name: 'CAMIONETA (SUV)', icon: 'bi bi-car-front' },
+    { name: 'MOTOCICLETA', icon: 'bi bi-bicycle' },
+    { name: 'SEDÁN', icon: 'bi bi-car-front-fill' },
+    { name: 'GANDOLA', icon: 'bi bi-bus-front' }
+  ];
   
   // Datos del conductor
   cedulaInput: string = '';
@@ -189,9 +203,15 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
                 this.dto.inspectorNombre = this.conductorActual?.nombre;
                 this.dto.entregaNombre = this.conductorActual?.nombre;
                 
-                // Jump straight to the form
-                this.tipoInspeccionActual = 'INICIO';
-                this.dto.motivo = 'RUTINARIO';
+                // Jump straight to the form (Nuevo flujo)
+                this.tipoInspeccionActual = this.operacionSeleccionada === 'LLEGADA' ? 'CIERRE' : 'INICIO';
+                if (this.operacionSeleccionada === 'GENERAL') {
+                   this.dto.motivo = 'RUTINARIO';
+                }
+                
+                // Actualizar tipoVehiculo local y tipo de gráfico
+                this.vehiculoActual.tipoVehiculo = this.vehiculoSeleccionadoUI;
+                
                 this.fasePrincipal = 'FORMULARIO';
                 this.etapaActual = 1;
               } else {
@@ -210,7 +230,18 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     });
   }
 
-  // --- PASO 2: ELEGIR TIPO DE RUTA ---
+  // --- NUEVOS MÉTODOS DE FLUJO ---
+  seleccionarOperacionUI(op: string): void {
+    this.operacionSeleccionada = op;
+    this.fasePrincipal = 'SELECCION_VEHICULO';
+  }
+
+  seleccionarVehiculoUI(vehiculo: any): void {
+    this.vehiculoSeleccionadoUI = vehiculo.name;
+    this.fasePrincipal = 'INGRESO_CEDULA';
+  }
+
+  // --- PASO 2: ELEGIR TIPO DE RUTA (ANTIGUO) ---
   seleccionarRuta(tipo: 'INICIO' | 'CIERRE'): void {
     this.tipoInspeccionActual = tipo;
     this.dto.motivo = tipo === 'INICIO' ? 'RUTINARIO' : 'RUTINARIO'; // Opcional

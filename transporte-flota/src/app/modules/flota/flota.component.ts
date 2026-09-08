@@ -6,6 +6,7 @@ import { VehiculoService } from '../../services/vehiculo.service';
 import { ConductorService } from '../../services/conductor.service';
 import { ArchivoService } from '../../services/archivo.service';
 import { SupabaseStorageService } from '../../services/supabase-storage.service';
+import { DependenciaService, Dependencia } from '../../services/dependencia.service';
 import { Vehiculo, Conductor, FotosFichaTecnica } from '../../core/models/fleet.models';
 
 @Component({
@@ -14,6 +15,10 @@ import { Vehiculo, Conductor, FotosFichaTecnica } from '../../core/models/fleet.
   styleUrls: ['./flota.component.scss']
 })
 export class FlotaComponent implements OnInit {
+
+  sidebarAbierto = false;
+
+  listaDependencias: Dependencia[] = [];
 
   // ==========================================
   // ESTADOS Y PROPIEDADES DEL COMPONENTE
@@ -61,6 +66,7 @@ export class FlotaComponent implements OnInit {
     public flotaService: FlotaService, 
     private vehiculoService: VehiculoService,
     private conductorService: ConductorService,
+    private dependenciaService: DependenciaService,
     private archivoService: ArchivoService,
     private supabaseStorage: SupabaseStorageService,
     private cdr: ChangeDetectorRef
@@ -68,6 +74,7 @@ export class FlotaComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarDatosBackend();
+    this.cargarDependencias();
 
     this.vehiculosFiltrados$ = combineLatest([
       this.vehiculos$,
@@ -90,6 +97,15 @@ export class FlotaComponent implements OnInit {
         return resultado;
       })
     );
+  }
+
+  cargarDependencias(): void {
+    this.dependenciaService.obtenerDependencias().subscribe({
+      next: (data) => {
+        this.listaDependencias = data;
+      },
+      error: (err) => console.error('Error al cargar dependencias', err)
+    });
   }
 
   cargandoVehiculos = false;

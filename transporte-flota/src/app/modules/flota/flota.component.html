@@ -567,12 +567,13 @@
 
             <div class="row g-3">
               <div class="col-12 col-md-6">
-                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">DEPENDENCIA / ÁREA <span
-                    class="text-danger">*</span></label>
-                <input type="text"
-                  class="form-control bg-dark text-white border-secondary border-opacity-50 touch-input"
-                  [(ngModel)]="nuevoVehiculo.dependencia" name="dependencia" maxlength="30"
-                  placeholder="Ej: Gerencia de Logística">
+                <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">DEPENDENCIA <span
+                      class="text-danger">*</span></label>
+                  <select class="form-select bg-dark text-white border-secondary border-opacity-50 touch-input"
+                    [(ngModel)]="nuevoVehiculo.dependencia">
+                    <option value="" disabled selected>Seleccione dependencia...</option>
+                    <option *ngFor="let dep of listaDependencias" [value]="dep.nombre">{{ dep.nombre }}</option>
+                  </select>
               </div>
 
               <div class="col-6 col-md-3">
