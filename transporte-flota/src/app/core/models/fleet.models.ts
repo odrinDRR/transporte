@@ -40,6 +40,7 @@ export interface Vehiculo {
   fotosEstructuradas?: FotosFichaTecnica;
   urlFotoPerfil?: string;
   ultimoServicio?: string;
+  fechaCambioOperatividad?: string;
   proximoMantenimiento?: string;
   seguroRcvVigente?: boolean;
   color?: string;

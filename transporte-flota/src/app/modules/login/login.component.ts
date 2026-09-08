@@ -233,7 +233,7 @@ export class LoginComponent {
       return;
     }
 
-    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR' || this.nuevoUsuario.cargo === 'EMPLEADO';
+    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR';
     this.pasoRegistro = requiereDocumentos ? 2 : 3;
   } else if (this.pasoRegistro === 2) {
     if (!this.archivoLicencia || !this.archivoMedico || !this.nuevoUsuario.fechaVencimientoLicencia || !this.nuevoUsuario.fechaVencimientoCertificadoMedico) {
@@ -245,7 +245,7 @@ export class LoginComponent {
 }
 
   retrocederRegistro(): void {
-    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR' || this.nuevoUsuario.cargo === 'EMPLEADO';
+    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR';
     if (this.pasoRegistro === 3 && !requiereDocumentos) {
       this.pasoRegistro = 1;
     } else {

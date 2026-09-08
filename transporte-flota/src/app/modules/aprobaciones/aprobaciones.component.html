@@ -18,6 +18,7 @@
           <th>Fecha</th>
           <th>Solicitante</th>
           <th>Cargo Solicitado</th>
+          <th>Documentos</th>
           <th>Acciones</th>
         </tr>
       </thead>
@@ -30,6 +31,21 @@
           </td>
           <td>
             <span class="badge bg-dark border border-secondary text-info">{{ s.cargo }}</span>
+          </td>
+          <td>
+            <div *ngIf="s.cargo === 'CONDUCTOR'">
+              <div *ngIf="s.urlLicencia" class="mb-1">
+                <a [href]="s.urlLicencia" target="_blank" class="badge bg-dark border border-info text-info text-decoration-none p-2" title="Ver Licencia">
+                  <i class="bi bi-person-vcard"></i> Licencia (Vence: {{ s.fechaVencimientoLicencia | date:'dd/MM/yy' }})
+                </a>
+              </div>
+              <div *ngIf="s.urlCertificadoMedico">
+                <a [href]="s.urlCertificadoMedico" target="_blank" class="badge bg-dark border border-primary text-primary text-decoration-none p-2" title="Ver Certificado Médico">
+                  <i class="bi bi-file-medical"></i> C. Médico (Vence: {{ s.fechaVencimientoCertificadoMedico | date:'dd/MM/yy' }})
+                </a>
+              </div>
+            </div>
+            <span *ngIf="s.cargo !== 'CONDUCTOR'" class="text-custom-muted small">N/A</span>
           </td>
           <td>
             <button class="btn btn-sm btn-success me-2 fw-bold" (click)="aprobar(s.id, s.nombre)">
