@@ -10,71 +10,83 @@
   </div>
 
   <div *ngIf="!cargando && usuarioData" class="row g-4">
-    
+
     <!-- Columna Izquierda: Datos Personales -->
-    <div class="col-md-5 border-end border-custom pe-md-4" [ngClass]="{'col-md-12 border-end-0 pe-md-0': !isEmpleadoOConductor}">
+    <div class="col-md-5 border-end border-custom pe-md-4"
+      [ngClass]="{'col-md-12 border-end-0 pe-md-0': !isEmpleadoOConductor}">
       <h6 class="text-white fw-bold mb-3 border-bottom border-custom pb-2">Datos Personales</h6>
       <div class="row">
         <div class="col-6 mb-3">
           <label class="text-secondary fs-xs fw-semibold mb-1">Nombre</label>
-          <input type="text" class="form-control bg-dark text-white border-custom" [(ngModel)]="usuarioData.nombre" name="nombre" [disabled]="isEmpleadoOConductor">
+          <input type="text" class="form-control bg-dark text-white border-custom" [(ngModel)]="usuarioData.nombre"
+            name="nombre" [disabled]="isEmpleadoOConductor">
         </div>
         <div class="col-6 mb-3">
           <label class="text-secondary fs-xs fw-semibold mb-1">Apellido</label>
-          <input type="text" class="form-control bg-dark text-white border-custom" [(ngModel)]="usuarioData.apellido" name="apellido" [disabled]="isEmpleadoOConductor">
+          <input type="text" class="form-control bg-dark text-white border-custom" [(ngModel)]="usuarioData.apellido"
+            name="apellido" [disabled]="isEmpleadoOConductor">
         </div>
       </div>
 
       <div class="mb-3">
         <label class="text-secondary fs-xs fw-semibold mb-1">Correo Institucional</label>
-        <input type="email" class="form-control bg-dark text-white border-custom" [(ngModel)]="usuarioData.correo" name="correo">
+        <input type="email" class="form-control bg-dark text-white border-custom" [(ngModel)]="usuarioData.correo"
+          name="correo">
       </div>
 
       <div class="row">
         <div class="col-6 mb-3">
           <label class="text-secondary fs-xs fw-semibold mb-1">Cédula</label>
-          <input type="text" class="form-control bg-dark text-white border-custom" [(ngModel)]="usuarioData.cedula" name="cedula" [disabled]="isEmpleadoOConductor">
+          <input type="text" class="form-control bg-dark text-white border-custom" [(ngModel)]="usuarioData.cedula"
+            name="cedula" [disabled]="isEmpleadoOConductor">
         </div>
         <div class="col-6 mb-3">
           <label class="text-secondary fs-xs fw-semibold mb-1">Rol Operativo</label>
-          <input type="text" class="form-control bg-dark text-white border-custom fw-bold text-primary" [value]="usuarioData.cargo" disabled>
+          <input type="text" class="form-control bg-dark text-white border-custom fw-bold text-primary"
+            [value]="usuarioData.cargo" disabled>
         </div>
       </div>
     </div>
 
     <!-- Columna Derecha: Documentos -->
-    <div class="col-md-7 ps-md-4" *ngIf="isEmpleadoOConductor">
+    <div class="col-md-7 ps-md-4" *ngIf="isConductor">
       <h6 class="text-white fw-bold mb-3 border-bottom border-custom pb-2">Gestión Documental</h6>
 
       <div class="mb-4">
         <label class="form-label text-custom-muted fw-bold">Licencia de Conducir (PDF o Imagen)</label>
         <div class="d-flex align-items-center gap-2 mb-2">
-          <a *ngIf="usuarioData.urlLicencia" [href]="usuarioData.urlLicencia" target="_blank" class="btn btn-sm btn-outline-info flex-shrink-0">
+          <a *ngIf="usuarioData.urlLicencia" [href]="usuarioData.urlLicencia" target="_blank"
+            class="btn btn-sm btn-outline-info flex-shrink-0">
             <i class="bi bi-eye"></i> Ver Actual
           </a>
-          <input type="file" class="form-control form-control-sm bg-dark border-custom text-white" accept=".pdf,image/*" (change)="onFileSelected($event, 'licencia')">
+          <input type="file" class="form-control form-control-sm bg-dark border-custom text-white" accept=".pdf,image/*"
+            (change)="onFileSelected($event, 'licencia')">
         </div>
         <small class="text-secondary" *ngIf="archivoLicenciaNombre">Seleccionado: {{ archivoLicenciaNombre }}</small>
-        
+
         <div class="mt-2">
           <label class="text-secondary fs-xs fw-semibold mb-1">Fecha de Vencimiento de Licencia</label>
-          <input type="date" class="form-control bg-dark text-white border-custom" [(ngModel)]="usuarioData.fechaVencimientoLicencia" name="vencimientoLicencia">
+          <input type="date" class="form-control bg-dark text-white border-custom"
+            [(ngModel)]="usuarioData.fechaVencimientoLicencia" name="vencimientoLicencia">
         </div>
       </div>
 
       <div class="mb-3">
         <label class="form-label text-custom-muted fw-bold">Certificado Médico (PDF o Imagen)</label>
         <div class="d-flex align-items-center gap-2 mb-2">
-          <a *ngIf="usuarioData.urlCertificadoMedico" [href]="usuarioData.urlCertificadoMedico" target="_blank" class="btn btn-sm btn-outline-info flex-shrink-0">
+          <a *ngIf="usuarioData.urlCertificadoMedico" [href]="usuarioData.urlCertificadoMedico" target="_blank"
+            class="btn btn-sm btn-outline-info flex-shrink-0">
             <i class="bi bi-eye"></i> Ver Actual
           </a>
-          <input type="file" class="form-control form-control-sm bg-dark border-custom text-white" accept=".pdf,image/*" (change)="onFileSelected($event, 'medico')">
+          <input type="file" class="form-control form-control-sm bg-dark border-custom text-white" accept=".pdf,image/*"
+            (change)="onFileSelected($event, 'medico')">
         </div>
         <small class="text-secondary" *ngIf="archivoMedicoNombre">Seleccionado: {{ archivoMedicoNombre }}</small>
 
         <div class="mt-2">
           <label class="text-secondary fs-xs fw-semibold mb-1">Fecha de Vencimiento Cert. Médico</label>
-          <input type="date" class="form-control bg-dark text-white border-custom" [(ngModel)]="usuarioData.fechaVencimientoCertificadoMedico" name="vencimientoMedico">
+          <input type="date" class="form-control bg-dark text-white border-custom"
+            [(ngModel)]="usuarioData.fechaVencimientoCertificadoMedico" name="vencimientoMedico">
         </div>
       </div>
 

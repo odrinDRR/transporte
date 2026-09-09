@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { ModalService } from '../../core/services/modal.service';
 import { VehiculoService } from '../../services/vehiculo.service';
 
 export interface InspeccionLivianoDanoDTO {
@@ -24,8 +25,8 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
   @Output() onFinalizado = new EventEmitter<any>();
 
   // Control de las grandes fases de la vista
-  fasePrincipal: 'SELECCION_OPERACION' | 'SELECCION_VEHICULO' | 'INGRESO_CEDULA' | 'SELECCION_TIPO' | 'FORMULARIO' = 'SELECCION_OPERACION';
-  
+  fasePrincipal: 'SELECCION_OPERACION' | 'SELECCION_VEHICULO' | 'INGRESO_CEDULA' | 'FORMULARIO' = 'SELECCION_OPERACION';
+  erroresEtapa: string[] = [];
   operacionSeleccionada: string = '';
   vehiculoSeleccionadoUI: string = '';
 
@@ -80,11 +81,11 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     transmision: 'AUTOMATICO',
 
     // Paso 2
-    nivelCombustible: 'ALTO',
-    nivelAceiteMotor: 'ALTO',
-    nivelLigaFrenos: 'ALTO',
-    nivelAceiteCaja: 'ALTO',
-    nivelRefrigerante: 'ALTO',
+    nivelCombustible: '',
+    nivelAceiteMotor: '',
+    nivelLigaFrenos: '',
+    nivelAceiteCaja: '',
+    nivelRefrigerante: '',
     tipoCobertura: '',
     docCarnet: true,
     docAutorizacion: true,
@@ -140,7 +141,8 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
 
   constructor(
     private http: HttpClient,
-    private vehiculoService: VehiculoService
+    private vehiculoService: VehiculoService,
+    private modalService: ModalService
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -200,11 +202,14 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
 
                 this.dto.vehiculoId = Number(this.vehiculoActual.id);
                 this.dto.usuarioId = usuarioActual.id;
-                this.dto.inspectorNombre = this.conductorActual?.nombre;
-                this.dto.entregaNombre = this.conductorActual?.nombre;
+                // NO pre-cargar nombres en firmas — el usuario debe escribirlos manualmente
+                this.dto.inspectorNombre = '';
+                this.dto.entregaNombre = '';
                 
                 // Jump straight to the form (Nuevo flujo)
                 this.tipoInspeccionActual = this.operacionSeleccionada === 'LLEGADA' ? 'CIERRE' : 'INICIO';
+                this.dto.tipoInspeccion = this.tipoInspeccionActual;
+                this.dto.operacion = this.operacionSeleccionada;
                 if (this.operacionSeleccionada === 'GENERAL') {
                    this.dto.motivo = 'RUTINARIO';
                 }
@@ -215,18 +220,18 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
                 this.fasePrincipal = 'FORMULARIO';
                 this.etapaActual = 1;
               } else {
-                alert('El conductor fue encontrado pero no tiene un vehículo asignado.');
+                this.modalService.showAlert('El conductor fue encontrado pero no tiene un vehículo asignado.', 'Sin vehículo', 'warning');
               }
               this.verificando = false;
             },
-            error: () => { alert('Error al verificar los vehículos.'); this.verificando = false; }
+            error: () => { this.modalService.showAlert('Error al verificar los vehículos.', 'Error', 'error'); this.verificando = false; }
           });
         } else {
-          alert('Conductor no encontrado. Verifica la cédula o ficha ingresada.');
+          this.modalService.showAlert('Conductor no encontrado. Verifica la cédula o ficha ingresada.', 'No Encontrado', 'warning');
           this.verificando = false;
         }
       },
-      error: () => { alert('Error al verificar el conductor en el servidor.'); this.verificando = false; }
+      error: () => { this.modalService.showAlert('Error al verificar el conductor en el servidor.', 'Error', 'error'); this.verificando = false; }
     });
   }
 
@@ -250,6 +255,66 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
   }
 
   avanzar(): void { 
+    this.erroresEtapa = [];
+    if (this.etapaActual === 1) {
+      if (!this.dto.gerenciaSolicitante?.trim()) this.erroresEtapa.push('gerencia');
+      if (!this.dto.unidadUsuaria?.trim()) this.erroresEtapa.push('unidadUsuaria');
+      if (!this.dto.centroCosto?.trim()) this.erroresEtapa.push('centroCosto');
+      if (!this.dto.kilometrajeEntregado) this.erroresEtapa.push('kilometrajeEntregado');
+      if (!this.dto.kilometrajeRecibido) this.erroresEtapa.push('kilometrajeRecibido');
+      if (!this.dto.transmision) this.erroresEtapa.push('transmision');
+      
+      if (this.erroresEtapa.length > 0) {
+        let msg = 'Debe completar todos los campos requeridos para continuar.';
+        if (this.erroresEtapa.length === 1) {
+           if (this.erroresEtapa[0] === 'gerencia') msg = 'Debe ingresar la Gerencia.';
+           else if (this.erroresEtapa[0] === 'unidadUsuaria') msg = 'Debe ingresar la Unidad Usuaria.';
+           else if (this.erroresEtapa[0] === 'centroCosto') msg = 'Debe ingresar el Centro de Costo.';
+           else if (this.erroresEtapa[0] === 'kilometrajeEntregado') msg = 'Debe ingresar el Km Entregado.';
+           else if (this.erroresEtapa[0] === 'kilometrajeRecibido') msg = 'Debe ingresar el Km Recibido.';
+           else if (this.erroresEtapa[0] === 'transmision') msg = 'Debe seleccionar el tipo de Transmisión.';
+        }
+        this.modalService.showAlert(msg, 'Campos Incompletos', 'warning');
+        return;
+      }
+    }
+    if (this.etapaActual === 2) {
+      if (!this.dto.nivelCombustible) this.erroresEtapa.push('nivelCombustible');
+      if (!this.dto.nivelAceiteMotor) this.erroresEtapa.push('nivelAceiteMotor');
+      if (!this.dto.nivelLigaFrenos) this.erroresEtapa.push('nivelLigaFrenos');
+      if (!this.dto.nivelAceiteCaja) this.erroresEtapa.push('nivelAceiteCaja');
+      if (!this.dto.nivelRefrigerante) this.erroresEtapa.push('nivelRefrigerante');
+      if (!this.dto.tipoCobertura?.trim()) this.erroresEtapa.push('tipoCobertura');
+      
+      if (this.erroresEtapa.length > 0) {
+        let msg = 'Debe completar todos los campos de fluidos y documentos para continuar.';
+        if (this.erroresEtapa.length === 1) {
+          if (this.erroresEtapa[0] === 'tipoCobertura') msg = 'Debe indicar el Tipo de Cobertura del seguro.';
+          else msg = 'Falta indicar un nivel de fluido. Por favor revise.';
+        }
+        this.modalService.showAlert(msg, 'Campos Incompletos', 'warning');
+        return;
+      }
+    }
+    if (this.etapaActual === 4) {
+      if (!this.dto.batMarca?.trim()) this.erroresEtapa.push('batMarca');
+      if (!this.dto.batModelo?.trim()) this.erroresEtapa.push('batModelo');
+      if (!this.dto.batCodigo?.trim()) this.erroresEtapa.push('batCodigo');
+      if (!this.dto.batVida?.trim()) this.erroresEtapa.push('batVida');
+      if (!this.dto.cauMarca?.trim()) this.erroresEtapa.push('cauMarca');
+      if (!this.dto.cauModelo?.trim()) this.erroresEtapa.push('cauModelo');
+      if (!this.dto.cauCodigo?.trim()) this.erroresEtapa.push('cauCodigo');
+      if (!this.dto.cauVida?.trim()) this.erroresEtapa.push('cauVida');
+
+      if (this.erroresEtapa.length > 0) {
+        this.modalService.showAlert(
+          'Debe completar los datos de Batería y Cauchos para continuar.',
+          'Campos Incompletos', 'warning'
+        );
+        return;
+      }
+    }
+    
     if (this.etapaActual < 5) this.etapaActual++; 
     if (this.etapaActual === 5) setTimeout(() => this.initCanvasFirmas(), 300);
   }
@@ -336,7 +401,33 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     if(num===3 && this.ctx3 && this.sig3) this.ctx3.clearRect(0, 0, this.sig3.nativeElement.width, this.sig3.nativeElement.height);
   }
 
+  isCanvasBlank(canvas: HTMLCanvasElement): boolean {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return true;
+    const pixelBuffer = new Uint32Array(ctx.getImageData(0, 0, canvas.width, canvas.height).data.buffer);
+    return !pixelBuffer.some(color => color !== 0);
+  }
+
   finalizarInspeccion() {
+    // Validar nombres y firmas
+    const errores: string[] = [];
+    if (!this.dto.inspectorNombre?.trim()) errores.push('Nombre del Inspector');
+    else if (this.sig1 && this.isCanvasBlank(this.sig1.nativeElement)) errores.push('Firma del Inspector');
+    
+    if (!this.dto.entregaNombre?.trim()) errores.push('Nombre de Unidad Entrega');
+    else if (this.sig2 && this.isCanvasBlank(this.sig2.nativeElement)) errores.push('Firma de Unidad Entrega');
+    
+    if (!this.dto.recibeNombre?.trim()) errores.push('Nombre de Unidad Recibe');
+    else if (this.sig3 && this.isCanvasBlank(this.sig3.nativeElement)) errores.push('Firma de Unidad Recibe');
+
+    if (errores.length > 0) {
+      const msg = errores.length === 1
+        ? `Falta completar: ${errores[0]}.`
+        : `Faltan ${errores.length} campos: ${errores.join(', ')}.`;
+      this.modalService.showAlert(msg, 'Firmas Incompletas', 'warning');
+      return;
+    }
+
     this.guardando = true;
     this.dto.danos = this.danos;
     if(this.sig1) this.dto.inspectorFirmaBase64 = this.sig1.nativeElement.toDataURL();
@@ -345,22 +436,30 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
 
     this.http.post(`${environment.apiUrl}/inspecciones-livianos`, this.dto).subscribe({
       next: (response) => {
-        alert(`¡Inspección de ${this.tipoInspeccionActual} completada con éxito!`);
+        const operacionLabel: Record<string, string> = {
+          'GENERAL': 'General (Rutina/Auditoría)',
+          'SALIDA': 'Salida a Ruta',
+          'LLEGADA': 'Llegada a Patio'
+        };
+        const label = operacionLabel[this.dto.operacion] || this.tipoInspeccionActual;
+        this.modalService.showAlert(`¡Inspección de ${label} completada con éxito!`, 'Éxito', 'success');
         this.guardando = false;
         
         if (this.isAuditoria) {
            this.onFinalizado.emit(response);
         } else {
            // Volver a inicio para flujo normal
-           this.fasePrincipal = 'INGRESO_CEDULA';
+           this.fasePrincipal = 'SELECCION_OPERACION';
            this.etapaActual = 1;
            this.cedulaInput = '';
            this.danos = [];
+           this.operacionSeleccionada = '';
+           this.vehiculoSeleccionadoUI = '';
         }
       },
       error: (err) => {
         console.error(err);
-        alert('Error al guardar la inspección');
+        this.modalService.showAlert('Error al guardar la inspección', 'Error', 'error');
         this.guardando = false;
       }
     });

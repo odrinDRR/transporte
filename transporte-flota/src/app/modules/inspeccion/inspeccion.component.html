@@ -147,15 +147,21 @@
           <div class="row g-2 mb-3">
             <div class="col-12 col-md-4">
                 <label class="form-label text-custom-muted small">Gerencia</label>
-                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.gerenciaSolicitante">
+                <input type="text" class="form-control bg-dark text-white rounded-3"
+                       [ngClass]="{'campo-invalido': erroresEtapa.includes('gerencia'), 'border-custom': !erroresEtapa.includes('gerencia')}"
+                       [(ngModel)]="dto.gerenciaSolicitante">
             </div>
             <div class="col-12 col-md-4">
                 <label class="form-label text-custom-muted small">Unidad Usuaria</label>
-                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.unidadUsuaria">
+                <input type="text" class="form-control bg-dark text-white rounded-3"
+                       [ngClass]="{'campo-invalido': erroresEtapa.includes('unidadUsuaria'), 'border-custom': !erroresEtapa.includes('unidadUsuaria')}"
+                       [(ngModel)]="dto.unidadUsuaria">
             </div>
             <div class="col-12 col-md-4">
                 <label class="form-label text-custom-muted small">Centro Costo</label>
-                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.centroCosto">
+                <input type="text" class="form-control bg-dark text-white rounded-3"
+                       [ngClass]="{'campo-invalido': erroresEtapa.includes('centroCosto'), 'border-custom': !erroresEtapa.includes('centroCosto')}"
+                       [(ngModel)]="dto.centroCosto">
             </div>
           </div>
 
@@ -165,13 +171,10 @@
                 <label class="form-label text-custom-muted small">Placa</label>
                 <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.placa" disabled>
             </div>
-            <div class="col-6 col-md-4">
-                <label class="form-label text-custom-muted small">Marca</label>
-                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.marca" disabled>
-            </div>
-            <div class="col-6 col-md-4">
-                <label class="form-label text-custom-muted small">Modelo</label>
-                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.modelo" disabled>
+            <div class="col-12 col-md-8">
+                <label class="form-label text-custom-muted small">Marca / Modelo</label>
+                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" 
+                       [value]="(vehiculoActual?.marca || '') + ' ' + (vehiculoActual?.modelo || '') || vehiculoActual?.marcaModelo || 'N/A'" disabled>
             </div>
             <div class="col-6 col-md-4">
                 <label class="form-label text-custom-muted small">Serial Carrocería</label>
@@ -195,15 +198,21 @@
           <div class="row g-2 mb-3">
             <div class="col-6">
                 <label class="form-label text-custom-muted small">Km Entregado</label>
-                <input type="number" class="form-control bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.kilometrajeEntregado">
+                <input type="number" class="form-control bg-dark text-white rounded-3" 
+                       [ngClass]="{'campo-invalido': erroresEtapa.includes('kilometrajeEntregado'), 'border-custom': !erroresEtapa.includes('kilometrajeEntregado')}"
+                       [(ngModel)]="dto.kilometrajeEntregado">
             </div>
             <div class="col-6">
                 <label class="form-label text-custom-muted small">Km Recibido</label>
-                <input type="number" class="form-control bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.kilometrajeRecibido">
+                <input type="number" class="form-control bg-dark text-white rounded-3" 
+                       [ngClass]="{'campo-invalido': erroresEtapa.includes('kilometrajeRecibido'), 'border-custom': !erroresEtapa.includes('kilometrajeRecibido')}"
+                       [(ngModel)]="dto.kilometrajeRecibido">
             </div>
             <div class="col-12">
                 <label class="form-label text-custom-muted small">Transmisión / Tracción</label>
-                <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.transmision">
+                <select class="form-select bg-dark text-white rounded-3" 
+                        [ngClass]="{'campo-invalido': erroresEtapa.includes('transmision'), 'border-custom': !erroresEtapa.includes('transmision')}"
+                        [(ngModel)]="dto.transmision">
                     <option value="AUTOMATICO">Automático</option>
                     <option value="SINCRONICO">Sincrónico</option>
                     <option value="4x4">4x4</option>
@@ -220,37 +229,54 @@
           <div class="row g-2 mb-4">
               <div class="col-6 col-md-4">
                   <label class="form-label text-custom-muted small mb-1">Combustible</label>
-                  <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.nivelCombustible">
+                  <select class="form-select bg-dark text-white rounded-3" 
+                          [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelCombustible'), 'border-custom': !erroresEtapa.includes('nivelCombustible')}"
+                          [(ngModel)]="dto.nivelCombustible">
+                      <option value="" disabled selected>-- Seleccione --</option>
                       <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
                   </select>
               </div>
               <div class="col-6 col-md-4">
                   <label class="form-label text-custom-muted small mb-1">Aceite Motor</label>
-                  <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.nivelAceiteMotor">
+                  <select class="form-select bg-dark text-white rounded-3" 
+                          [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelAceiteMotor'), 'border-custom': !erroresEtapa.includes('nivelAceiteMotor')}"
+                          [(ngModel)]="dto.nivelAceiteMotor">
+                      <option value="" disabled selected>-- Seleccione --</option>
                       <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
                   </select>
               </div>
               <div class="col-6 col-md-4">
                   <label class="form-label text-custom-muted small mb-1">Liga de Frenos</label>
-                  <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.nivelLigaFrenos">
+                  <select class="form-select bg-dark text-white rounded-3" 
+                          [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelLigaFrenos'), 'border-custom': !erroresEtapa.includes('nivelLigaFrenos')}"
+                          [(ngModel)]="dto.nivelLigaFrenos">
+                      <option value="" disabled selected>-- Seleccione --</option>
                       <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
                   </select>
               </div>
               <div class="col-6 col-md-4">
                   <label class="form-label text-custom-muted small mb-1">Aceite Caja</label>
-                  <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.nivelAceiteCaja">
+                  <select class="form-select bg-dark text-white rounded-3" 
+                          [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelAceiteCaja'), 'border-custom': !erroresEtapa.includes('nivelAceiteCaja')}"
+                          [(ngModel)]="dto.nivelAceiteCaja">
+                      <option value="" disabled selected>-- Seleccione --</option>
                       <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
                   </select>
               </div>
               <div class="col-6 col-md-4">
                   <label class="form-label text-custom-muted small mb-1">Refrigerante</label>
-                  <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.nivelRefrigerante">
+                  <select class="form-select bg-dark text-white rounded-3" 
+                          [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelRefrigerante'), 'border-custom': !erroresEtapa.includes('nivelRefrigerante')}"
+                          [(ngModel)]="dto.nivelRefrigerante">
+                      <option value="" disabled selected>-- Seleccione --</option>
                       <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
                   </select>
               </div>
               <div class="col-6 col-md-4">
                 <label class="form-label text-custom-muted small mb-1">Tipo de Cobertura</label>
-                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.tipoCobertura" placeholder="RCV / Amplia">
+                <input type="text" class="form-control bg-dark text-white rounded-3" 
+                       [ngClass]="{'campo-invalido': erroresEtapa.includes('tipoCobertura'), 'border-custom': !erroresEtapa.includes('tipoCobertura')}"
+                       [(ngModel)]="dto.tipoCobertura" placeholder="RCV / Amplia">
             </div>
           </div>
 
@@ -488,10 +514,18 @@
                     <div class="bg-dark p-3 rounded-4 border border-custom h-100">
                         <h6 class="text-warning small fw-bold mb-3"><i class="bi bi-battery-half"></i> BATERÍA (10)</h6>
                         <div class="row g-2">
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="Marca" [(ngModel)]="dto.batMarca"></div>
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="Modelo" [(ngModel)]="dto.batModelo"></div>
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="Código" [(ngModel)]="dto.batCodigo"></div>
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="% Vida Útil" [(ngModel)]="dto.batVida"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
+                                [ngClass]="{'campo-invalido': erroresEtapa.includes('batMarca'), 'border-custom': !erroresEtapa.includes('batMarca')}"
+                                placeholder="Marca" [(ngModel)]="dto.batMarca"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
+                                [ngClass]="{'campo-invalido': erroresEtapa.includes('batModelo'), 'border-custom': !erroresEtapa.includes('batModelo')}"
+                                placeholder="Modelo" [(ngModel)]="dto.batModelo"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
+                                [ngClass]="{'campo-invalido': erroresEtapa.includes('batCodigo'), 'border-custom': !erroresEtapa.includes('batCodigo')}"
+                                placeholder="Código" [(ngModel)]="dto.batCodigo"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
+                                [ngClass]="{'campo-invalido': erroresEtapa.includes('batVida'), 'border-custom': !erroresEtapa.includes('batVida')}"
+                                placeholder="% Vida Útil" [(ngModel)]="dto.batVida"></div>
                         </div>
                     </div>
                 </div>
@@ -499,10 +533,18 @@
                     <div class="bg-dark p-3 rounded-4 border border-custom h-100">
                         <h6 class="text-warning small fw-bold mb-3"><i class="bi bi-vinyl-fill"></i> CAUCHOS (11)</h6>
                         <div class="row g-2">
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="Marca" [(ngModel)]="dto.cauMarca"></div>
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="Modelo" [(ngModel)]="dto.cauModelo"></div>
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="Código" [(ngModel)]="dto.cauCodigo"></div>
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white border-custom rounded-3" placeholder="% Vida Útil" [(ngModel)]="dto.cauVida"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
+                                [ngClass]="{'campo-invalido': erroresEtapa.includes('cauMarca'), 'border-custom': !erroresEtapa.includes('cauMarca')}"
+                                placeholder="Marca" [(ngModel)]="dto.cauMarca"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
+                                [ngClass]="{'campo-invalido': erroresEtapa.includes('cauModelo'), 'border-custom': !erroresEtapa.includes('cauModelo')}"
+                                placeholder="Modelo" [(ngModel)]="dto.cauModelo"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
+                                [ngClass]="{'campo-invalido': erroresEtapa.includes('cauCodigo'), 'border-custom': !erroresEtapa.includes('cauCodigo')}"
+                                placeholder="Código" [(ngModel)]="dto.cauCodigo"></div>
+                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
+                                [ngClass]="{'campo-invalido': erroresEtapa.includes('cauVida'), 'border-custom': !erroresEtapa.includes('cauVida')}"
+                                placeholder="% Vida Útil" [(ngModel)]="dto.cauVida"></div>
                         </div>
                     </div>
                 </div>

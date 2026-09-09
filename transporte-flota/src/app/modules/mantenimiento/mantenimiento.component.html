@@ -1,47 +1,156 @@
-<div class="card bg-custom-card border-custom p-3">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h5 class="text-white mb-0">Historial y Programación de Mantenimiento</h5>
-    <button class="btn btn-sm btn-primary" *ngIf="flotaService.puedeRegistrarOAsignar()">
-      <i class="bi bi-wrench"></i> Registrar Servicio
-    </button>
+<div class="card bg-custom-card border-custom p-3 p-md-4">
+
+  <!-- Encabezado y Métricas -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="text-white fw-bold mb-0"><i class="bi bi-tools text-warning me-2"></i> Panel de Control</h4>
   </div>
 
-  <!-- Indicador de Carga -->
-  <div *ngIf="cargando" class="text-center my-5">
-    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-      <span class="visually-hidden">Cargando datos...</span>
+  <!-- Dashboard Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card bg-dark border-secondary border-opacity-25 h-100 p-3 text-center">
+        <h3 class="text-white mb-0 fw-bold">{{ totalVehiculos }}</h3>
+        <span class="text-custom-muted small text-uppercase" style="letter-spacing: 1px;">Flota Total</span>
+      </div>
     </div>
-    <p class="text-white-50 mt-2">Cargando registros...</p>
+    <div class="col-6 col-md-3">
+      <div class="card bg-dark border-success border-opacity-50 h-100 p-3 text-center">
+        <h3 class="text-success mb-0 fw-bold">{{ totalOperativos }}</h3>
+        <span class="text-success opacity-75 small text-uppercase" style="letter-spacing: 1px;">Operativos</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card bg-dark border-danger border-opacity-50 h-100 p-3 text-center">
+        <h3 class="text-danger mb-0 fw-bold">{{ totalInoperativos }}</h3>
+        <span class="text-danger opacity-75 small text-uppercase" style="letter-spacing: 1px;">Inoperativos</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card bg-dark border-warning border-opacity-50 h-100 p-3 text-center">
+        <h3 class="text-warning mb-0 fw-bold">{{ totalMantenimiento }}</h3>
+        <span class="text-warning opacity-75 small text-uppercase" style="letter-spacing: 1px;">En Taller</span>
+      </div>
+    </div>
   </div>
 
-  <div class="table-responsive" *ngIf="!cargando">
-    <table class="table table-dark table-hover border-custom align-middle">
-      <thead>
-        <tr class="text-custom-muted">
-          <th>Placa y Unidad</th>
-          <th>Estado Actual</th>
-          <th>Último Servicio Realizado</th>
-          <th>Próximo Mantenimiento</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let v of vehiculos$ | async">
-          <td>
-            <div class="fw-bold text-white">{{ v.placa }}</div>
-            <small class="text-custom-muted">{{ v.identificador }}</small>
-          </td>
-          <td><span class="badge" [ngClass]="'badge-' + v.estado.toLowerCase()">{{ v.estado }}</span></td>
-          <td class="text-white small">{{ v.ultimoServicio || 'No registrado' }}</td>
-          <td>
-            <span *ngIf="esMantenimientoVencido(v.proximoMantenimiento)" class="badge bg-danger text-white border border-danger p-2">
-              ⚠️ VENCIDO: {{ v.proximoMantenimiento }}
-            </span>
-            <span *ngIf="!esMantenimientoVencido(v.proximoMantenimiento)" class="badge bg-dark border border-secondary p-2">
-              🗓️ {{ v.proximoMantenimiento || 'N/A' }}
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- Pestañas de Navegación -->
+  <ul class="nav nav-pills mb-4 gap-2">
+    <li class="nav-item">
+      <a class="nav-link text-white rounded-pill px-4 tab-hover" [class.bg-primary]="activeTab === 'VEHICULOS'"
+        [class.bg-dark]="activeTab !== 'VEHICULOS'" (click)="activeTab = 'VEHICULOS'">
+        <i class="bi bi-truck me-1"></i> Vehículos
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white rounded-pill px-4 tab-hover" [class.bg-primary]="activeTab === 'DEPENDENCIAS'"
+        [class.bg-dark]="activeTab !== 'DEPENDENCIAS'" (click)="activeTab = 'DEPENDENCIAS'">
+        <i class="bi bi-building me-1"></i> Dependencias
+      </a>
+    </li>
+  </ul>
+
+  <!-- SECCIÓN VEHÍCULOS -->
+  <div *ngIf="activeTab === 'VEHICULOS'">
+    <!-- Indicador de Carga -->
+    <div *ngIf="cargando" class="text-center my-5">
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Cargando datos...</span>
+      </div>
+      <p class="text-white-50 mt-2">Cargando flota...</p>
+    </div>
+
+    <div class="table-responsive" *ngIf="!cargando">
+      <table class="table table-dark table-hover border-custom align-middle text-nowrap">
+        <thead>
+          <tr class="text-custom-muted">
+            <th>Placa y Unidad</th>
+            <th>Estado Actual</th>
+            <th>Fecha de cambio de operatividad</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let v of vehiculos$ | async">
+            <td>
+              <div class="fw-bold text-white">{{ v.placa }}</div>
+              <small class="text-custom-muted">{{ v.identificador }}</small>
+            </td>
+            <td>
+              <!-- Selector de Estado Modificable -->
+              <select class="form-select form-select-sm fw-bold border"
+                style="width: 140px; cursor: pointer; background-color: rgba(0,0,0,0.2);"
+                [style.color]="v.estado === 'OPERATIVO' ? '#198754' : (v.estado === 'INOPERATIVO' || v.estado === 'INACTIVO' ? '#dc3545' : '#ffc107')"
+                [style.borderColor]="v.estado === 'OPERATIVO' ? '#198754' : (v.estado === 'INOPERATIVO' || v.estado === 'INACTIVO' ? '#dc3545' : '#ffc107')"
+                [ngModel]="v.estado" (change)="cambiarEstadoVehiculo(v, $event)">
+                <option value="OPERATIVO" class="text-success bg-dark">OPERATIVO</option>
+                <option value="INOPERATIVO" class="text-danger bg-dark">INOPERATIVO</option>
+                <option value="TALLER" class="text-warning bg-dark">EN TALLER</option>
+                <option value="INACTIVO" class="text-secondary bg-dark">INACTIVO</option>
+              </select>
+            </td>
+            <td class="text-white small">
+              {{ v.fechaCambioOperatividad ? (v.fechaCambioOperatividad | date:'short') : 'Sin registros previos' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
+
+  <!-- SECCIÓN DEPENDENCIAS -->
+  <div *ngIf="activeTab === 'DEPENDENCIAS'">
+    <div class="row mb-3">
+      <div class="col-12 col-md-6 mb-3 mb-md-0">
+        <h5 class="text-white mb-1">Gestión de Sedes y Complejos</h5>
+        <p class="text-custom-muted small mb-0">Activa o desactiva las dependencias disponibles en el formulario de
+          registro de vehículos.</p>
+      </div>
+      <div class="col-12 col-md-6 text-md-end">
+        <div class="d-flex justify-content-md-end gap-2">
+          <input type="text" class="form-control bg-dark text-white border-custom" style="max-width: 250px;"
+            placeholder="Nombre de nueva sede..." [(ngModel)]="nuevaDependenciaNombre"
+            (keyup.enter)="agregarDependencia()">
+          <button class="btn btn-primary text-nowrap" (click)="agregarDependencia()"
+            [disabled]="creandoDependencia || !nuevaDependenciaNombre">
+            <i class="bi bi-plus-lg"></i> Agregar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Indicador de Carga Dependencias -->
+    <div *ngIf="cargandoDependencias" class="text-center my-5">
+      <div class="spinner-border text-info" role="status">
+        <span class="visually-hidden">Cargando dependencias...</span>
+      </div>
+    </div>
+
+    <div class="table-responsive" *ngIf="!cargandoDependencias">
+      <table class="table table-dark table-hover border-custom align-middle">
+        <thead>
+          <tr class="text-custom-muted">
+            <th style="width: 60px;">ID</th>
+            <th>Nombre de la Dependencia</th>
+            <th class="text-end" style="width: 120px;">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let dep of listaDependencias">
+            <td class="text-white-50">#{{ dep.id }}</td>
+            <td class="text-white fw-bold">{{ dep.nombre }}</td>
+            <td class="text-end">
+              <div class="form-check form-switch d-flex justify-content-end mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" [checked]="dep.activa"
+                  (change)="toggleDependencia(dep)" style="transform: scale(1.2); cursor: pointer;"
+                  [class.bg-success]="dep.activa">
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="listaDependencias.length === 0">
+            <td colspan="3" class="text-center py-4 text-white-50">No hay dependencias registradas.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>

@@ -2,7 +2,9 @@ import { Component, Output, EventEmitter } from '@angular/core';
 import { RolUsuario } from '../../core/models/fleet.models';
 import { FlotaService } from '../../core/services/flota.service';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 import { SupabaseStorageService } from '../../services/supabase-storage.service';
+import { ModalService } from '../../core/services/modal.service';
 
 @Component({
   selector: 'app-login',
@@ -52,7 +54,8 @@ export class LoginComponent {
   constructor(
     private flotaService: FlotaService, 
     private authService: AuthService,
-    private supabaseStorage: SupabaseStorageService
+    private supabaseStorage: SupabaseStorageService,
+    private modalService: ModalService
   ) {}
 
   getRoleName(rol: RolUsuario | string | null): string {
@@ -164,11 +167,15 @@ export class LoginComponent {
         error: (err) => {
           console.error(err);
           this.cargandoLogin = false;
-          alert(err.error || 'Credenciales inválidas o usuario inactivo');
+          if (err.status === 0) {
+            this.modalService.showAlert('Comunicación fallida por favor comuníquese con su proveedor', 'Error de Conexión', 'error');
+          } else {
+            this.modalService.showAlert(err.error || 'Credenciales inválidas o usuario inactivo', 'Error de Login', 'error');
+          }
         }
       });
     } else {
-      alert('Por favor, ingresa tu correo y contraseña.');
+      this.modalService.showAlert('Por favor, ingresa tu correo y contraseña.', 'Atención', 'warning');
     }
   }
 
@@ -209,35 +216,35 @@ export class LoginComponent {
   avanzarRegistro(): void {
     if (this.pasoRegistro === 1) {
       if (!this.nuevoUsuario.nombre || !this.nuevoUsuario.apellido || !this.nuevoUsuario.cedula || !this.nuevoUsuario.cargo) {
-        alert('Por favor completa todos los datos obligatorios.');
+        this.modalService.showAlert('Por favor completa todos los datos obligatorios.', 'Atención', 'warning');
         return;
       }
       
       if (!this.numeroTelefono || this.numeroTelefono.length < 7) {
-        alert('Por favor ingresa un número de teléfono válido.');
+        this.modalService.showAlert('Por favor ingresa un número de teléfono válido.', 'Atención', 'warning');
         return;
       }
       
       if (!this.archivoFoto) {
-        alert('Debes adjuntar tu foto de perfil.');
+        this.modalService.showAlert('Debes adjuntar tu foto de perfil.', 'Atención', 'warning');
         return;
       }
 
       if (this.nuevoUsuario.cedula.length > 8) {
-        alert('La cédula no puede exceder los 8 dígitos.');
+        this.modalService.showAlert('La cédula no puede exceder los 8 dígitos.', 'Atención', 'warning');
         return;
       }
 
     if (this.nuevoUsuario.edad === null || this.nuevoUsuario.edad < 18 || this.nuevoUsuario.edad > 80) {
-      alert('La edad permitida debe estar comprendida entre 18 y 80 años.');
+      this.modalService.showAlert('La edad permitida debe estar comprendida entre 18 y 80 años.', 'Atención', 'warning');
       return;
     }
 
-    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR' || this.nuevoUsuario.cargo === 'EMPLEADO';
+    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR';
     this.pasoRegistro = requiereDocumentos ? 2 : 3;
   } else if (this.pasoRegistro === 2) {
     if (!this.archivoLicencia || !this.archivoMedico || !this.nuevoUsuario.fechaVencimientoLicencia || !this.nuevoUsuario.fechaVencimientoCertificadoMedico) {
-      alert('Debes adjuntar el documento de tu Licencia, tu Certificado Médico y las fechas de vencimiento para continuar.');
+      this.modalService.showAlert('Debes adjuntar el documento de tu Licencia, tu Certificado Médico y las fechas de vencimiento para continuar.', 'Atención', 'warning');
       return;
     }
     this.pasoRegistro = 3;
@@ -245,7 +252,7 @@ export class LoginComponent {
 }
 
   retrocederRegistro(): void {
-    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR' || this.nuevoUsuario.cargo === 'EMPLEADO';
+    const requiereDocumentos = this.nuevoUsuario.cargo === 'CONDUCTOR';
     if (this.pasoRegistro === 3 && !requiereDocumentos) {
       this.pasoRegistro = 1;
     } else {
@@ -322,7 +329,11 @@ export class LoginComponent {
         },
         error: (err) => {
           this.cargandoRegistro = false;
-          alert(err.error || 'Ocurrió un error al registrarse.');
+          if (err.status === 0) {
+            alert('Comunicación fallida por favor comuníquese con su proveedor');
+          } else {
+            alert(err.error || 'Ocurrió un error al registrarse.');
+          }
         }
       });
     } catch (error) {

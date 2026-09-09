@@ -125,7 +125,7 @@
 
               <span class="badge-hud-placa">{{ v.placa }}</span>
               <span class="badge-hud-status"
-                [ngClass]="{'status-operativo': v.estado === 'OPERATIVO', 'status-taller': v.estado === 'TALLER', 'status-inactivo': v.estado === 'INACTIVO'}">
+                [ngClass]="{'status-operativo': v.estado === 'OPERATIVO', 'status-taller': v.estado === 'TALLER', 'status-inactivo': v.estado === 'INACTIVO' || v.estado === 'INOPERATIVO'}">
                 <span class="pulse-dot"></span> {{ v.estado }}
               </span>
 

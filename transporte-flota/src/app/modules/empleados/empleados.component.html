@@ -1,9 +1,6 @@
 <div class="card bg-custom-card border-custom p-3">
   <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-custom pb-3">
     <h5 class="text-white mb-0"><i class="bi bi-people"></i> Directorio de Empleados</h5>
-    <button class="btn btn-sm btn-primary">
-      <i class="bi bi-person-plus"></i> Registrar Empleado
-    </button>
   </div>
 
   <div class="mb-4 d-flex justify-content-between flex-wrap gap-3">
@@ -12,17 +9,20 @@
       <label class="form-label text-custom-muted small">Buscador Inteligente</label>
       <div class="input-group">
         <span class="input-group-text bg-dark text-custom-muted border-custom"><i class="bi bi-search"></i></span>
-        <input type="text" class="form-control bg-dark text-white border-custom" 
-               placeholder="Buscar por cédula o nombre..." [(ngModel)]="filtroTexto">
+        <input type="text" class="form-control bg-dark text-white border-custom"
+          placeholder="Buscar por cédula o nombre..." [(ngModel)]="filtroTexto">
       </div>
     </div>
-    
+
     <!-- Filtros por Rol -->
     <div class="d-flex align-items-end">
       <div class="btn-group" role="group">
-        <button type="button" class="btn btn-outline-primary" [class.active]="filtroRol === 'TODOS'" (click)="filtroRol = 'TODOS'">Todos</button>
-        <button type="button" class="btn btn-outline-primary" [class.active]="filtroRol === 'EMPLEADOS'" (click)="filtroRol = 'EMPLEADOS'">Empleados</button>
-        <button type="button" class="btn btn-outline-primary" [class.active]="filtroRol === 'COORDINADORES'" (click)="filtroRol = 'COORDINADORES'">Coordinadores</button>
+        <button type="button" class="btn btn-outline-primary" [class.active]="filtroRol === 'TODOS'"
+          (click)="filtroRol = 'TODOS'">Todos</button>
+        <button type="button" class="btn btn-outline-primary" [class.active]="filtroRol === 'EMPLEADOS'"
+          (click)="filtroRol = 'EMPLEADOS'">Empleados</button>
+        <button type="button" class="btn btn-outline-primary" [class.active]="filtroRol === 'COORDINADORES'"
+          (click)="filtroRol = 'COORDINADORES'">Coordinadores</button>
       </div>
     </div>
   </div>
@@ -49,7 +49,8 @@
       <tbody>
         <tr *ngFor="let e of empleadosFiltrados">
           <td>
-            <img [src]="e.fotoUrl || 'assets/images/default-avatar.png'" alt="Foto" class="rounded-circle" width="40" height="40" style="object-fit: cover;">
+            <img [src]="e.fotoUrl || 'assets/images/default-avatar.png'" alt="Foto" class="rounded-circle" width="40"
+              height="40" style="object-fit: cover;">
           </td>
           <td>
             <div class="fw-bold">{{ e.nombre }} {{ e.apellido }}</div>
@@ -58,14 +59,22 @@
           <td>{{ e.cedula }}</td>
           <td><span class="badge bg-dark border border-secondary text-info">{{ e.cargo }}</span></td>
           <td>
-            <span class="badge" [ngClass]="{'bg-success': e.estado === 'ACTIVO', 'bg-warning': e.estado === 'INACTIVO'}">{{ e.estado }}</span>
+            <span class="badge"
+              [ngClass]="{'bg-success': e.estado === 'ACTIVO', 'bg-warning': e.estado === 'INACTIVO'}">{{ e.estado
+              }}</span>
           </td>
-          <td>
-            <button class="btn btn-sm btn-outline-light me-1" title="Ver Documentos">
-              <i class="bi bi-file-earmark-person"></i>
+          <td class="text-center">
+            <button *ngIf="e.estado === 'ACTIVO'" class="btn btn-sm btn-outline-danger" 
+                    [disabled]="procesandoId === e.id"
+                    (click)="desactivarUsuario(e.id, e.nombre + ' ' + e.apellido)">
+              <span *ngIf="procesandoId === e.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <i *ngIf="procesandoId !== e.id" class="bi bi-person-x"></i> Desactivar
             </button>
-            <button class="btn btn-sm btn-outline-primary" title="Editar">
-              <i class="bi bi-pencil"></i>
+            <button *ngIf="e.estado === 'INACTIVO'" class="btn btn-sm btn-outline-success" 
+                    [disabled]="procesandoId === e.id"
+                    (click)="activarUsuario(e.id, e.nombre + ' ' + e.apellido)">
+              <span *ngIf="procesandoId === e.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <i *ngIf="procesandoId !== e.id" class="bi bi-person-check"></i> Activar
             </button>
           </td>
         </tr>

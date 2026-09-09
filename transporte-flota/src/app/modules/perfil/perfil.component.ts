@@ -14,6 +14,7 @@ export class PerfilComponent implements OnInit {
   cargando: boolean = true;
   guardando: boolean = false;
   isEmpleadoOConductor: boolean = false;
+  isConductor: boolean = false;
 
   archivoLicencia: File | null = null;
   archivoLicenciaNombre: string = '';
@@ -38,6 +39,7 @@ export class PerfilComponent implements OnInit {
         next: (data) => {
           this.usuarioData = data;
           this.isEmpleadoOConductor = (data.cargo === 'EMPLEADO' || data.cargo === 'CONDUCTOR');
+          this.isConductor = (data.cargo === 'CONDUCTOR');
           this.cargando = false;
         },
         error: (err) => {

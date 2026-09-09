@@ -1,0 +1,97 @@
+<div class="card bg-custom-card border-custom p-3">
+  <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-custom pb-3">
+    <h5 class="text-white mb-0"><i class="bi bi-journal-text"></i> Historial de Inspecciones</h5>
+  </div>
+
+  <div class="mb-4 d-flex justify-content-between flex-wrap gap-3">
+    <!-- Buscador -->
+    <div style="max-width: 400px; flex-grow: 1;">
+      <label class="form-label text-custom-muted small">Buscar por N° Control, Placa o Conductor</label>
+      <div class="input-group">
+        <span class="input-group-text bg-dark text-custom-muted border-custom"><i class="bi bi-search"></i></span>
+        <input type="text" class="form-control bg-dark text-white border-custom" placeholder="Ej: INS-2026, 12345678..."
+          [(ngModel)]="filtroTexto" (keyup)="filtrarLista()">
+      </div>
+    </div>
+
+    <!-- Filtros por Operación -->
+    <div class="d-flex align-items-end">
+      <div class="btn-group" role="group">
+        <button type="button" class="btn btn-outline-primary" [class.active]="filtroOperacion === 'TODAS'"
+          (click)="setFiltroOperacion('TODAS')">Todas</button>
+        <button type="button" class="btn btn-outline-info" [class.active]="filtroOperacion === 'GENERAL'"
+          (click)="setFiltroOperacion('GENERAL')">General</button>
+        <button type="button" class="btn btn-outline-success" [class.active]="filtroOperacion === 'SALIDA'"
+          (click)="setFiltroOperacion('SALIDA')">Salida</button>
+        <button type="button" class="btn btn-outline-warning" [class.active]="filtroOperacion === 'LLEGADA'"
+          (click)="setFiltroOperacion('LLEGADA')">Llegada</button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+      <span class="visually-hidden">Cargando inspecciones...</span>
+    </div>
+    <p class="text-white-50 mt-2">Cargando historial...</p>
+  </div>
+
+  <div class="table-responsive" *ngIf="!cargando">
+    <table class="table table-dark table-hover border-custom align-middle">
+      <thead>
+        <tr class="text-custom-muted">
+          <!-- <th>N° Control</th> -->
+          <th>Fecha</th>
+          <th>Conductor</th>
+          <th>Vehículo (Placa)</th>
+          <th>Operación</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let i of inspeccionesFiltradas">
+          <!-- <td><span class="text-info fw-bold">{{ i.numeroControl }}</span></td> -->
+          <td>{{ i.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>
+            <div class="fw-bold">{{ i.usuario?.nombre }}</div>
+            <div class="text-secondary small">V-{{ i.usuario?.cedula }}</div>
+          </td>
+          <td>
+            <div class="fw-bold">{{ i.vehiculo?.marca }} {{ i.vehiculo?.modelo }}</div>
+            <div class="text-secondary small">{{ i.vehiculo?.placa }}</div>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="{
+                'bg-info text-dark': i.operacion === 'GENERAL',
+                'bg-success text-dark': i.operacion === 'SALIDA',
+                'bg-warning text-dark': i.operacion === 'LLEGADA'
+              }">
+              {{ i.operacion || 'GENERAL' }}
+            </span>
+          </td>
+          <td>
+            <span class="badge border" [ngClass]="{
+                'border-success text-success': i.estado === 'ABIERTA',
+                'border-danger text-danger': i.estado === 'CERRADA'
+              }">
+              <i class="bi"
+                [ngClass]="{'bi-door-open': i.estado === 'ABIERTA', 'bi-door-closed': i.estado === 'CERRADA'}"></i>
+              {{ i.estado }}
+            </span>
+          </td>
+          <td>
+            <button class="btn btn-sm btn-outline-light action-btn" (click)="imprimirInspeccion(i)"
+              title="Imprimir Planilla">
+              <i class="bi bi-printer"></i>
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="inspeccionesFiltradas.length === 0">
+          <td colspan="7" class="text-center text-custom-muted py-4">No se encontraron inspecciones con los filtros
+            actuales.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

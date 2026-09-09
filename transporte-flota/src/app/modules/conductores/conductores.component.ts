@@ -3,6 +3,7 @@ import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { ModalService } from '../../core/services/modal.service';
 import { FlotaService } from '../../core/services/flota.service';
 import { VehiculoService } from '../../services/vehiculo.service';
 import { Conductor, Vehiculo } from '../../core/models/fleet.models';
@@ -19,16 +20,20 @@ export class ConductoresComponent implements OnInit {
   conductorSeleccionado: Conductor | null = null;
   vehiculoSeleccionadoId: number | null = null;
   mensajeAsignacion: string = '';
+  procesandoAsignacion = false;
   vehiculos$!: Observable<Vehiculo[]>;
 
   constructor(
     public flotaService: FlotaService,
+    private vehiculoService: VehiculoService,
     private http: HttpClient,
-    private vehiculoService: VehiculoService
+    private modalService: ModalService
   ) {}
 
   cargando = false;
-  private conductoresSubject = new BehaviorSubject<Conductor[]>([]);
+  procesandoId: number | null = null;
+  filtroTexto = '';
+  conductoresSubject = new BehaviorSubject<Conductor[]>([]);
 
   ngOnInit(): void {
     this.vehiculos$ = this.vehiculoService.obtenerVehiculos();
@@ -50,11 +55,17 @@ export class ConductoresComponent implements OnInit {
               cedula: u.cedula,
               fichaNumerica: u.ficha || u.licencia || 'Sin ficha',
               licenciaVigente: true,
-              vencimientoLicencia: u.fechaVencimientoLicencia || '',
-              vencimientoMedico: u.urlCertificadoMedico || '',
+              fechaVencimientoLicencia: u.fechaVencimientoLicencia || '',
+              fechaVencimientoCertificadoMedico: u.fechaVencimientoCertificadoMedico || '',
+              urlLicencia: u.urlLicencia || '',
+              urlCertificadoMedico: u.urlCertificadoMedico || '',
               fotoUrl: u.fotoUrl || '',
-              vehiculoAsignadoId: veh ? veh.id : null
+              vehiculoAsignadoId: veh ? veh.id : null,
+              estado: u.estado
             };
+          })
+          .sort((a, b) => {
+            return a.estado === 'ACTIVO' ? -1 : 1;
           });
 
         this.conductoresSubject.next(conductoresMap);
@@ -108,6 +119,8 @@ export class ConductoresComponent implements OnInit {
 
   confirmarAsignacion(): void {
     if (this.vehiculoSeleccionadoId && this.conductorSeleccionado) {
+      this.procesandoAsignacion = true;
+      this.mensajeAsignacion = '';
       // Usamos la función del servicio pasándole la ficha del conductor seleccionado
       this.flotaService.asignarUnidad(
         Number(this.vehiculoSeleccionadoId), 
@@ -116,11 +129,13 @@ export class ConductoresComponent implements OnInit {
         next: (res) => {
           this.mensajeAsignacion = 'ÉXITO: Unidad asignada correctamente.';
           setTimeout(() => {
+            this.procesandoAsignacion = false;
             this.cerrarAsignacion();
             this.ngOnInit(); // Refresh to show the assigned vehicle
           }, 1500);
         },
         error: (err) => {
+          this.procesandoAsignacion = false;
           this.mensajeAsignacion = 'ERROR: No se pudo asignar la unidad.';
         }
       });
@@ -129,16 +144,67 @@ export class ConductoresComponent implements OnInit {
     }
   }
 
-  revocarAsignacion(conductor: Conductor): void {
-    if (confirm(`¿Estás seguro de que deseas desvincular la unidad de ${conductor.nombre}?`)) {
+  async revocarAsignacion(conductor: Conductor): Promise<void> {
+    const confirmado = await this.modalService.showConfirm(
+      `¿Estás seguro de que deseas desvincular la unidad de ${conductor.nombre}?`
+    );
+    
+    if (confirmado) {
+      this.procesandoId = conductor.id;
       this.flotaService.desvincularUnidad(conductor.id).subscribe({
         next: () => {
-          alert('Unidad desvinculada exitosamente.');
+          this.modalService.showAlert('Unidad desvinculada exitosamente.', 'Éxito', 'success');
           this.ngOnInit(); // Refresh to clear the assigned vehicle
+          this.procesandoId = null;
         },
         error: (err) => {
           console.error(err);
-          alert('Error al desvincular la unidad.');
+          this.modalService.showAlert('Error al desvincular la unidad.', 'Error', 'error');
+          this.procesandoId = null;
+        }
+      });
+    }
+  }
+
+  async desactivarUsuario(id: number, nombre: string): Promise<void> {
+    const confirmado = await this.modalService.showConfirm(
+      `¿Estás seguro de que deseas desactivar a ${nombre}? Esta acción inhabilitará su acceso al sistema y lo desvinculará de cualquier unidad asignada.`
+    );
+    
+    if (confirmado) {
+      this.procesandoId = id;
+      this.http.delete(`${environment.apiUrl}/usuarios/${id}`).subscribe({
+        next: () => {
+          this.modalService.showAlert(`Usuario ${nombre} desactivado correctamente.`, 'Éxito', 'success');
+          this.ngOnInit(); // Refresh list
+          this.procesandoId = null;
+        },
+        error: (err) => {
+          console.error(err);
+          this.modalService.showAlert('Ocurrió un error al intentar desactivar el usuario.', 'Error', 'error');
+          this.procesandoId = null;
+        }
+      });
+    }
+  }
+
+  async activarUsuario(id: number, nombre: string): Promise<void> {
+    const confirmado = await this.modalService.showConfirm(
+      `¿Estás seguro de que deseas activar a ${nombre}? Esta acción rehabilitará su acceso al sistema.`
+    );
+    
+    if (confirmado) {
+      this.procesandoId = id;
+      this.http.put(`${environment.apiUrl}/usuarios/aprobar/${id}`, {}).subscribe({
+        next: () => {
+          this.modalService.showAlert(`Usuario ${nombre} activado correctamente.`, 'Éxito', 'success');
+          this.ngOnInit(); // Refresh list
+          this.procesandoId = null;
+        },
+        error: (err) => {
+          console.error(err);
+          this.modalService.showAlert('Ocurrió un error al intentar activar el usuario.', 'Error', 'error');
+          this.procesandoId = null;
         }
       });
     }
