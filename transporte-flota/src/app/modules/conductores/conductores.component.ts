@@ -20,6 +20,7 @@ export class ConductoresComponent implements OnInit {
   conductorSeleccionado: Conductor | null = null;
   vehiculoSeleccionadoId: number | null = null;
   mensajeAsignacion: string = '';
+  procesandoAsignacion = false;
   vehiculos$!: Observable<Vehiculo[]>;
 
   constructor(
@@ -118,6 +119,8 @@ export class ConductoresComponent implements OnInit {
 
   confirmarAsignacion(): void {
     if (this.vehiculoSeleccionadoId && this.conductorSeleccionado) {
+      this.procesandoAsignacion = true;
+      this.mensajeAsignacion = '';
       // Usamos la función del servicio pasándole la ficha del conductor seleccionado
       this.flotaService.asignarUnidad(
         Number(this.vehiculoSeleccionadoId), 
@@ -126,11 +129,13 @@ export class ConductoresComponent implements OnInit {
         next: (res) => {
           this.mensajeAsignacion = 'ÉXITO: Unidad asignada correctamente.';
           setTimeout(() => {
+            this.procesandoAsignacion = false;
             this.cerrarAsignacion();
             this.ngOnInit(); // Refresh to show the assigned vehicle
           }, 1500);
         },
         error: (err) => {
+          this.procesandoAsignacion = false;
           this.mensajeAsignacion = 'ERROR: No se pudo asignar la unidad.';
         }
       });

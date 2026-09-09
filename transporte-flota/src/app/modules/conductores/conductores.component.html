@@ -73,7 +73,7 @@
                     [disabled]="procesandoId === c.id"
                     (click)="revocarAsignacion(c)">
               <span *ngIf="procesandoId === c.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-              <i *ngIf="procesandoId !== c.id" class="bi bi-x-circle"></i> Quitar Asignación
+              <i *ngIf="procesandoId !== c.id" class="bi bi-x-circle"></i> Desvincular Unidad
             </button>
 
             <!-- Acciones de Usuario (Activar/Desactivar) -->
@@ -130,9 +130,12 @@
         </div>
 
         <div class="modal-footer border-custom">
-          <button type="button" class="btn btn-secondary" (click)="cerrarAsignacion()">Cancelar</button>
-          <button type="button" class="btn btn-primary fw-bold" (click)="confirmarAsignacion()">Guardar
-            Asignación</button>
+          <button type="button" class="btn btn-secondary" (click)="cerrarAsignacion()" [disabled]="procesandoAsignacion">Cancelar</button>
+          <button type="button" class="btn btn-primary fw-bold" (click)="confirmarAsignacion()" [disabled]="procesandoAsignacion">
+            <span *ngIf="procesandoAsignacion" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+            <span *ngIf="procesandoAsignacion">Asignando...</span>
+            <span *ngIf="!procesandoAsignacion">Guardar Asignación</span>
+          </button>
         </div>
       </div>
     </div>
