@@ -19,6 +19,7 @@ import { PerfilComponent } from './modules/perfil/perfil.component';
 import { EmpleadosComponent } from './modules/empleados/empleados.component';
 import { ListadoAuditoriasComponent } from './modules/listado-auditorias/listado-auditorias.component';
 import { ModalComponent } from './shared/components/modal/modal.component';
+import { HistorialInspeccionesComponent } from './modules/historial-inspecciones/historial-inspecciones.component';
 
 @NgModule({
   declarations: [
@@ -36,7 +37,8 @@ import { ModalComponent } from './shared/components/modal/modal.component';
     PerfilComponent,
     EmpleadosComponent,
     ListadoAuditoriasComponent,
-    ModalComponent
+    ModalComponent,
+    HistorialInspeccionesComponent
   ],
   imports: [
     BrowserModule,

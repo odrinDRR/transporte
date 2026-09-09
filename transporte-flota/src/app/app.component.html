@@ -55,6 +55,11 @@
             <i class="bi bi-clipboard-check"></i> Inspección Vehicular
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'historial-inspecciones'" (click)="cambiarModulo('historial-inspecciones')" href="javascript:void(0)">
+            <i class="bi bi-journal-text"></i> Historial Inspecciones
+          </a>
+        </li>
         <!-- Comentado por ahora
         <li class="nav-item">
           <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'auditoria'" (click)="cambiarModulo('auditoria')" href="javascript:void(0)">
@@ -172,6 +177,7 @@
 
 
       <app-inspeccion *ngSwitchCase="'inspeccion'"></app-inspeccion>
+      <app-historial-inspecciones *ngSwitchCase="'historial-inspecciones'"></app-historial-inspecciones>
       <app-auditoria *ngSwitchCase="'auditoria'"></app-auditoria>
       <app-listado-auditorias *ngSwitchCase="'listado-auditorias'"></app-listado-auditorias>
       <app-aprobaciones *ngSwitchCase="'aprobaciones'"></app-aprobaciones>
