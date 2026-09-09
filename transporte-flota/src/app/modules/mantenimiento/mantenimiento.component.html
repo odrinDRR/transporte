@@ -36,13 +36,13 @@
   <!-- Pestañas de Navegación -->
   <ul class="nav nav-pills mb-4 gap-2">
     <li class="nav-item">
-      <a class="nav-link text-white rounded-pill px-4 cursor-pointer" [class.bg-primary]="activeTab === 'VEHICULOS'"
+      <a class="nav-link text-white rounded-pill px-4 tab-hover" [class.bg-primary]="activeTab === 'VEHICULOS'"
         [class.bg-dark]="activeTab !== 'VEHICULOS'" (click)="activeTab = 'VEHICULOS'">
         <i class="bi bi-truck me-1"></i> Vehículos
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link text-white rounded-pill px-4 cursor-pointer" [class.bg-primary]="activeTab === 'DEPENDENCIAS'"
+      <a class="nav-link text-white rounded-pill px-4 tab-hover" [class.bg-primary]="activeTab === 'DEPENDENCIAS'"
         [class.bg-dark]="activeTab !== 'DEPENDENCIAS'" (click)="activeTab = 'DEPENDENCIAS'">
         <i class="bi bi-building me-1"></i> Dependencias
       </a>

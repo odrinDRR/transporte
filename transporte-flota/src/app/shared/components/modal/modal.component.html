@@ -1,0 +1,35 @@
+<div class="custom-modal-backdrop" *ngIf="modalData" (click)="onCancel()">
+  <div class="custom-modal-dialog shadow-lg text-light" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="custom-modal-header border-bottom border-secondary pb-3 d-flex justify-content-between align-items-center">
+      <h5 class="m-0 fw-bold d-flex align-items-center gap-2">
+        <i [ngClass]="getIconClass()" class="fs-4"></i>
+        {{ modalData.title }}
+      </h5>
+      <button type="button" class="btn-close btn-close-white" aria-label="Close" (click)="onCancel()"></button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="custom-modal-body py-4 fs-5 text-center">
+      {{ modalData.message }}
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="custom-modal-footer border-top border-secondary pt-3 d-flex justify-content-end gap-2">
+      <button 
+        *ngIf="modalData.type === 'confirm'" 
+        type="button" 
+        class="btn btn-outline-secondary px-4 rounded-pill fw-semibold" 
+        (click)="onCancel()">
+        Cancelar
+      </button>
+      <button 
+        type="button" 
+        class="btn px-4 rounded-pill fw-semibold text-white shadow-sm"
+        [ngClass]="{'btn-primary': modalData.icon === 'info', 'btn-danger': modalData.icon === 'error' || modalData.icon === 'warning', 'btn-success': modalData.icon === 'success'}"
+        (click)="onAccept()">
+        Aceptar
+      </button>
+    </div>
+  </div>
+</div>

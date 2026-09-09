@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { ModalService } from '../../core/services/modal.service';
 
 @Component({
   selector: 'app-empleados',
@@ -9,10 +10,11 @@ import { environment } from '../../../environments/environment';
 export class EmpleadosComponent implements OnInit {
   empleados: any[] = [];
   cargando = false;
+  procesandoId: number | null = null;
   filtroTexto = '';
   filtroRol: 'TODOS' | 'EMPLEADOS' | 'COORDINADORES' = 'TODOS';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private modalService: ModalService) {}
 
   ngOnInit(): void {
     this.cargarEmpleados();
@@ -54,31 +56,45 @@ export class EmpleadosComponent implements OnInit {
     return filtrados;
   }
 
-  desactivarUsuario(id: number, nombre: string): void {
-    if (confirm(`¿Estás seguro de que deseas desactivar a ${nombre}? Esta acción inhabilitará su acceso al sistema y lo desvinculará de cualquier unidad asignada.`)) {
+  async desactivarUsuario(id: number, nombre: string): Promise<void> {
+    const confirmado = await this.modalService.showConfirm(
+      `¿Estás seguro de que deseas desactivar a ${nombre}? Esta acción inhabilitará su acceso al sistema y lo desvinculará de cualquier unidad asignada.`
+    );
+    
+    if (confirmado) {
+      this.procesandoId = id;
       this.http.delete(`${environment.apiUrl}/usuarios/${id}`).subscribe({
         next: () => {
-          alert(`Usuario ${nombre} desactivado correctamente.`);
+          this.modalService.showAlert(`Usuario ${nombre} desactivado correctamente.`, 'Éxito', 'success');
           this.cargarEmpleados();
+          this.procesandoId = null;
         },
         error: (err) => {
           console.error(err);
-          alert('Ocurrió un error al intentar desactivar el usuario.');
+          this.modalService.showAlert('Ocurrió un error al intentar desactivar el usuario.', 'Error', 'error');
+          this.procesandoId = null;
         }
       });
     }
   }
 
-  activarUsuario(id: number, nombre: string): void {
-    if (confirm(`¿Estás seguro de que deseas activar a ${nombre}? Esta acción rehabilitará su acceso al sistema.`)) {
+  async activarUsuario(id: number, nombre: string): Promise<void> {
+    const confirmado = await this.modalService.showConfirm(
+      `¿Estás seguro de que deseas activar a ${nombre}? Esta acción rehabilitará su acceso al sistema.`
+    );
+
+    if (confirmado) {
+      this.procesandoId = id;
       this.http.put(`${environment.apiUrl}/usuarios/aprobar/${id}`, {}).subscribe({
         next: () => {
-          alert(`Usuario ${nombre} activado correctamente.`);
+          this.modalService.showAlert(`Usuario ${nombre} activado correctamente.`, 'Éxito', 'success');
           this.cargarEmpleados();
+          this.procesandoId = null;
         },
         error: (err) => {
           console.error(err);
-          alert('Ocurrió un error al intentar activar el usuario.');
+          this.modalService.showAlert('Ocurrió un error al intentar activar el usuario.', 'Error', 'error');
+          this.procesandoId = null;
         }
       });
     }

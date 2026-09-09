@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild, AfterViewInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { ModalService } from '../../core/services/modal.service';
 import { VehiculoService } from '../../services/vehiculo.service';
 
 export interface InspeccionLivianoDanoDTO {
@@ -140,7 +141,8 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
 
   constructor(
     private http: HttpClient,
-    private vehiculoService: VehiculoService
+    private vehiculoService: VehiculoService,
+    private modalService: ModalService
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -215,18 +217,18 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
                 this.fasePrincipal = 'FORMULARIO';
                 this.etapaActual = 1;
               } else {
-                alert('El conductor fue encontrado pero no tiene un vehículo asignado.');
+                this.modalService.showAlert('El conductor fue encontrado pero no tiene un vehículo asignado.', 'Sin vehículo', 'warning');
               }
               this.verificando = false;
             },
-            error: () => { alert('Error al verificar los vehículos.'); this.verificando = false; }
+            error: () => { this.modalService.showAlert('Error al verificar los vehículos.', 'Error', 'error'); this.verificando = false; }
           });
         } else {
-          alert('Conductor no encontrado. Verifica la cédula o ficha ingresada.');
+          this.modalService.showAlert('Conductor no encontrado. Verifica la cédula o ficha ingresada.', 'No Encontrado', 'warning');
           this.verificando = false;
         }
       },
-      error: () => { alert('Error al verificar el conductor en el servidor.'); this.verificando = false; }
+      error: () => { this.modalService.showAlert('Error al verificar el conductor en el servidor.', 'Error', 'error'); this.verificando = false; }
     });
   }
 
@@ -250,6 +252,19 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
   }
 
   avanzar(): void { 
+    if (this.etapaActual === 1) {
+      if (!this.dto.kilometraje) {
+        this.modalService.showAlert('Debe ingresar el kilometraje actual para continuar.', 'Campo Requerido', 'warning');
+        return;
+      }
+    }
+    if (this.etapaActual === 2) {
+      if (!this.dto.nivelCombustible || !this.dto.limpieza) {
+        this.modalService.showAlert('Debe seleccionar el nivel de combustible y limpieza para continuar.', 'Campos Requeridos', 'warning');
+        return;
+      }
+    }
+    
     if (this.etapaActual < 5) this.etapaActual++; 
     if (this.etapaActual === 5) setTimeout(() => this.initCanvasFirmas(), 300);
   }
@@ -345,7 +360,7 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
 
     this.http.post(`${environment.apiUrl}/inspecciones-livianos`, this.dto).subscribe({
       next: (response) => {
-        alert(`¡Inspección de ${this.tipoInspeccionActual} completada con éxito!`);
+        this.modalService.showAlert(`¡Inspección de ${this.tipoInspeccionActual} completada con éxito!`, 'Éxito', 'success');
         this.guardando = false;
         
         if (this.isAuditoria) {
@@ -360,7 +375,7 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
       },
       error: (err) => {
         console.error(err);
-        alert('Error al guardar la inspección');
+        this.modalService.showAlert('Error al guardar la inspección', 'Error', 'error');
         this.guardando = false;
       }
     });

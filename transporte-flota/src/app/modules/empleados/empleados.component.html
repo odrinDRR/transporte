@@ -64,11 +64,17 @@
               }}</span>
           </td>
           <td class="text-center">
-            <button *ngIf="e.estado === 'ACTIVO'" class="btn btn-sm btn-outline-danger" (click)="desactivarUsuario(e.id, e.nombre + ' ' + e.apellido)">
-              <i class="bi bi-person-x"></i> Desactivar
+            <button *ngIf="e.estado === 'ACTIVO'" class="btn btn-sm btn-outline-danger" 
+                    [disabled]="procesandoId === e.id"
+                    (click)="desactivarUsuario(e.id, e.nombre + ' ' + e.apellido)">
+              <span *ngIf="procesandoId === e.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <i *ngIf="procesandoId !== e.id" class="bi bi-person-x"></i> Desactivar
             </button>
-            <button *ngIf="e.estado === 'INACTIVO'" class="btn btn-sm btn-outline-success" (click)="activarUsuario(e.id, e.nombre + ' ' + e.apellido)">
-              <i class="bi bi-person-check"></i> Activar
+            <button *ngIf="e.estado === 'INACTIVO'" class="btn btn-sm btn-outline-success" 
+                    [disabled]="procesandoId === e.id"
+                    (click)="activarUsuario(e.id, e.nombre + ' ' + e.apellido)">
+              <span *ngIf="procesandoId === e.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+              <i *ngIf="procesandoId !== e.id" class="bi bi-person-check"></i> Activar
             </button>
           </td>
         </tr>

@@ -8,7 +8,8 @@ import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-mantenimiento',
-  templateUrl: './mantenimiento.component.html'
+  templateUrl: './mantenimiento.component.html',
+  styleUrls: ['./mantenimiento.component.scss']
 })
 export class MantenimientoComponent implements OnInit {
   constructor(
