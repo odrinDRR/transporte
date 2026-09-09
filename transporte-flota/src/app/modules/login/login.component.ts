@@ -164,7 +164,11 @@ export class LoginComponent {
         error: (err) => {
           console.error(err);
           this.cargandoLogin = false;
-          alert(err.error || 'Credenciales inválidas o usuario inactivo');
+          if (err.status === 0) {
+            alert('Comunicación fallida por favor comuníquese con su proveedor');
+          } else {
+            alert(err.error || 'Credenciales inválidas o usuario inactivo');
+          }
         }
       });
     } else {
@@ -322,7 +326,11 @@ export class LoginComponent {
         },
         error: (err) => {
           this.cargandoRegistro = false;
-          alert(err.error || 'Ocurrió un error al registrarse.');
+          if (err.status === 0) {
+            alert('Comunicación fallida por favor comuníquese con su proveedor');
+          } else {
+            alert(err.error || 'Ocurrió un error al registrarse.');
+          }
         }
       });
     } catch (error) {

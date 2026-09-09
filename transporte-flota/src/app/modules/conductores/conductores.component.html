@@ -66,11 +66,17 @@
           </td>
           <td *ngIf="flotaService.puedeRegistrarOAsignar()">
             <!-- Botón Asignar en la Fila -->
-            <button *ngIf="!c.vehiculoAsignadoId" class="btn btn-sm btn-outline-info" (click)="abrirAsignacion(c)">
+            <button *ngIf="!c.vehiculoAsignadoId && c.estado === 'ACTIVO'" class="btn btn-sm btn-outline-info" (click)="abrirAsignacion(c)">
               <i class="bi bi-link-45deg"></i> Asignar Unidad
             </button>
             <button *ngIf="c.vehiculoAsignadoId" class="btn btn-sm btn-outline-danger" (click)="revocarAsignacion(c)">
               <i class="bi bi-x-circle"></i> Desvincular
+            </button>
+            <button *ngIf="c.estado === 'ACTIVO'" class="btn btn-sm btn-outline-danger ms-2" (click)="desactivarUsuario(c.id, c.nombre)">
+              <i class="bi bi-person-x"></i> Desactivar
+            </button>
+            <button *ngIf="c.estado === 'INACTIVO'" class="btn btn-sm btn-outline-success ms-2" (click)="activarUsuario(c.id, c.nombre)">
+              <i class="bi bi-person-check"></i> Activar
             </button>
           </td>
         </tr>

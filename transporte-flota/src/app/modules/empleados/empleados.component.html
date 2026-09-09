@@ -63,12 +63,12 @@
               [ngClass]="{'bg-success': e.estado === 'ACTIVO', 'bg-warning': e.estado === 'INACTIVO'}">{{ e.estado
               }}</span>
           </td>
-          <td>
-            <button class="btn btn-sm btn-outline-light me-1" title="Ver Documentos">
-              <i class="bi bi-file-earmark-person"></i>
+          <td class="text-center">
+            <button *ngIf="e.estado === 'ACTIVO'" class="btn btn-sm btn-outline-danger" (click)="desactivarUsuario(e.id, e.nombre + ' ' + e.apellido)">
+              <i class="bi bi-person-x"></i> Desactivar
             </button>
-            <button class="btn btn-sm btn-outline-primary" title="Editar">
-              <i class="bi bi-pencil"></i>
+            <button *ngIf="e.estado === 'INACTIVO'" class="btn btn-sm btn-outline-success" (click)="activarUsuario(e.id, e.nombre + ' ' + e.apellido)">
+              <i class="bi bi-person-check"></i> Activar
             </button>
           </td>
         </tr>

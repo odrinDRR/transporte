@@ -23,10 +23,9 @@ export class EmpleadosComponent implements OnInit {
     this.http.get<any[]>(`${environment.apiUrl}/usuarios`).subscribe({
       next: (usuarios) => {
         // Mostrar SOLO EMPLEADO y COORDINADOR que no estén pendientes
-        this.empleados = usuarios.filter(u => 
-          u.estado !== 'PENDIENTE' && 
-          (u.cargo === 'EMPLEADO' || u.cargo === 'COORDINADOR')
-        );
+        this.empleados = usuarios
+          .filter(u => u.estado !== 'PENDIENTE' && (u.cargo === 'EMPLEADO' || u.cargo === 'COORDINADOR'))
+          .sort((a, b) => (a.estado === 'ACTIVO' ? -1 : 1));
         this.cargando = false;
       },
       error: (err) => {
@@ -53,5 +52,35 @@ export class EmpleadosComponent implements OnInit {
       );
     }
     return filtrados;
+  }
+
+  desactivarUsuario(id: number, nombre: string): void {
+    if (confirm(`¿Estás seguro de que deseas desactivar a ${nombre}? Esta acción inhabilitará su acceso al sistema y lo desvinculará de cualquier unidad asignada.`)) {
+      this.http.delete(`${environment.apiUrl}/usuarios/${id}`).subscribe({
+        next: () => {
+          alert(`Usuario ${nombre} desactivado correctamente.`);
+          this.cargarEmpleados();
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Ocurrió un error al intentar desactivar el usuario.');
+        }
+      });
+    }
+  }
+
+  activarUsuario(id: number, nombre: string): void {
+    if (confirm(`¿Estás seguro de que deseas activar a ${nombre}? Esta acción rehabilitará su acceso al sistema.`)) {
+      this.http.put(`${environment.apiUrl}/usuarios/aprobar/${id}`, {}).subscribe({
+        next: () => {
+          alert(`Usuario ${nombre} activado correctamente.`);
+          this.cargarEmpleados();
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Ocurrió un error al intentar activar el usuario.');
+        }
+      });
+    }
   }
 }

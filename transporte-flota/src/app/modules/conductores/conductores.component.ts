@@ -50,11 +50,17 @@ export class ConductoresComponent implements OnInit {
               cedula: u.cedula,
               fichaNumerica: u.ficha || u.licencia || 'Sin ficha',
               licenciaVigente: true,
-              vencimientoLicencia: u.fechaVencimientoLicencia || '',
-              vencimientoMedico: u.urlCertificadoMedico || '',
+              fechaVencimientoLicencia: u.fechaVencimientoLicencia || '',
+              fechaVencimientoCertificadoMedico: u.fechaVencimientoCertificadoMedico || '',
+              urlLicencia: u.urlLicencia || '',
+              urlCertificadoMedico: u.urlCertificadoMedico || '',
               fotoUrl: u.fotoUrl || '',
-              vehiculoAsignadoId: veh ? veh.id : null
+              vehiculoAsignadoId: veh ? veh.id : null,
+              estado: u.estado
             };
+          })
+          .sort((a, b) => {
+            return a.estado === 'ACTIVO' ? -1 : 1;
           });
 
         this.conductoresSubject.next(conductoresMap);
@@ -139,6 +145,36 @@ export class ConductoresComponent implements OnInit {
         error: (err) => {
           console.error(err);
           alert('Error al desvincular la unidad.');
+        }
+      });
+    }
+  }
+
+  desactivarUsuario(id: number, nombre: string): void {
+    if (confirm(`¿Estás seguro de que deseas desactivar a ${nombre}? Esta acción inhabilitará su acceso al sistema y lo desvinculará de cualquier unidad asignada.`)) {
+      this.http.delete(`${environment.apiUrl}/usuarios/${id}`).subscribe({
+        next: () => {
+          alert(`Usuario ${nombre} desactivado correctamente.`);
+          this.ngOnInit(); // Refresh list
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Ocurrió un error al intentar desactivar el usuario.');
+        }
+      });
+    }
+  }
+
+  activarUsuario(id: number, nombre: string): void {
+    if (confirm(`¿Estás seguro de que deseas activar a ${nombre}? Esta acción rehabilitará su acceso al sistema.`)) {
+      this.http.put(`${environment.apiUrl}/usuarios/aprobar/${id}`, {}).subscribe({
+        next: () => {
+          alert(`Usuario ${nombre} activado correctamente.`);
+          this.ngOnInit(); // Refresh list
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Ocurrió un error al intentar activar el usuario.');
         }
       });
     }

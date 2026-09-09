@@ -61,11 +61,14 @@ export interface Conductor {
   fichaNumerica?: string;
   telefono?: string;
   licenciaVigente?: boolean;
-  vencimientoLicencia?: string;
-  vencimientoMedico?: string;
+  fechaVencimientoLicencia?: string;
+  fechaVencimientoCertificadoMedico?: string;
+  urlLicencia?: string;
+  urlCertificadoMedico?: string;
   fotoUrl?: string;
   vehiculoAsignadoId?: number | null;
   activo?: boolean;
+  estado?: string;
   inspeccionAbierta?: boolean;
 }
 
