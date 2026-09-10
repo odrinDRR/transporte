@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import * as CryptoJS from 'crypto-js';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -31,7 +32,8 @@ export class AuthService {
 
   // Login contra la base de datos
   login(username: string, password: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/login`, { username, password }).pipe(
+    const hashedPassword = CryptoJS.SHA256(password).toString();
+    return this.http.post<any>(`${this.apiUrl}/login`, { username, password: hashedPassword }).pipe(
       tap(res => {
         // Guardar la respuesta del servidor en el Storage
         localStorage.setItem('smu_id', res.id);
@@ -47,6 +49,9 @@ export class AuthService {
 
   // Registro de nuevo usuario
   register(datosRegistro: any): Observable<any> {
+    if (datosRegistro.password) {
+      datosRegistro.password = CryptoJS.SHA256(datosRegistro.password).toString();
+    }
     return this.http.post<any>(`${this.apiUrl}/register`, datosRegistro, { responseType: 'text' as 'json' });
   }
 
