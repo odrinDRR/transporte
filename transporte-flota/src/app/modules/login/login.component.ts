@@ -264,13 +264,13 @@ export class LoginComponent {
 
   async enviarParaAprobacion(): Promise<void> {
     if (!this.nuevoUsuario.username || !this.nuevoUsuario.password) {
-      alert('Indica un usuario y contraseña válidos.');
+      this.modalService.showAlert('Indica un usuario y contraseña válidos.', 'Atención', 'warning');
       return;
     }
 
     const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,14}$/;
     if (!passwordRegex.test(this.nuevoUsuario.password)) {
-      alert('La contraseña debe cumplir las reglas de seguridad requeridas.');
+      this.modalService.showAlert('La contraseña debe cumplir las reglas de seguridad requeridas.', 'Atención', 'warning');
       return;
     }
 
@@ -324,22 +324,22 @@ export class LoginComponent {
       this.authService.register(payload).subscribe({
         next: (res) => {
           this.cargandoRegistro = false;
-          alert(res || 'Solicitud registrada. La documentación en PDF/Foto fue enviada a revisión.');
+          this.modalService.showAlert(res || 'Solicitud registrada. La documentación en PDF/Foto fue enviada a revisión.', 'Éxito', 'success');
           this.alternarRegistro();
         },
         error: (err) => {
           this.cargandoRegistro = false;
           if (err.status === 0) {
-            alert('Comunicación fallida por favor comuníquese con su proveedor');
+            this.modalService.showAlert('Comunicación fallida por favor comuníquese con su proveedor', 'Error', 'error');
           } else {
-            alert(err.error || 'Ocurrió un error al registrarse.');
+            this.modalService.showAlert(err.error || 'Ocurrió un error al registrarse.', 'Error', 'error');
           }
         }
       });
     } catch (error) {
       this.cargandoRegistro = false;
       console.error('Error subiendo archivos', error);
-      alert('Hubo un problema subiendo los documentos. Inténtalo de nuevo.');
+      this.modalService.showAlert('Hubo un problema subiendo los documentos. Inténtalo de nuevo.', 'Error', 'error');
     }
   }
 

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
 import { environment } from '../../../environments/environment';
+import { ModalService } from '../../core/services/modal.service';
 
 @Component({
   selector: 'app-aprobaciones',
@@ -13,7 +14,7 @@ export class AprobacionesComponent implements OnInit {
   rolActual: string | null = null;
   apiUrl = `${environment.apiUrl}/usuarios`;
 
-  constructor(private http: HttpClient, public authService: AuthService) {}
+  constructor(private http: HttpClient, public authService: AuthService, private modalService: ModalService) {}
 
   ngOnInit(): void {
     this.authService.usuarioActual$.subscribe(user => {
@@ -50,20 +51,22 @@ export class AprobacionesComponent implements OnInit {
     }
   }
 
-  aprobar(id: number, nombre: string): void {
-    if (confirm(`¿Estás seguro de APROBAR el acceso para ${nombre}?`)) {
+  async aprobar(id: number, nombre: string): Promise<void> {
+    const isConfirmed = await this.modalService.showConfirm(`¿Estás seguro de APROBAR el acceso para ${nombre}?`, 'Confirmar Aprobación', 'info');
+    if (isConfirmed) {
       this.http.put(`${this.apiUrl}/aprobar/${id}`, {}).subscribe({
         next: () => {
           this.cargarUsuarios();
-          alert('Usuario aprobado y notificado. Ya puede iniciar sesión.');
+          this.modalService.showAlert('Usuario aprobado y notificado. Ya puede iniciar sesión.', 'Éxito', 'success');
         },
         error: (err) => console.error('Error al aprobar', err)
       });
     }
   }
 
-  rechazar(id: number): void {
-    if (confirm('¿Deseas RECHAZAR y eliminar esta solicitud?')) {
+  async rechazar(id: number): Promise<void> {
+    const isConfirmed = await this.modalService.showConfirm('¿Deseas RECHAZAR y eliminar esta solicitud?', 'Confirmar Rechazo', 'warning');
+    if (isConfirmed) {
       this.http.delete(`${this.apiUrl}/${id}`).subscribe({
         next: () => this.cargarUsuarios(),
         error: (err) => console.error('Error al rechazar', err)

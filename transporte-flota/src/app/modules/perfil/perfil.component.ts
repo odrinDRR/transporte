@@ -3,6 +3,7 @@ import { AuthService } from '../../services/auth.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { ArchivoService } from '../../services/archivo.service';
 import { SupabaseStorageService } from '../../services/supabase-storage.service';
+import { ModalService } from '../../core/services/modal.service';
 
 @Component({
   selector: 'app-perfil',
@@ -11,6 +12,7 @@ import { SupabaseStorageService } from '../../services/supabase-storage.service'
 })
 export class PerfilComponent implements OnInit {
   usuarioData: any = {};
+  originalData: string = '';
   cargando: boolean = true;
   guardando: boolean = false;
   isEmpleadoOConductor: boolean = false;
@@ -25,7 +27,8 @@ export class PerfilComponent implements OnInit {
     private authService: AuthService,
     private usuarioService: UsuarioService,
     private archivoService: ArchivoService,
-    private supabaseStorage: SupabaseStorageService
+    private supabaseStorage: SupabaseStorageService,
+    private modalService: ModalService
   ) {}
 
   ngOnInit(): void {
@@ -38,6 +41,7 @@ export class PerfilComponent implements OnInit {
       this.usuarioService.obtenerPorId(id).subscribe({
         next: (data) => {
           this.usuarioData = data;
+          this.originalData = JSON.stringify(data);
           this.isEmpleadoOConductor = (data.cargo === 'EMPLEADO' || data.cargo === 'CONDUCTOR');
           this.isConductor = (data.cargo === 'CONDUCTOR');
           this.cargando = false;
@@ -49,8 +53,17 @@ export class PerfilComponent implements OnInit {
       });
     } else {
       this.cargando = false;
-      alert('Error de sesión: No se encontró el ID del usuario. Por favor, cierra sesión y vuelve a entrar.');
+      this.modalService.showAlert('Error de sesión: No se encontró el ID del usuario. Por favor, cierra sesión y vuelve a entrar.', 'Error', 'error');
     }
+  }
+
+  get haCambiado(): boolean {
+    if (!this.usuarioData || !this.originalData) return false;
+    // Si seleccionó algún archivo nuevo, consideramos que hay cambios
+    if (this.archivoLicencia || this.archivoMedico) return true;
+    
+    // Comparar con el original para ver si modificó algún texto
+    return JSON.stringify(this.usuarioData) !== this.originalData;
   }
 
   onFileSelected(event: Event, tipo: 'licencia' | 'medico'): void {
@@ -103,8 +116,9 @@ export class PerfilComponent implements OnInit {
       this.usuarioService.actualizarUsuario(id, payload).subscribe({
         next: (res) => {
           this.guardando = false;
-          alert('¡Perfil actualizado con éxito!');
+          this.modalService.showAlert('¡Perfil actualizado con éxito!', 'Éxito', 'success');
           this.usuarioData = res;
+          this.originalData = JSON.stringify(res);
           // Limpiamos los archivos subidos de la cola
           this.archivoLicencia = null;
           this.archivoLicenciaNombre = '';
@@ -114,13 +128,13 @@ export class PerfilComponent implements OnInit {
         error: (err) => {
           console.error(err);
           this.guardando = false;
-          alert('Hubo un error al guardar el perfil.');
+          this.modalService.showAlert('Hubo un error al guardar el perfil.', 'Error', 'error');
         }
       });
     } catch (error) {
       console.error(error);
       this.guardando = false;
-      alert('Error subiendo los nuevos documentos.');
+      this.modalService.showAlert('Error subiendo los nuevos documentos.', 'Error', 'error');
     }
   }
 }

@@ -7,6 +7,7 @@ import { ConductorService } from '../../services/conductor.service';
 import { ArchivoService } from '../../services/archivo.service';
 import { SupabaseStorageService } from '../../services/supabase-storage.service';
 import { DependenciaService, Dependencia } from '../../services/dependencia.service';
+import { ModalService } from '../../core/services/modal.service';
 import { Vehiculo, Conductor, FotosFichaTecnica } from '../../core/models/fleet.models';
 
 @Component({
@@ -69,6 +70,7 @@ export class FlotaComponent implements OnInit {
     private dependenciaService: DependenciaService,
     private archivoService: ArchivoService,
     private supabaseStorage: SupabaseStorageService,
+    private modalService: ModalService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -166,12 +168,12 @@ export class FlotaComponent implements OnInit {
 
   async guardarVehiculo() {
     if (!this.nuevoVehiculo.placa || !this.nuevoVehiculo.identificador) {
-      alert('Por favor, completa los datos básicos.');
+      this.modalService.showAlert('Por favor, completa los datos básicos.', 'Atención', 'warning');
       return;
     }
 
     if (!this.fotoPerfilVehiculo) {
-      alert('Debes adjuntar la foto de perfil.');
+      this.modalService.showAlert('Debes adjuntar la foto de perfil.', 'Atención', 'warning');
       return;
     }
 
@@ -228,7 +230,7 @@ export class FlotaComponent implements OnInit {
       // 4. Guardar en Backend
       this.vehiculoService.crearVehiculo(payload as any).subscribe({
         next: (vehiculoDb) => {
-          alert(`¡Vehículo ${vehiculoDb.placa} registrado con éxito!`);
+          this.modalService.showAlert(`¡Vehículo ${vehiculoDb.placa} registrado con éxito!`, 'Éxito', 'success');
           this.cargarDatosBackend();
           this.alternarRegistro();
           this.resetearFormulario();
@@ -247,23 +249,24 @@ export class FlotaComponent implements OnInit {
             } catch (e) { }
           }
           
-          alert(mensajeError);
+          this.modalService.showAlert(mensajeError, 'Error', 'error');
           this.guardandoVehiculo = false;
         }
       });
     } catch (error) {
       console.error('Error subiendo imágenes a Supabase', error);
-      alert('Error subiendo las imágenes. Por favor, intenta de nuevo.');
+      this.modalService.showAlert('Error subiendo las imágenes. Por favor, intenta de nuevo.', 'Error', 'error');
       this.guardandoVehiculo = false;
     }
   }
 
-  eliminar(id?: number): void {
+  async eliminar(id?: number): Promise<void> {
     if (!id) return;
-    if (confirm('¿Eliminar definitivamente esta unidad de la base de datos?')) {
+    const isConfirmed = await this.modalService.showConfirm('¿Eliminar definitivamente esta unidad de la base de datos?', 'Confirmar Eliminación');
+    if (isConfirmed) {
       this.vehiculoService.eliminarVehiculo(id).subscribe({
         next: () => {
-          alert('Vehículo eliminado');
+          this.modalService.showAlert('Vehículo eliminado', 'Éxito', 'success');
           this.cargarDatosBackend(); 
         },
         error: (err) => console.error('Error al eliminar', err)
@@ -544,7 +547,34 @@ export class FlotaComponent implements OnInit {
   }
 
   abrirCarrusel(v: Vehiculo): void {
-    this.fotosCarrusel = v.fotos || [];
+    const todasLasFotos: string[] = [];
+
+    // Agregar foto principal
+    if (v.urlFotoPerfil) {
+      todasLasFotos.push(v.urlFotoPerfil);
+    }
+
+    // Agregar fotos estructuradas (Ficha Técnica) si existen
+    if (v.fotosEstructuradas) {
+      Object.values(v.fotosEstructuradas).forEach(fotoUrl => {
+        if (fotoUrl && typeof fotoUrl === 'string' && fotoUrl.trim() !== '') {
+          todasLasFotos.push(fotoUrl);
+        }
+      });
+    }
+
+    // Agregar fotos adicionales
+    if (v.fotos && v.fotos.length > 0) {
+      todasLasFotos.push(...v.fotos);
+    }
+
+    // Eliminar duplicados en caso de que urlFotoPerfil sea igual a alguna otra
+    this.fotosCarrusel = Array.from(new Set(todasLasFotos));
+
+    if (this.fotosCarrusel.length === 0) {
+      this.fotosCarrusel = ['assets/placeholder.png']; // Imagen por defecto si no hay ninguna
+    }
+
     this.indiceFotoActual = 0;
     this.imagenesCargadas = {};
     this.mostrarCarrusel = true;

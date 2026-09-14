@@ -728,29 +728,31 @@
           <button type="button"
             class="btn btn-outline-light rounded-circle position-absolute top-0 end-0 m-3 z-3 shadow-lg"
             (click)="cerrarCarrusel()"><i class="bi bi-x-lg"></i></button>
-          <div class="modal-body p-0 d-flex align-items-center justify-content-center position-relative"
-            style="min-height: 400px; max-height: 85vh;">
-            <div class="position-absolute top-50 start-50 translate-middle" *ngIf="!imagenesCargadas['carrusel']">
-              <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
-            </div>
-            <img [src]="fotosCarrusel[indiceFotoActual]"
-              class="img-fluid mh-100 object-fit-contain rounded-4 shadow-lg transition-opacity"
-              [style.opacity]="imagenesCargadas['carrusel'] ? 1 : 0" (load)="imagenesCargadas['carrusel'] = true"
-              alt="Auditoría Foto">
-            <button class="touch-nav-btn start-0 ms-3" (click)="anteriorFoto()" *ngIf="fotosCarrusel.length > 1"><i
-                class="bi bi-chevron-left fs-3"></i></button>
-            <button class="touch-nav-btn end-0 me-3" (click)="siguienteFoto()" *ngIf="fotosCarrusel.length > 1"><i
-                class="bi bi-chevron-right fs-3"></i></button>
-          </div>
-          <div class="text-center mt-3">
-            <span class="badge bg-dark border border-secondary px-3 py-2 fs-6">{{ indiceFotoActual + 1 }} / {{
-              fotosCarrusel.length }}</span>
-          </div>
-          <div class="modal-footer border-top border-dark-subtle p-3 justify-content-center gap-2 overflow-x-auto"
-            *ngIf="fotosCarrusel.length > 1">
-            <div *ngFor="let foto of fotosCarrusel; let i = index" class="carousel-thumbnail rounded-2 overflow-hidden"
-              [class.active]="i === indiceFotoActual" (click)="seleccionarFoto(i)">
-              <img [src]="foto" class="w-100 h-100 object-fit-cover" alt="Miniatura">
+          
+          <div class="modal-body p-0">
+            <div id="carruselVehiculo" class="carousel slide" data-bs-ride="carousel">
+              <div class="carousel-indicators" *ngIf="fotosCarrusel.length > 1">
+                <button type="button" data-bs-target="#carruselVehiculo" 
+                        *ngFor="let foto of fotosCarrusel; let i = index" 
+                        [attr.data-bs-slide-to]="i" 
+                        [class.active]="i === 0" 
+                        [attr.aria-current]="i === 0 ? 'true' : null"></button>
+              </div>
+              <div class="carousel-inner">
+                <div class="carousel-item" *ngFor="let foto of fotosCarrusel; let i = index" [class.active]="i === 0">
+                  <div class="d-flex align-items-center justify-content-center" style="height: 80vh;">
+                    <img [src]="foto" class="d-block mw-100 mh-100 object-fit-contain rounded-4 shadow-lg" alt="Foto Vehículo">
+                  </div>
+                </div>
+              </div>
+              <button class="carousel-control-prev" type="button" data-bs-target="#carruselVehiculo" data-bs-slide="prev" *ngIf="fotosCarrusel.length > 1">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Anterior</span>
+              </button>
+              <button class="carousel-control-next" type="button" data-bs-target="#carruselVehiculo" data-bs-slide="next" *ngIf="fotosCarrusel.length > 1">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Siguiente</span>
+              </button>
             </div>
           </div>
         </div>
