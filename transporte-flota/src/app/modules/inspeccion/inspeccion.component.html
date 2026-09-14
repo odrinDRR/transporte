@@ -174,11 +174,11 @@
             <div class="col-12 col-md-8">
                 <label class="form-label text-custom-muted small">Marca / Modelo</label>
                 <input type="text" class="form-control bg-dark text-white border-custom rounded-3" 
-                       [value]="(vehiculoActual?.marca || '') + ' ' + (vehiculoActual?.modelo || '') || vehiculoActual?.marcaModelo || 'N/A'" disabled>
+                       [value]="vehiculoActual?.marcaModelo ? vehiculoActual?.marcaModelo : (vehiculoActual?.marca ? vehiculoActual?.marca + ' ' + (vehiculoActual?.modelo || '') : 'N/A')" disabled>
             </div>
             <div class="col-6 col-md-4">
                 <label class="form-label text-custom-muted small">Serial Carrocería</label>
-                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.serialCarroceria || 'N/A'" disabled>
+                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.vin || 'N/A'" disabled>
             </div>
             <div class="col-6 col-md-4">
                 <label class="form-label text-custom-muted small">Color</label>
@@ -499,7 +499,18 @@
                     {key:'revAire', label:'Aire Acond.'}, {key:'revAntena', label:'Antena'},
                     {key:'revCauchos', label:'Cauchos'}, {key:'revFaros', label:'Faros/Luces'},
                     {key:'revFrenos', label:'Frenos'}, {key:'revVidrios', label:'Vidrios'},
-                    {key:'revTapiceria', label:'Tapicería'}, {key:'revTablero', label:'Tablero/Techo'}
+                    {key:'revTapiceria', label:'Tapicería'}, {key:'revTablero', label:'Tablero'},
+                    {key:'revCenicero', label:'Cenicero'}, {key:'revCerradura', label:'Cerradura'},
+                    {key:'revEmblemas', label:'Emblemas'}, {key:'revEncendedor', label:'Encendedor'},
+                    {key:'revEspejos', label:'Espejos'}, {key:'revFrenoMano', label:'Freno de Mano'},
+                    {key:'revLimpiaParabrisas', label:'Limpia Parabrisas'}, {key:'revLucesCruce', label:'Luces de Cruce'},
+                    {key:'revLucesStop', label:'Luces de Stop'}, {key:'revMaletero', label:'Maletero'},
+                    {key:'revNeumaticos', label:'Neumáticos'}, {key:'revParrilla', label:'Parrilla'},
+                    {key:'revPlacas', label:'Placas'}, {key:'revTapaGasolina', label:'Tapa Gasolina'},
+                    {key:'revBateria', label:'Batería'}, {key:'revAlfombras', label:'Alfombras'},
+                    {key:'revApoyaCabezas', label:'Apoya Cabezas'}, {key:'revAsientos', label:'Asientos'},
+                    {key:'revCinturonSeguridad', label:'Cinturones'}, {key:'revPuertas', label:'Puertas'},
+                    {key:'revTecho', label:'Techo'}
                 ]">
                     <label class="form-label text-custom-muted small mb-1">{{rev.label}}</label>
                     <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto[rev.key]">
@@ -523,9 +534,16 @@
                             <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
                                 [ngClass]="{'campo-invalido': erroresEtapa.includes('batCodigo'), 'border-custom': !erroresEtapa.includes('batCodigo')}"
                                 placeholder="Código" [(ngModel)]="dto.batCodigo"></div>
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
-                                [ngClass]="{'campo-invalido': erroresEtapa.includes('batVida'), 'border-custom': !erroresEtapa.includes('batVida')}"
-                                placeholder="% Vida Útil" [(ngModel)]="dto.batVida"></div>
+                            <div class="col-6">
+                                <select class="form-select bg-dark text-white rounded-3" 
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('batVida'), 'border-custom': !erroresEtapa.includes('batVida')}"
+                                    [(ngModel)]="dto.batVida">
+                                    <option value="" disabled selected>Vida Útil</option>
+                                    <option value="Bueno">Bueno</option>
+                                    <option value="Regular">Regular</option>
+                                    <option value="Malo">Malo</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -542,9 +560,16 @@
                             <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
                                 [ngClass]="{'campo-invalido': erroresEtapa.includes('cauCodigo'), 'border-custom': !erroresEtapa.includes('cauCodigo')}"
                                 placeholder="Código" [(ngModel)]="dto.cauCodigo"></div>
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
-                                [ngClass]="{'campo-invalido': erroresEtapa.includes('cauVida'), 'border-custom': !erroresEtapa.includes('cauVida')}"
-                                placeholder="% Vida Útil" [(ngModel)]="dto.cauVida"></div>
+                            <div class="col-6">
+                                <select class="form-select bg-dark text-white rounded-3" 
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('cauVida'), 'border-custom': !erroresEtapa.includes('cauVida')}"
+                                    [(ngModel)]="dto.cauVida">
+                                    <option value="" disabled selected>Vida Útil</option>
+                                    <option value="Bueno">Bueno</option>
+                                    <option value="Regular">Regular</option>
+                                    <option value="Malo">Malo</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
