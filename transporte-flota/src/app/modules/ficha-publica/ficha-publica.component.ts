@@ -52,7 +52,6 @@ export class FichaPublicaComponent implements OnInit {
           nombre: u.nombre + (u.apellido ? ' ' + u.apellido : ''),
           cedula: u.cedula,
           telefono: u.telefono || '',
-          licencia: '',
           estado: u.activo ? 'ACTIVO' : 'INACTIVO'
         };
         this.cargando = false;
