@@ -1,0 +1,25 @@
+.ficha-container {
+  min-height: 100vh;
+}
+
+@media print {
+  .ficha-container {
+    min-height: auto;
+    padding: 0 !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+
+  @page {
+    margin: 0.5cm;
+    size: auto;
+  }
+
+  html, body {
+    height: auto;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}
