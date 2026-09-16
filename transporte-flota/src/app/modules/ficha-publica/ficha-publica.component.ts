@@ -10,13 +10,13 @@ import { environment } from '../../../environments/environment';
 })
 export class FichaPublicaComponent implements OnInit {
   @Input() vehiculoId!: number;
-  
+
   vehiculo: Vehiculo | null = null;
   conductor: Conductor | null = null;
   cargando = true;
   error = '';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
     if (this.vehiculoId) {
@@ -45,13 +45,21 @@ export class FichaPublicaComponent implements OnInit {
   }
 
   cargarConductor(id: number) {
-    this.http.get<Conductor>(`${environment.apiUrl}/conductores/${id}`).subscribe({
-      next: (c) => {
-        this.conductor = c;
+    this.http.get<any>(`${environment.apiUrl}/usuarios/${id}`).subscribe({
+      next: (u) => {
+        this.conductor = {
+          id: u.id,
+          nombre: u.nombre + (u.apellido ? ' ' + u.apellido : ''),
+          cedula: u.cedula,
+          telefono: u.telefono || '',
+          licencia: '',
+          estado: u.activo ? 'ACTIVO' : 'INACTIVO'
+        };
         this.cargando = false;
       },
       error: (err) => {
-        this.cargando = false; // No importa si el conductor falla
+        console.error('Error al cargar responsable (usuario)', err);
+        this.cargando = false; // No importa si el usuario falla
       }
     });
   }
