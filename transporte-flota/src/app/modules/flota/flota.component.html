@@ -206,7 +206,7 @@
                 <div class="col-12 col-md-4 text-center mb-3 mb-md-0">
                   <div class="p-2 bg-white rounded-4 d-inline-block shadow-lg border border-4 border-light">
                     <img
-                      src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}"
+                      src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ originUrl }}?ficha={{ vehiculoSeleccionado.id }}"
                       alt="Código QR" class="img-fluid" style="width: 130px; height: 130px;">
                   </div>
                 </div>
@@ -1073,7 +1073,7 @@
     <div *ngIf="vehiculoSeleccionado" class="w-100 text-center bg-white text-black pt-5 print-container">
       <div class="mt-5 pt-5">
         <img
-          src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}"
+          src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={{ originUrl }}?ficha={{ vehiculoSeleccionado.id }}"
           style="width: 400px; height: 400px;">
         <h1 class="mt-4 display-3 fw-bold text-black font-monospace">{{ vehiculoSeleccionado.placa }}</h1>
         <h3 class="mt-2 text-dark">{{ vehiculoSeleccionado.identificador }}</h3>

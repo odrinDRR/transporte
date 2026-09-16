@@ -20,6 +20,7 @@ import { EmpleadosComponent } from './modules/empleados/empleados.component';
 import { ListadoAuditoriasComponent } from './modules/listado-auditorias/listado-auditorias.component';
 import { ModalComponent } from './shared/components/modal/modal.component';
 import { HistorialInspeccionesComponent } from './modules/historial-inspecciones/historial-inspecciones.component';
+import { FichaPublicaComponent } from './modules/ficha-publica/ficha-publica.component';
 
 @NgModule({
   declarations: [
@@ -38,7 +39,8 @@ import { HistorialInspeccionesComponent } from './modules/historial-inspecciones
     EmpleadosComponent,
     ListadoAuditoriasComponent,
     ModalComponent,
-    HistorialInspeccionesComponent
+    HistorialInspeccionesComponent,
+    FichaPublicaComponent
   ],
   imports: [
     BrowserModule,
