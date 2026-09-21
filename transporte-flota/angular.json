@@ -75,8 +75,11 @@
           },
           "defaultConfiguration": "production"
         },
-        "serve": {
+       "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "proxyConfig": "src/proxy.conf.json"
+          },
           "configurations": {
             "production": {
               "browserTarget": "transporte-flota:build:production"
@@ -87,12 +90,7 @@
           },
           "defaultConfiguration": "development"
         },
-        "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
-          "options": {
-            "browserTarget": "transporte-flota:build"
-          }
-        },
+        
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {

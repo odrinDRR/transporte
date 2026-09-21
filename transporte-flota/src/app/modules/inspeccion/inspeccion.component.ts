@@ -17,6 +17,7 @@ export interface InspeccionLivianoDanoDTO {
   styleUrls: ['./inspeccion.component.scss']
 })
 export class InspeccionComponent implements AfterViewInit, OnChanges {
+
   // ---- ENTRADAS PARA MODO AUDITORIA ----
   @Input() isAuditoria: boolean = false;
   @Input() inspeccionOrigenId?: number;
@@ -31,16 +32,16 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
   vehiculoSeleccionadoUI: string = '';
 
   tiposVehiculosUI = [
-    { name: 'AMBULANCIA', icon: 'bi bi-hospital' },
-    { name: 'CAMIONETA PICKUP', icon: 'bi bi-truck-flatbed' },
-    { name: 'GRÚA', icon: 'bi bi-cone-striped' },
-    { name: 'CAMIÓN', icon: 'bi bi-truck' },
-    { name: 'CAMIONETA (SUV)', icon: 'bi bi-car-front' },
-    { name: 'MOTOCICLETA', icon: 'bi bi-bicycle' },
-    { name: 'SEDÁN', icon: 'bi bi-car-front-fill' },
-    { name: 'GANDOLA', icon: 'bi bi-bus-front' }
+    { name: 'MOTOCICLETA',       icon: 'fa-solid fa-motorcycle' },
+    { name: 'SEDÁN',             icon: 'fa-solid fa-car-side' },
+    { name: 'CAMIONETA (SUV)',   icon: 'fa-solid fa-car' },
+    { name: 'CAMIONETA PICKUP',  icon: 'fa-solid fa-truck-pickup' },
+    { name: 'CAMIÓN',            icon: 'fa-solid fa-truck' },
+    { name: 'GANDOLA',           icon: 'fa-solid fa-truck-moving' },
+    { name: 'GRÚA',              icon: 'fa-solid fa-truck-arrow-right' },
+    { name: 'AMBULANCIA',        icon: 'fa-solid fa-truck-medical' }
   ];
-  
+
   // Datos del conductor
   cedulaInput: string = '';
   nombreConductorActual: string = '';
@@ -154,7 +155,7 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     inspectorNombre: '', inspectorCargo: '', inspectorPersonal: '',
     entregaNombre: '', entregaCargo: '', entregaPersonal: '',
     recibeNombre: '', recibeCargo: '', recibePersonal: '',
-    
+
     // Core relations
     vehiculoId: null,
     usuarioId: null
@@ -171,16 +172,16 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
       this.vehiculoActual = this.vehiculoAuditoria;
       this.conductorActual = this.conductorAuditoria;
       this.nombreConductorActual = this.conductorActual.nombre;
-      
+
       this.dto.vehiculoId = Number(this.vehiculoActual.id);
       this.dto.usuarioId = Number(this.conductorActual.id);
       this.dto.inspectorNombre = 'AUDITOR';
-      
+
       this.tipoInspeccionActual = 'CIERRE';
       this.dto.tipoInspeccion = 'CIERRE';
       this.dto.inspeccionOrigenId = this.inspeccionOrigenId;
       this.dto.motivo = 'AUDITORIA';
-      
+
       this.fasePrincipal = 'FORMULARIO';
       this.etapaActual = 1;
     }
@@ -190,14 +191,14 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
 
   // --- PASO 1: VALIDAR CÉDULA O FICHA ---
   verificarCedula(): void {
-    if(!this.cedulaInput) return;
+    if (!this.cedulaInput) return;
     this.verificando = true;
-    
+
     this.http.get<any[]>(`${environment.apiUrl}/usuarios`).subscribe({
       next: (usuarios) => {
         const term = this.cedulaInput.trim().toLowerCase();
-        const usuarioActual = usuarios.find(u => 
-          u.cargo === 'CONDUCTOR' && 
+        const usuarioActual = usuarios.find(u =>
+          u.cargo === 'CONDUCTOR' &&
           u.estado !== 'PENDIENTE' &&
           (
             (u.cedula && u.cedula.toLowerCase() === term) ||
@@ -210,7 +211,7 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
           this.vehiculoService.obtenerVehiculos().subscribe({
             next: (vehs) => {
               this.vehiculoActual = vehs.find(v => v.conductorId === usuarioActual.id) || null;
-              
+
               if (this.vehiculoActual) {
                 this.nombreConductorActual = usuarioActual.nombre;
                 this.conductorActual = {
@@ -226,18 +227,18 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
                 // NO pre-cargar nombres en firmas — el usuario debe escribirlos manualmente
                 this.dto.inspectorNombre = '';
                 this.dto.entregaNombre = '';
-                
+
                 // Jump straight to the form (Nuevo flujo)
                 this.tipoInspeccionActual = this.operacionSeleccionada === 'LLEGADA' ? 'CIERRE' : 'INICIO';
                 this.dto.tipoInspeccion = this.tipoInspeccionActual;
                 this.dto.operacion = this.operacionSeleccionada;
                 if (this.operacionSeleccionada === 'GENERAL') {
-                   this.dto.motivo = 'RUTINARIO';
+                  this.dto.motivo = 'RUTINARIO';
                 }
-                
+
                 // Actualizar tipoVehiculo local y tipo de gráfico
                 this.vehiculoActual.tipoVehiculo = this.vehiculoSeleccionadoUI;
-                
+
                 this.fasePrincipal = 'FORMULARIO';
                 this.etapaActual = 1;
               } else {
@@ -267,6 +268,66 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     this.fasePrincipal = 'INGRESO_CEDULA';
   }
 
+  /**
+   * 🚀 ACCESO RÁPIDO PARA DESARROLLO LOCAL
+   * Salta la verificación de cédula usando datos mockeados.
+   */
+  accesoRapidoDev(): void {
+    // Guard de seguridad: no ejecutar en producción
+    if (environment.production) {
+      console.warn('accesoRapidoDev() no debería usarse en producción.');
+      return;
+    }
+
+    // Valores por defecto por si no se ha pasado por las fases previas
+    if (!this.operacionSeleccionada) this.operacionSeleccionada = 'GENERAL';
+    if (!this.vehiculoSeleccionadoUI) this.vehiculoSeleccionadoUI = 'SEDÁN';
+
+    // Datos mock para desarrollo
+    const conductorMock = {
+      id: 999,
+      nombre: 'Conductor Demo',
+      cedula: '12345678',
+      fichaNumerica: 'DEMO-001',
+      vehiculoAsignadoId: 999
+    };
+
+    const vehiculoMock = {
+      id: 999,
+      placa: 'DEMO-001',
+      marca: 'Toyota',
+      modelo: 'Hilux',
+      marcaModelo: 'Toyota Hilux',
+      vin: 'VIN-DEMO-0001',
+      color: 'Blanco',
+      anio: 2024,
+      tipoVehiculo: this.vehiculoSeleccionadoUI || 'SEDÁN',
+      conductorId: 999
+    };
+
+    this.conductorActual = conductorMock;
+    this.vehiculoActual = vehiculoMock;
+    this.nombreConductorActual = conductorMock.nombre;
+
+    // Cargar DTO
+    this.dto.vehiculoId = vehiculoMock.id;
+    this.dto.usuarioId = conductorMock.id;
+    this.dto.inspectorNombre = '';
+    this.dto.entregaNombre = '';
+
+    // Determinar tipo de inspección según operación
+    this.tipoInspeccionActual = this.operacionSeleccionada === 'LLEGADA' ? 'CIERRE' : 'INICIO';
+    this.dto.tipoInspeccion = this.tipoInspeccionActual;
+    this.dto.operacion = this.operacionSeleccionada;
+    if (this.operacionSeleccionada === 'GENERAL') {
+      this.dto.motivo = 'RUTINARIO';
+    }
+
+    // Saltar directo al formulario
+    this.fasePrincipal = 'FORMULARIO';
+    this.etapaActual = 1;
+  }
+
   // --- PASO 2: ELEGIR TIPO DE RUTA (ANTIGUO) ---
   seleccionarRuta(tipo: 'INICIO' | 'CIERRE'): void {
     this.tipoInspeccionActual = tipo;
@@ -275,7 +336,7 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     this.etapaActual = 1;
   }
 
-  avanzar(): void { 
+  avanzar(): void {
     this.erroresEtapa = [];
     if (this.etapaActual === 1) {
       if (!this.dto.gerenciaSolicitante?.trim()) this.erroresEtapa.push('gerencia');
@@ -284,16 +345,16 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
       if (!this.dto.kilometrajeEntregado) this.erroresEtapa.push('kilometrajeEntregado');
       if (!this.dto.kilometrajeRecibido) this.erroresEtapa.push('kilometrajeRecibido');
       if (!this.dto.transmision) this.erroresEtapa.push('transmision');
-      
+
       if (this.erroresEtapa.length > 0) {
         let msg = 'Debe completar todos los campos requeridos para continuar.';
         if (this.erroresEtapa.length === 1) {
-           if (this.erroresEtapa[0] === 'gerencia') msg = 'Debe ingresar la Gerencia.';
-           else if (this.erroresEtapa[0] === 'unidadUsuaria') msg = 'Debe ingresar la Unidad Usuaria.';
-           else if (this.erroresEtapa[0] === 'centroCosto') msg = 'Debe ingresar el Centro de Costo.';
-           else if (this.erroresEtapa[0] === 'kilometrajeEntregado') msg = 'Debe ingresar el Km Entregado.';
-           else if (this.erroresEtapa[0] === 'kilometrajeRecibido') msg = 'Debe ingresar el Km Recibido.';
-           else if (this.erroresEtapa[0] === 'transmision') msg = 'Debe seleccionar el tipo de Transmisión.';
+          if (this.erroresEtapa[0] === 'gerencia') msg = 'Debe ingresar la Gerencia.';
+          else if (this.erroresEtapa[0] === 'unidadUsuaria') msg = 'Debe ingresar la Unidad Usuaria.';
+          else if (this.erroresEtapa[0] === 'centroCosto') msg = 'Debe ingresar el Centro de Costo.';
+          else if (this.erroresEtapa[0] === 'kilometrajeEntregado') msg = 'Debe ingresar el Km Entregado.';
+          else if (this.erroresEtapa[0] === 'kilometrajeRecibido') msg = 'Debe ingresar el Km Recibido.';
+          else if (this.erroresEtapa[0] === 'transmision') msg = 'Debe seleccionar el tipo de Transmisión.';
         }
         this.modalService.showAlert(msg, 'Campos Incompletos', 'warning');
         return;
@@ -306,7 +367,7 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
       if (!this.dto.nivelAceiteCaja) this.erroresEtapa.push('nivelAceiteCaja');
       if (!this.dto.nivelRefrigerante) this.erroresEtapa.push('nivelRefrigerante');
       if (!this.dto.tipoCobertura?.trim()) this.erroresEtapa.push('tipoCobertura');
-      
+
       if (this.erroresEtapa.length > 0) {
         let msg = 'Debe completar todos los campos de fluidos y documentos para continuar.';
         if (this.erroresEtapa.length === 1) {
@@ -335,13 +396,13 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
         return;
       }
     }
-    
-    if (this.etapaActual < 5) this.etapaActual++; 
+
+    if (this.etapaActual < 5) this.etapaActual++;
     if (this.etapaActual === 5) setTimeout(() => this.initCanvasFirmas(), 300);
   }
-  
-  retroceder(): void { 
-    if (this.etapaActual > 1) this.etapaActual--; 
+
+  retroceder(): void {
+    if (this.etapaActual > 1) this.etapaActual--;
   }
 
   seleccionarDano(codigo: number, nombre: string) {
@@ -354,7 +415,7 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     const rect = container.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width) * 100;
     const y = ((event.clientY - rect.top) / rect.height) * 100;
-    
+
     this.danos.push({
       codigoDano: this.codigoDanoSeleccionado,
       nombreDano: this.tipoDanoSeleccionado,
@@ -369,28 +430,28 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
 
   // --- FIRMAS ---
   initCanvasFirmas() {
-    if(this.sig1) this.ctx1 = this.setupCanvas(this.sig1.nativeElement, 1);
-    if(this.sig2) this.ctx2 = this.setupCanvas(this.sig2.nativeElement, 2);
-    if(this.sig3) this.ctx3 = this.setupCanvas(this.sig3.nativeElement, 3);
+    if (this.sig1) this.ctx1 = this.setupCanvas(this.sig1.nativeElement, 1);
+    if (this.sig2) this.ctx2 = this.setupCanvas(this.sig2.nativeElement, 2);
+    if (this.sig3) this.ctx3 = this.setupCanvas(this.sig3.nativeElement, 3);
   }
 
   setupCanvas(canvas: HTMLCanvasElement, num: number): CanvasRenderingContext2D {
     const ctx = canvas.getContext('2d')!;
-    if(canvas.parentElement) {
+    if (canvas.parentElement) {
       canvas.width = canvas.parentElement.clientWidth;
       canvas.height = 150; // Fixed height for signatures
     }
 
     const startDraw = (x: number, y: number) => {
-      if(num===1) this.drawing1 = true;
-      if(num===2) this.drawing2 = true;
-      if(num===3) this.drawing3 = true;
+      if (num === 1) this.drawing1 = true;
+      if (num === 2) this.drawing2 = true;
+      if (num === 3) this.drawing3 = true;
       ctx.beginPath(); ctx.moveTo(x, y);
     };
 
     const draw = (x: number, y: number) => {
-      const isDrawing = num===1 ? this.drawing1 : num===2 ? this.drawing2 : this.drawing3;
-      if(isDrawing) {
+      const isDrawing = num === 1 ? this.drawing1 : num === 2 ? this.drawing2 : this.drawing3;
+      if (isDrawing) {
         ctx.lineTo(x, y);
         ctx.strokeStyle = '#fff'; // White ink for dark mode
         ctx.lineWidth = 2;
@@ -399,9 +460,9 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     };
 
     const stopDraw = () => {
-      if(num===1) this.drawing1 = false;
-      if(num===2) this.drawing2 = false;
-      if(num===3) this.drawing3 = false;
+      if (num === 1) this.drawing1 = false;
+      if (num === 2) this.drawing2 = false;
+      if (num === 3) this.drawing3 = false;
     };
 
     canvas.onmousedown = (e) => startDraw(e.offsetX, e.offsetY);
@@ -417,9 +478,9 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
   }
 
   clearSignature(num: number) {
-    if(num===1 && this.ctx1 && this.sig1) this.ctx1.clearRect(0, 0, this.sig1.nativeElement.width, this.sig1.nativeElement.height);
-    if(num===2 && this.ctx2 && this.sig2) this.ctx2.clearRect(0, 0, this.sig2.nativeElement.width, this.sig2.nativeElement.height);
-    if(num===3 && this.ctx3 && this.sig3) this.ctx3.clearRect(0, 0, this.sig3.nativeElement.width, this.sig3.nativeElement.height);
+    if (num === 1 && this.ctx1 && this.sig1) this.ctx1.clearRect(0, 0, this.sig1.nativeElement.width, this.sig1.nativeElement.height);
+    if (num === 2 && this.ctx2 && this.sig2) this.ctx2.clearRect(0, 0, this.sig2.nativeElement.width, this.sig2.nativeElement.height);
+    if (num === 3 && this.ctx3 && this.sig3) this.ctx3.clearRect(0, 0, this.sig3.nativeElement.width, this.sig3.nativeElement.height);
   }
 
   isCanvasBlank(canvas: HTMLCanvasElement): boolean {
@@ -434,10 +495,10 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     const errores: string[] = [];
     if (!this.dto.inspectorNombre?.trim()) errores.push('Nombre del Inspector');
     else if (this.sig1 && this.isCanvasBlank(this.sig1.nativeElement)) errores.push('Firma del Inspector');
-    
+
     if (!this.dto.entregaNombre?.trim()) errores.push('Nombre de Unidad Entrega');
     else if (this.sig2 && this.isCanvasBlank(this.sig2.nativeElement)) errores.push('Firma de Unidad Entrega');
-    
+
     if (!this.dto.recibeNombre?.trim()) errores.push('Nombre de Unidad Recibe');
     else if (this.sig3 && this.isCanvasBlank(this.sig3.nativeElement)) errores.push('Firma de Unidad Recibe');
 
@@ -451,9 +512,9 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
 
     this.guardando = true;
     this.dto.danos = this.danos;
-    if(this.sig1) this.dto.inspectorFirmaBase64 = this.sig1.nativeElement.toDataURL();
-    if(this.sig2) this.dto.entregaFirmaBase64 = this.sig2.nativeElement.toDataURL();
-    if(this.sig3) this.dto.recibeFirmaBase64 = this.sig3.nativeElement.toDataURL();
+    if (this.sig1) this.dto.inspectorFirmaBase64 = this.sig1.nativeElement.toDataURL();
+    if (this.sig2) this.dto.entregaFirmaBase64 = this.sig2.nativeElement.toDataURL();
+    if (this.sig3) this.dto.recibeFirmaBase64 = this.sig3.nativeElement.toDataURL();
 
     this.http.post(`${environment.apiUrl}/inspecciones-livianos`, this.dto).subscribe({
       next: (response) => {
@@ -465,17 +526,17 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
         const label = operacionLabel[this.dto.operacion] || this.tipoInspeccionActual;
         this.modalService.showAlert(`¡Inspección de ${label} completada con éxito!`, 'Éxito', 'success');
         this.guardando = false;
-        
+
         if (this.isAuditoria) {
-           this.onFinalizado.emit(response);
+          this.onFinalizado.emit(response);
         } else {
-           // Volver a inicio para flujo normal
-           this.fasePrincipal = 'SELECCION_OPERACION';
-           this.etapaActual = 1;
-           this.cedulaInput = '';
-           this.danos = [];
-           this.operacionSeleccionada = '';
-           this.vehiculoSeleccionadoUI = '';
+          // Volver a inicio para flujo normal
+          this.fasePrincipal = 'SELECCION_OPERACION';
+          this.etapaActual = 1;
+          this.cedulaInput = '';
+          this.danos = [];
+          this.operacionSeleccionada = '';
+          this.vehiculoSeleccionadoUI = '';
         }
       },
       error: (err) => {
@@ -494,5 +555,58 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
   get isCamion(): boolean {
     const t = this.vehiculoActual?.tipoVehiculo?.toUpperCase() || this.vehiculoActual?.tipo?.toUpperCase() || '';
     return t.includes('CAMI') || t.includes('CHUTO') || t.includes('FURGON');
+  }
+
+  // ============================================================
+  // COMPONENTES DE REVISIÓN (checklist dinámico)
+  // ============================================================
+  get componentesRevision(): { key: string, label: string, icon: string, categoria: string }[] {
+    const base = [
+      { key: 'revAire', label: 'Aire Acond.', icon: 'bi-snow', categoria: 'Confort' },
+      { key: 'revAntena', label: 'Antena', icon: 'bi-broadcast', categoria: 'Exterior' },
+      { key: 'revCauchos', label: 'Cauchos', icon: 'bi-circle', categoria: 'Exterior' },
+      { key: 'revFaros', label: 'Faros/Luces', icon: 'bi-lightbulb', categoria: 'Eléctrico' },
+      { key: 'revFrenos', label: 'Frenos', icon: 'bi-shield-check', categoria: 'Seguridad' },
+      { key: 'revVidrios', label: 'Vidrios', icon: 'bi-window', categoria: 'Exterior' },
+      { key: 'revTapiceria', label: 'Tapicería', icon: 'bi-layers', categoria: 'Interior' },
+      { key: 'revTablero', label: 'Tablero', icon: 'bi-speedometer2', categoria: 'Interior' },
+      { key: 'revCenicero', label: 'Cenicero', icon: 'bi-circle-square', categoria: 'Interior' },
+      { key: 'revCerradura', label: 'Cerradura', icon: 'bi-lock', categoria: 'Seguridad' },
+      { key: 'revEmblemas', label: 'Emblemas', icon: 'bi-award', categoria: 'Exterior' },
+      { key: 'revEncendedor', label: 'Encendedor', icon: 'bi-lightning', categoria: 'Interior' },
+      { key: 'revEspejos', label: 'Espejos', icon: 'bi-square', categoria: 'Exterior' },
+      { key: 'revFrenoMano', label: 'Freno de Mano', icon: 'bi-hand-index', categoria: 'Seguridad' },
+      { key: 'revLimpiaParabrisas', label: 'Limpia Parabrisas', icon: 'bi-wind', categoria: 'Exterior' },
+      { key: 'revLucesCruce', label: 'Luces de Cruce', icon: 'bi-lightbulb', categoria: 'Eléctrico' },
+      { key: 'revLucesStop', label: 'Luces de Stop', icon: 'bi-lightbulb-fill', categoria: 'Eléctrico' },
+      { key: 'revMaletero', label: 'Maletero', icon: 'bi-box', categoria: 'Exterior' },
+      { key: 'revNeumaticos', label: 'Neumáticos', icon: 'bi-disc', categoria: 'Exterior' },
+      { key: 'revParrilla', label: 'Parrilla', icon: 'bi-grid-3x3', categoria: 'Exterior' },
+      { key: 'revPlacas', label: 'Placas', icon: 'bi-card-text', categoria: 'Exterior' },
+      { key: 'revTapaGasolina', label: 'Tapa Gasolina', icon: 'bi-fuel-pump', categoria: 'Exterior' },
+      { key: 'revBateria', label: 'Batería', icon: 'bi-battery-half', categoria: 'Eléctrico' },
+      { key: 'revAlfombras', label: 'Alfombras', icon: 'bi-layers-half', categoria: 'Interior' },
+      { key: 'revApoyaCabezas', label: 'Apoya Cabezas', icon: 'bi-circle', categoria: 'Interior' },
+      { key: 'revAsientos', label: 'Asientos', icon: 'bi-person-workspace', categoria: 'Interior' },
+      { key: 'revCinturonSeguridad', label: 'Cinturones', icon: 'bi-shield', categoria: 'Seguridad' },
+      { key: 'revPuertas', label: 'Puertas', icon: 'bi-door-closed', categoria: 'Exterior' },
+      { key: 'revTecho', label: 'Techo', icon: 'bi-house-up', categoria: 'Exterior' }
+    ];
+
+    // Filtra por vehículo (ejemplo básico)
+    const t = (this.vehiculoActual?.tipoVehiculo || '').toUpperCase();
+    if (t.includes('MOTO')) {
+      const noAplica = ['revAire', 'revMaletero', 'revApoyaCabezas', 'revCenicero', 'revEncendedor', 'revTecho', 'revAlfombras', 'revTapaGasolina', 'revParrilla', 'revPlacas'];
+      return base.filter(c => !noAplica.includes(c.key));
+    }
+    return base;
+  }
+
+  // Método para ciclar el estado: B -> R -> M -> B
+  ciclarEstadoComponente(key: string): void {
+    const current = this.dto[key];
+    if (current === 'B') this.dto[key] = 'R';
+    else if (current === 'R') this.dto[key] = 'M';
+    else this.dto[key] = 'B';
   }
 }
