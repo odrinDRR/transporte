@@ -74,10 +74,10 @@ export class AuditoriaComponent {
     if (t.includes('MOTO')) return 'assets/images/inspeccion/moto.jpg';
     if (t.includes('AMBULANCIA')) return 'assets/images/inspeccion/ambulancia.jpg';
     if (t.includes('GANDOLA') || t.includes('CHUTO')) return 'assets/images/inspeccion/gandola.jpg';
-    if (t.includes('GRUA')) return 'assets/images/inspeccion/grua.jpg';
+    if (t.includes('GRUA') || t.includes('GRÚA')) return 'assets/images/inspeccion/grua.jpg';
     if (t.includes('PICK UP') || t.includes('PICKUP')) return 'assets/images/inspeccion/camioneta pick up.jpg';
     if (t.includes('CAMIONETA')) return 'assets/images/inspeccion/camioneta.jpg';
-    if (t.includes('CAMI') || t.includes('FURGON') || t.includes('CARGA')) return 'assets/images/inspeccion/camion.jpg';
+    if (t.includes('CAMI') || t.includes('CAMIÓN') || t.includes('FURGON') || t.includes('CARGA')) return 'assets/images/inspeccion/camion.jpg';
     return 'assets/images/inspeccion/carro.jpg'; // default
   }
 

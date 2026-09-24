@@ -125,8 +125,7 @@
         <span class="badge me-1" [ngClass]="etapaActual >= 1 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">1. Datos</span>
         <span class="badge me-1" [ngClass]="etapaActual >= 2 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">2. Fluidos y Docs</span>
         <span class="badge me-1" [ngClass]="etapaActual >= 3 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">3. Exterior Visual</span>
-        <span class="badge me-1" [ngClass]="etapaActual >= 4 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">4. Accesorios</span>
-        <span class="badge" [ngClass]="etapaActual >= 5 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">5. Firmas</span>
+        <span class="badge" [ngClass]="etapaActual >= 4 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">4. Accesorios</span>
       </div>
 
       <div [ngSwitch]="etapaActual">
@@ -497,32 +496,6 @@
             </div>
         </div>
 
-        <!-- ETAPA 5: Firmas -->
-        <div *ngSwitchCase="5">
-          <h6 class="text-white mb-3">Etapa 5: Firmas y Cierre</h6>
-          
-          <div class="bg-dark p-3 rounded-4 border border-custom mb-3 text-center">
-            <h6 class="text-warning small fw-bold mb-3">Firma del Inspector</h6>
-            <input type="text" class="form-control bg-dark text-white border-custom rounded-3 mb-2 text-center" placeholder="Nombre" [(ngModel)]="dto.inspectorNombre">
-            <canvas #sig1 class="border border-secondary rounded-3 w-100 bg-secondary" style="height: 120px;"></canvas>
-            <button class="btn btn-sm btn-outline-secondary mt-2" (click)="clearSignature(1)">Borrar</button>
-          </div>
-
-          <div class="bg-dark p-3 rounded-4 border border-custom mb-3 text-center">
-            <h6 class="text-warning small fw-bold mb-3">Firma Unidad Entrega</h6>
-            <input type="text" class="form-control bg-dark text-white border-custom rounded-3 mb-2 text-center" placeholder="Nombre" [(ngModel)]="dto.entregaNombre">
-            <canvas #sig2 class="border border-secondary rounded-3 w-100 bg-secondary" style="height: 120px;"></canvas>
-            <button class="btn btn-sm btn-outline-secondary mt-2" (click)="clearSignature(2)">Borrar</button>
-          </div>
-
-          <div class="bg-dark p-3 rounded-4 border border-custom mb-3 text-center">
-            <h6 class="text-warning small fw-bold mb-3">Firma Unidad Recibe</h6>
-            <input type="text" class="form-control bg-dark text-white border-custom rounded-3 mb-2 text-center" placeholder="Nombre" [(ngModel)]="dto.recibeNombre">
-            <canvas #sig3 class="border border-secondary rounded-3 w-100 bg-secondary" style="height: 120px;"></canvas>
-            <button class="btn btn-sm btn-outline-secondary mt-2" (click)="clearSignature(3)">Borrar</button>
-          </div>
-        </div>
-        
       </div>
 
       <!-- Footer navigation -->
@@ -530,10 +503,10 @@
         <button class="btn btn-outline-secondary fw-bold px-4 rounded-pill" (click)="retroceder()" [disabled]="etapaActual === 1">
           <i class="bi bi-arrow-left"></i> Atrás
         </button>
-        <button *ngIf="etapaActual < 5" class="btn btn-primary fw-bold px-4 rounded-pill" (click)="avanzar()">
+        <button *ngIf="etapaActual < 4" class="btn btn-primary fw-bold px-4 rounded-pill" (click)="avanzar()">
           Siguiente <i class="bi bi-arrow-right"></i>
         </button>
-        <button *ngIf="etapaActual === 5" class="btn btn-success text-white fw-bold px-4 rounded-pill shadow-lg" (click)="finalizarInspeccion()" [disabled]="guardando">
+        <button *ngIf="etapaActual === 4" class="btn btn-success text-white fw-bold px-4 rounded-pill shadow-lg" (click)="finalizarInspeccion()" [disabled]="guardando">
           <span *ngIf="!guardando">Finalizar <i class="bi bi-check2-all"></i></span>
           <span *ngIf="guardando">Enviando...</span>
         </button>

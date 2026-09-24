@@ -235,8 +235,9 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
                    this.dto.motivo = 'RUTINARIO';
                 }
                 
-                // Actualizar tipoVehiculo local y tipo de gráfico
+                // Actualizar tipoVehiculo local, tipo de gráfico y enviarlo al backend
                 this.vehiculoActual.tipoVehiculo = this.vehiculoSeleccionadoUI;
+                this.dto.tipoVehiculo = this.vehiculoSeleccionadoUI;
                 
                 this.fasePrincipal = 'FORMULARIO';
                 this.etapaActual = 1;
@@ -335,9 +336,7 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
         return;
       }
     }
-    
-    if (this.etapaActual < 5) this.etapaActual++; 
-    if (this.etapaActual === 5) setTimeout(() => this.initCanvasFirmas(), 300);
+    if (this.etapaActual < 4) this.etapaActual++; 
   }
   
   retroceder(): void { 
@@ -430,30 +429,8 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
   }
 
   finalizarInspeccion() {
-    // Validar nombres y firmas
-    const errores: string[] = [];
-    if (!this.dto.inspectorNombre?.trim()) errores.push('Nombre del Inspector');
-    else if (this.sig1 && this.isCanvasBlank(this.sig1.nativeElement)) errores.push('Firma del Inspector');
-    
-    if (!this.dto.entregaNombre?.trim()) errores.push('Nombre de Unidad Entrega');
-    else if (this.sig2 && this.isCanvasBlank(this.sig2.nativeElement)) errores.push('Firma de Unidad Entrega');
-    
-    if (!this.dto.recibeNombre?.trim()) errores.push('Nombre de Unidad Recibe');
-    else if (this.sig3 && this.isCanvasBlank(this.sig3.nativeElement)) errores.push('Firma de Unidad Recibe');
-
-    if (errores.length > 0) {
-      const msg = errores.length === 1
-        ? `Falta completar: ${errores[0]}.`
-        : `Faltan ${errores.length} campos: ${errores.join(', ')}.`;
-      this.modalService.showAlert(msg, 'Firmas Incompletas', 'warning');
-      return;
-    }
-
     this.guardando = true;
     this.dto.danos = this.danos;
-    if(this.sig1) this.dto.inspectorFirmaBase64 = this.sig1.nativeElement.toDataURL();
-    if(this.sig2) this.dto.entregaFirmaBase64 = this.sig2.nativeElement.toDataURL();
-    if(this.sig3) this.dto.recibeFirmaBase64 = this.sig3.nativeElement.toDataURL();
 
     this.http.post(`${environment.apiUrl}/inspecciones-livianos`, this.dto).subscribe({
       next: (response) => {
@@ -501,10 +478,10 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     if (t.includes('MOTO')) return 'assets/images/inspeccion/moto.jpg';
     if (t.includes('AMBULANCIA')) return 'assets/images/inspeccion/ambulancia.jpg';
     if (t.includes('GANDOLA') || t.includes('CHUTO')) return 'assets/images/inspeccion/gandola.jpg';
-    if (t.includes('GRUA')) return 'assets/images/inspeccion/grua.jpg';
+    if (t.includes('GRUA') || t.includes('GRÚA')) return 'assets/images/inspeccion/grua.jpg';
     if (t.includes('PICK UP') || t.includes('PICKUP')) return 'assets/images/inspeccion/camioneta pick up.jpg';
     if (t.includes('CAMIONETA')) return 'assets/images/inspeccion/camioneta.jpg';
-    if (t.includes('CAMI') || t.includes('FURGON') || t.includes('CARGA')) return 'assets/images/inspeccion/camion.jpg';
+    if (t.includes('CAMI') || t.includes('CAMIÓN') || t.includes('FURGON') || t.includes('CARGA')) return 'assets/images/inspeccion/camion.jpg';
     return 'assets/images/inspeccion/carro.jpg'; // default
   }
 }
