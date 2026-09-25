@@ -237,7 +237,7 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
                 
                 // Actualizar tipoVehiculo local, tipo de gráfico y enviarlo al backend
                 this.vehiculoActual.tipoVehiculo = this.vehiculoSeleccionadoUI;
-                this.dto.tipoVehiculo = this.vehiculoSeleccionadoUI;
+                this.dto.vehiculoSeleccionado = this.vehiculoSeleccionadoUI;
                 
                 this.fasePrincipal = 'FORMULARIO';
                 this.etapaActual = 1;
