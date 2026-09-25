@@ -353,7 +353,7 @@ select.touch-input option:disabled {
 /* ==========================================
    IMPRESIÓN (Ficha Técnica Limpia en Blanco y Negro)
    ========================================== */
-::ng-deep {
+:host ::ng-deep {
   @media print {
     body.print-ficha {
       .fleet-app-content { display: none !important; }
