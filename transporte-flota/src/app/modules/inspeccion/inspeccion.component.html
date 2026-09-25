@@ -1,11 +1,11 @@
 <div class="d-flex justify-content-center mt-3">
-  
-  <div class="card bg-custom-card border-custom shadow-lg w-100" style="max-width: 680px; border-radius: 20px;">
-    
-    <!-- ==============================================
+
+    <div class="card bg-custom-card border-custom shadow-lg w-100" style="max-width: 680px; border-radius: 20px;">
+
+        <!-- ==============================================
          FLUJO ANTIGUO (COMENTADO POR SI SE REQUIERE VOLVER)
          ============================================== -->
-    <!--
+        <!--
     <div *ngIf="fasePrincipal === 'INGRESO_CEDULA'" class="card-body p-4 text-center">
       <div class="fs-1 mb-2">🆔</div>
       <h5 class="text-white fw-bold mb-2">¡Hola! Identifícate</h5>
@@ -26,398 +26,530 @@
     </div>
     -->
 
-    <!-- ==============================================
+        <!-- ==============================================
          NUEVO FLUJO: 1. OPERACIÓN | 2. TIPO | 3. CÉDULA
          ============================================== -->
 
-    <!-- PASO 1: SELECCION DE OPERACION -->
-    <div *ngIf="fasePrincipal === 'SELECCION_OPERACION'" class="card-body p-4 p-md-5 text-center position-relative">
-      <div class="fs-1 mb-3 text-warning"><i class="bi bi-clipboard2-check-fill"></i></div>
-      <h4 class="text-white fw-bold mb-2">Módulo de Inspección</h4>
-      <p class="text-white-50 small mb-4">Seleccione la operación a realizar en el parque automotor</p>
+        <!-- PASO 1: SELECCION DE OPERACION (Diseño Moderno) -->
+        <div *ngIf="fasePrincipal === 'SELECCION_OPERACION'"
+            class="card-body p-4 p-md-5 text-center position-relative step-selection-container">
 
-      <div class="d-flex flex-column flex-md-row justify-content-center gap-3 mt-4">
-        <!-- General -->
-        <div class="p-4 rounded-4 border border-info border-2 hover-scale" style="cursor: pointer; min-width: 160px; background-color: rgba(13, 202, 240, 0.05);" (click)="seleccionarOperacionUI('GENERAL')">
-           <i class="bi bi-clipboard-check text-info fs-1"></i>
-           <div class="text-white fw-bold mt-2">General</div>
-           <div class="text-info opacity-75 mt-1" style="font-size: 0.75rem;">Rutina / Auditoría</div>
-        </div>
-        <!-- Salida -->
-        <div class="p-4 rounded-4 border border-success border-2 hover-scale" style="cursor: pointer; min-width: 160px; background-color: rgba(25, 135, 84, 0.05);" (click)="seleccionarOperacionUI('SALIDA')">
-           <i class="bi bi-box-arrow-up-right text-success fs-1"></i>
-           <div class="text-white fw-bold mt-2">Salida</div>
-           <div class="text-success opacity-75 mt-1" style="font-size: 0.75rem;">Ruta</div>
-        </div>
-        <!-- Llegada -->
-        <div class="p-4 rounded-4 border border-warning border-2 hover-scale" style="cursor: pointer; min-width: 160px; background-color: rgba(255, 193, 7, 0.05);" (click)="seleccionarOperacionUI('LLEGADA')">
-           <i class="bi bi-check-square text-warning fs-1"></i>
-           <div class="text-white fw-bold mt-2">Llegada</div>
-           <div class="text-warning opacity-75 mt-1" style="font-size: 0.75rem;">Ruta a Patio</div>
-        </div>
-      </div>
-    </div>
+            <!-- Cabecera Moderna -->
+            <div class="header-modern">
+                <div class="main-icon-wrapper">
+                    <i class="bi bi-clipboard2-check-fill"></i>
+                </div>
+                <h4 class="title-modern">Módulo de Inspección</h4>
+                <div class="divider-modern"></div>
+                <p class="subtitle-modern">Seleccione la operación a realizar en el parque automotor</p>
+            </div>
 
-    <!-- PASO 2: SELECCION DE TIPO DE VEHICULO -->
-    <div *ngIf="fasePrincipal === 'SELECCION_VEHICULO'" class="card-body p-4 p-md-5 text-center position-relative">
-      <button class="btn btn-sm btn-outline-secondary position-absolute top-0 start-0 m-3 rounded-circle" (click)="fasePrincipal = 'SELECCION_OPERACION'">
-        <i class="bi bi-arrow-left"></i>
-      </button>
-      
-      <h4 class="text-warning fw-bold mb-1">Inspección de unidades</h4>
-      <p class="text-success small fw-bold mb-4 tracking-wide">OPERACIÓN: {{ operacionSeleccionada }}</p>
+            <!-- Grid de Tarjetas Modernas -->
+            <div class="modern-cards-grid">
 
-      <div class="row g-3 justify-content-center mt-3">
-         <div class="col-6 col-md-3" *ngFor="let v of tiposVehiculosUI">
-            <div class="p-3 rounded-4 hover-scale border border-custom" style="cursor: pointer; background-color: #216a8a;" (click)="seleccionarVehiculoUI(v)">
-               <i [class]="v.icon + ' text-white fs-2'"></i>
-               <div class="text-white fw-bold mt-2 text-uppercase" style="font-size: 0.7rem; letter-spacing: 1px;">{{ v.name }}</div>
-            </div>
-         </div>
-      </div>
-    </div>
+                <!-- Tarjeta General (Cyan) -->
+                <div class="modern-card cyan" (click)="seleccionarOperacionUI('GENERAL')">
+                    <div class="card-icon">
+                        <i class="bi bi-clipboard-check"></i>
+                    </div>
+                    <h3>General</h3>
+                    <p>Rutina / Auditoría</p>
+                </div>
 
-    <!-- PASO 3: INGRESO DE CÉDULA/FICHA -->
-    <div *ngIf="fasePrincipal === 'INGRESO_CEDULA'" class="card-body p-4 p-md-5 text-center position-relative">
-      <button class="btn btn-sm btn-outline-secondary position-absolute top-0 start-0 m-3 rounded-circle" (click)="fasePrincipal = 'SELECCION_VEHICULO'">
-        <i class="bi bi-arrow-left"></i>
-      </button>
+                <!-- Tarjeta Salida (Green) -->
+                <div class="modern-card green" (click)="seleccionarOperacionUI('SALIDA')">
+                    <div class="card-icon">
+                        <i class="bi bi-box-arrow-up-right"></i>
+                    </div>
+                    <h3>Salida</h3>
+                    <p>Ruta</p>
+                </div>
 
-      <div class="mb-4">
-        <div class="d-inline-flex align-items-center justify-content-center bg-primary rounded-circle text-white shadow" style="width: 60px; height: 60px;">
-          <h4 class="m-0 fw-bold">ID</h4>
-        </div>
-      </div>
-      
-      <h4 class="text-white fw-bold mb-1">Identidad del Conductor</h4>
-      <p class="text-success small fw-bold mb-4 tracking-wide text-uppercase">INSPECCIÓN {{ operacionSeleccionada }} | {{ vehiculoSeleccionadoUI }}</p>
-      
-      <div class="mx-auto mt-4" style="max-width: 350px;">
-        <input type="text" class="form-control bg-dark text-white border-custom text-center mb-3 rounded-pill py-3" 
-               placeholder="Ingrese Cédula o Ficha" 
-               [(ngModel)]="cedulaInput"
-               maxlength="15"
-               style="font-size: 1.1rem; letter-spacing: 1px;">
-        
-        <button class="btn btn-info w-100 fw-bold rounded-pill shadow py-3 text-white" style="background-color: #0dcaf0; border: none;" (click)="verificarCedula()" [disabled]="verificando">
-          <span *ngIf="!verificando">Validar e Iniciar <i class="bi bi-chevron-right ms-1"></i></span>
-          <span *ngIf="verificando">Validando <span class="spinner-border spinner-border-sm ms-2"></span></span>
-        </button>
-      </div>
-    </div>
+                <!-- Tarjeta Llegada (Yellow) -->
+                <div class="modern-card yellow" (click)="seleccionarOperacionUI('LLEGADA')">
+                    <div class="card-icon">
+                        <i class="bi bi-check-square"></i>
+                    </div>
+                    <h3>Llegada</h3>
+                    <p>Ruta a Patio</p>
+                </div>
 
-    <!-- PANTALLA 3: FORMULARIO INTERACTIVO (CARCHECK TECH) -->
-    <div *ngIf="fasePrincipal === 'FORMULARIO'" class="card-body p-3 p-md-4">
-      
-      <!-- Cabecera -->
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <button *ngIf="!isAuditoria" class="btn btn-sm btn-outline-secondary rounded-circle" (click)="fasePrincipal = 'INGRESO_CEDULA'">
-          <i class="bi bi-x-lg"></i>
-        </button>
-        <h6 class="text-white fw-bold mb-0">
-          <i class="bi" [ngClass]="tipoInspeccionActual === 'INICIO' ? 'bi-truck text-success' : 'bi-flag text-warning'"></i>
-          Reporte de {{ tipoInspeccionActual }}
-        </h6>
-      </div>
-
-      <!-- Stepper Visual -->
-      <div class="d-flex justify-content-between mb-3 border-bottom border-custom pb-3 overflow-auto text-nowrap">
-        <span class="badge me-1" [ngClass]="etapaActual >= 1 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">1. Datos</span>
-        <span class="badge me-1" [ngClass]="etapaActual >= 2 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">2. Fluidos y Docs</span>
-        <span class="badge me-1" [ngClass]="etapaActual >= 3 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">3. Exterior Visual</span>
-        <span class="badge" [ngClass]="etapaActual >= 4 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">4. Accesorios</span>
-      </div>
-
-      <div [ngSwitch]="etapaActual">
-        
-        <!-- ETAPA 1 -->
-        <div *ngSwitchCase="1">
-          <h6 class="text-white mb-3">Etapa 1: Motivo y Datos del Vehículo</h6>
-          
-          <div class="mb-3">
-            <label class="form-label text-custom-muted small">Motivo de la Inspección</label>
-            <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto.motivo">
-                <option value="RUTINARIO">Rutinario</option>
-                <option value="CORRECTIVO">Correctivo</option>
-                <option value="SOLICITUD">Solicitud del Usuario</option>
-            </select>
-          </div>
-
-          <div class="row g-2 mb-3">
-            <div class="col-12 col-md-4">
-                <label class="form-label text-custom-muted small">Gerencia</label>
-                <input type="text" class="form-control bg-dark text-white rounded-3"
-                       [ngClass]="{'campo-invalido': erroresEtapa.includes('gerencia'), 'border-custom': !erroresEtapa.includes('gerencia')}"
-                       [(ngModel)]="dto.gerenciaSolicitante">
             </div>
-            <div class="col-12 col-md-4">
-                <label class="form-label text-custom-muted small">Unidad Usuaria</label>
-                <input type="text" class="form-control bg-dark text-white rounded-3"
-                       [ngClass]="{'campo-invalido': erroresEtapa.includes('unidadUsuaria'), 'border-custom': !erroresEtapa.includes('unidadUsuaria')}"
-                       [(ngModel)]="dto.unidadUsuaria">
-            </div>
-            <div class="col-12 col-md-4">
-                <label class="form-label text-custom-muted small">Centro Costo</label>
-                <input type="text" class="form-control bg-dark text-white rounded-3"
-                       [ngClass]="{'campo-invalido': erroresEtapa.includes('centroCosto'), 'border-custom': !erroresEtapa.includes('centroCosto')}"
-                       [(ngModel)]="dto.centroCosto">
-            </div>
-          </div>
-
-          <h6 class="text-warning mt-3 mb-2 small fw-bold">Identidad del Vehículo</h6>
-          <div class="row g-2 mb-3">
-            <div class="col-6 col-md-4">
-                <label class="form-label text-custom-muted small">Placa</label>
-                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.placa" disabled>
-            </div>
-            <div class="col-12 col-md-8">
-                <label class="form-label text-custom-muted small">Marca / Modelo</label>
-                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" 
-                       [value]="vehiculoActual?.marcaModelo ? vehiculoActual?.marcaModelo : (vehiculoActual?.marca ? vehiculoActual?.marca + ' ' + (vehiculoActual?.modelo || '') : 'N/A')" disabled>
-            </div>
-            <div class="col-6 col-md-4">
-                <label class="form-label text-custom-muted small">Serial Carrocería</label>
-                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.vin || 'N/A'" disabled>
-            </div>
-            <div class="col-6 col-md-4">
-                <label class="form-label text-custom-muted small">Color</label>
-                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.color || 'N/A'" disabled>
-            </div>
-            <div class="col-6 col-md-4">
-                <label class="form-label text-custom-muted small">Año</label>
-                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.anio || 'N/A'" disabled>
-            </div>
-            <div class="col-6 col-md-4">
-                <label class="form-label text-custom-muted small">Tipo</label>
-                <input type="text" class="form-control bg-dark text-white border-custom rounded-3" [value]="vehiculoActual?.tipoVehiculo || 'N/A'" disabled>
-            </div>
-          </div>
-
-          <h6 class="text-warning mt-3 mb-2 small fw-bold">Kilometraje y Transmisión</h6>
-          <div class="row g-2 mb-3">
-            <div class="col-6">
-                <label class="form-label text-custom-muted small">Km Entregado</label>
-                <input type="number" class="form-control bg-dark text-white rounded-3" 
-                       [ngClass]="{'campo-invalido': erroresEtapa.includes('kilometrajeEntregado'), 'border-custom': !erroresEtapa.includes('kilometrajeEntregado')}"
-                       [(ngModel)]="dto.kilometrajeEntregado">
-            </div>
-            <div class="col-6">
-                <label class="form-label text-custom-muted small">Km Recibido</label>
-                <input type="number" class="form-control bg-dark text-white rounded-3" 
-                       [ngClass]="{'campo-invalido': erroresEtapa.includes('kilometrajeRecibido'), 'border-custom': !erroresEtapa.includes('kilometrajeRecibido')}"
-                       [(ngModel)]="dto.kilometrajeRecibido">
-            </div>
-            <div class="col-12">
-                <label class="form-label text-custom-muted small">Transmisión / Tracción</label>
-                <select class="form-select bg-dark text-white rounded-3" 
-                        [ngClass]="{'campo-invalido': erroresEtapa.includes('transmision'), 'border-custom': !erroresEtapa.includes('transmision')}"
-                        [(ngModel)]="dto.transmision">
-                    <option value="AUTOMATICO">Automático</option>
-                    <option value="SINCRONICO">Sincrónico</option>
-                    <option value="4x4">4x4</option>
-                </select>
-            </div>
-          </div>
         </div>
 
-        <!-- ETAPA 2 -->
-        <div *ngSwitchCase="2">
-          <h6 class="text-white mb-3">Etapa 2: Niveles de Fluidos y Documentos</h6>
-          
-          <h6 class="text-warning mt-3 mb-2 small fw-bold">Fluidos (ALTO / MEDIO / BAJO)</h6>
-          <div class="row g-2 mb-4">
-              <div class="col-6 col-md-4">
-                  <label class="form-label text-custom-muted small mb-1">Combustible</label>
-                  <select class="form-select bg-dark text-white rounded-3" 
-                          [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelCombustible'), 'border-custom': !erroresEtapa.includes('nivelCombustible')}"
-                          [(ngModel)]="dto.nivelCombustible">
-                      <option value="" disabled selected>-- Seleccione --</option>
-                      <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
-                  </select>
-              </div>
-              <div class="col-6 col-md-4">
-                  <label class="form-label text-custom-muted small mb-1">Aceite Motor</label>
-                  <select class="form-select bg-dark text-white rounded-3" 
-                          [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelAceiteMotor'), 'border-custom': !erroresEtapa.includes('nivelAceiteMotor')}"
-                          [(ngModel)]="dto.nivelAceiteMotor">
-                      <option value="" disabled selected>-- Seleccione --</option>
-                      <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
-                  </select>
-              </div>
-              <div class="col-6 col-md-4">
-                  <label class="form-label text-custom-muted small mb-1">Liga de Frenos</label>
-                  <select class="form-select bg-dark text-white rounded-3" 
-                          [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelLigaFrenos'), 'border-custom': !erroresEtapa.includes('nivelLigaFrenos')}"
-                          [(ngModel)]="dto.nivelLigaFrenos">
-                      <option value="" disabled selected>-- Seleccione --</option>
-                      <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
-                  </select>
-              </div>
-              <div class="col-6 col-md-4">
-                  <label class="form-label text-custom-muted small mb-1">Aceite Caja</label>
-                  <select class="form-select bg-dark text-white rounded-3" 
-                          [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelAceiteCaja'), 'border-custom': !erroresEtapa.includes('nivelAceiteCaja')}"
-                          [(ngModel)]="dto.nivelAceiteCaja">
-                      <option value="" disabled selected>-- Seleccione --</option>
-                      <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
-                  </select>
-              </div>
-              <div class="col-6 col-md-4">
-                  <label class="form-label text-custom-muted small mb-1">Refrigerante</label>
-                  <select class="form-select bg-dark text-white rounded-3" 
-                          [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelRefrigerante'), 'border-custom': !erroresEtapa.includes('nivelRefrigerante')}"
-                          [(ngModel)]="dto.nivelRefrigerante">
-                      <option value="" disabled selected>-- Seleccione --</option>
-                      <option value="ALTO">Alto</option><option value="MEDIO">Medio</option><option value="BAJO">Bajo</option>
-                  </select>
-              </div>
-              <div class="col-6 col-md-4">
-                <label class="form-label text-custom-muted small mb-1">Tipo de Cobertura</label>
-                <input type="text" class="form-control bg-dark text-white rounded-3" 
-                       [ngClass]="{'campo-invalido': erroresEtapa.includes('tipoCobertura'), 'border-custom': !erroresEtapa.includes('tipoCobertura')}"
-                       [(ngModel)]="dto.tipoCobertura" placeholder="RCV / Amplia">
+        <!-- PASO 2: SELECCION DE TIPO DE VEHICULO (Diseño Moderno) -->
+        <div *ngIf="fasePrincipal === 'SELECCION_VEHICULO'"
+            class="card-body p-4 p-md-5 text-center position-relative step-vehicle-container">
+
+            <!-- Botón Atrás Moderno -->
+            <button class="btn-back-modern position-absolute top-0 start-0 m-3"
+                (click)="fasePrincipal = 'SELECCION_OPERACION'">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+
+            <!-- Cabecera Moderna -->
+            <div class="header-modern">
+                <h4 class="title-modern">Inspección de Unidades</h4>
+                <div class="divider-modern"></div>
+                <p class="subtitle-modern">
+                    OPERACIÓN: <span class="badge-operation">{{ operacionSeleccionada }}</span>
+                </p>
             </div>
-          </div>
 
-          <h6 class="text-warning mt-3 mb-2 small fw-bold">Documentos del Vehículo</h6>
-          <div class="bg-dark p-2 rounded-3 border border-custom mb-3">
-              <div class="form-check form-switch mb-2 d-flex align-items-center">
-                  <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.docCarnet" style="transform: scale(1.1);">
-                  <label class="form-check-label text-white small">Carnet de Circulación</label>
-              </div>
-              <div class="form-check form-switch mb-2 d-flex align-items-center">
-                  <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.docAutorizacion" style="transform: scale(1.1);">
-                  <label class="form-check-label text-white small">Autorización para Conducir</label>
-              </div>
-              <div class="form-check form-switch d-flex align-items-center">
-                  <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.docAsignacion" style="transform: scale(1.1);">
-                  <label class="form-check-label text-white small">Asignación de Vehículo</label>
-              </div>
-          </div>
+            <!-- Grid de Vehículos usando Bootstrap (4x2) -->
+            <!-- Grid de Vehículos usando Bootstrap (4x2) -->
+            <!-- Grid de Vehículos usando Bootstrap (4x2) -->
+            <div class="row g-2 g-md-3 justify-content-center mx-auto" style="max-width: 720px;">
+                <div class="col-6 col-md-3" *ngFor="let v of tiposVehiculosUI">
+                    <div class="vehicle-card" (click)="seleccionarVehiculoUI(v)">
+                        <div class="card-glow"></div>
+                        <div class="card-icon">
+                            <i [class]="v.icon"></i>
+                        </div>
+                        <h5 class="card-label">{{ v.name }}</h5>
+                    </div>
+                </div>
+            </div>
 
-          <h6 class="text-warning mt-3 mb-2 small fw-bold">Documentos del Conductor</h6>
-          <div class="bg-dark p-2 rounded-3 border border-custom mb-3">
-              <div class="form-check form-switch mb-2 d-flex align-items-center">
-                  <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.docLicencia" style="transform: scale(1.1);">
-                  <label class="form-check-label text-white small">Licencia para Conducir</label>
-              </div>
-              <div class="form-check form-switch d-flex align-items-center">
-                  <input class="form-check-input me-3 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.docCertificadoMedico" style="transform: scale(1.1);">
-                  <label class="form-check-label text-white small">Certificado Médico</label>
-              </div>
-          </div>
+        </div> <!-- ✅ ¡ESTE FALTABA! Cierra el PASO 2 -->
+
+
+        <!-- PASO 3: INGRESO DE CÉDULA (Diseño Moderno) -->
+        <div *ngIf="fasePrincipal === 'INGRESO_CEDULA'"
+            class="card-body p-4 p-md-5 position-relative step-id-container">
+
+            <!-- Botón Atrás Moderno -->
+            <button class="btn-back-modern position-absolute top-0 start-0 m-3"
+                (click)="fasePrincipal = 'SELECCION_VEHICULO'">
+                <i class="bi bi-arrow-left"></i>
+            </button>
+
+            <!-- Icono ID Flotante -->
+            <div class="id-icon-wrapper">
+                <div class="id-icon-inner">
+                    <i class="bi bi-person-vcard"></i>
+                </div>
+                <div class="id-icon-ring"></div>
+            </div>
+
+            <!-- Cabecera -->
+            <div class="header-modern">
+                <h4 class="title-modern">Identidad del Conductor</h4>
+                <div class="divider-modern"></div>
+                <p class="subtitle-modern">
+                    INSPECCIÓN {{ operacionSeleccionada }} | {{ vehiculoSeleccionadoUI }}
+                </p>
+            </div>
+
+            <!-- Formulario -->
+            <div class="id-form-wrapper">
+                <div class="input-modern-wrapper">
+                    <i class="bi bi-person-badge input-icon"></i>
+                    <input type="text" class="input-modern" placeholder="Ingrese Cédula o Ficha"
+                        [(ngModel)]="cedulaInput" maxlength="15" (keyup.enter)="verificarCedula()">
+                </div>
+
+                <button class="btn-primary-modern" (click)="verificarCedula()" [disabled]="verificando || !cedulaInput">
+                    <span *ngIf="!verificando">
+                        <i class="bi bi-shield-check"></i>
+                        Validar e Iniciar
+                    </span>
+                    <span *ngIf="verificando">
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                        Validando...
+                    </span>
+                </button>
+            </div>
         </div>
 
-        <!-- ETAPA 3: EVALUACIÓN GRÁFICA -->
-        <div *ngSwitchCase="3">
-          <h6 class="text-white mb-1"><i class="bi bi-shield-check text-info"></i> Evaluación Gráfica</h6>
-          <p class="text-custom-muted small mb-3">Selecciona un tipo de daño y haz clic sobre el vehículo para agregarlo.</p>
-          
-          <div class="row">
-            <!-- Diagrama SVG -->
-            <div class="col-12 col-md-7 mb-3">
-                <div class="bg-dark border border-custom p-2 rounded-4 d-flex justify-content-center align-items-center">
-                    <div style="position: relative; width: 100%; max-width: 350px; aspect-ratio: 1 / 1; margin: 0 auto; cursor: crosshair; user-select: none;" (mousedown)="agregarDano($event)">
-                        <!-- Imagen de Vehículo -->
-                        <img [src]="getVehiculoImagenUrl()" alt="Vehiculo" style="width: 100%; height: 100%; object-fit: cover; pointer-events: none; border-radius: 10px;">
-                        
-                        <!-- PINES ROJOS -->
-                        <div *ngFor="let dano of danos; let i = index" 
-                             style="position: absolute; width: 22px; height: 22px; background: #ef4444; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; transform: translate(-50%, -50%); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3); pointer-events: none; z-index: 10;"
-                             [style.left.%]="dano.coordX" [style.top.%]="dano.coordY">
-                             {{ dano.codigoDano }}
+        <!-- PANTALLA 3: FORMULARIO INTERACTIVO (CARCHECK TECH) -->
+        <div *ngIf="fasePrincipal === 'FORMULARIO'" class="card-body p-3 p-md-4">
+
+                <!-- Cabecera -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <button *ngIf="!isAuditoria" class="btn btn-sm btn-outline-secondary rounded-circle"
+                        (click)="fasePrincipal = 'INGRESO_CEDULA'">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                    <h6 class="text-white fw-bold mb-0">
+                        <i class="bi"
+                            [ngClass]="tipoInspeccionActual === 'INICIO' ? 'bi-truck text-success' : 'bi-flag text-warning'"></i>
+                        Reporte de {{ tipoInspeccionActual }}
+                    </h6>
+                </div>
+
+                <!-- Stepper Visual -->
+                <div
+                    class="d-flex justify-content-between mb-3 border-bottom border-custom pb-3 overflow-auto text-nowrap">
+                    <span class="badge me-1"
+                        [ngClass]="etapaActual >= 1 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">1.
+                        Datos</span>
+                    <span class="badge me-1"
+                        [ngClass]="etapaActual >= 2 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">2.
+                        Fluidos y Docs</span>
+                    <span class="badge me-1"
+                        [ngClass]="etapaActual >= 3 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">3.
+                        Exterior Visual</span>
+                    <span class="badge"
+                        [ngClass]="etapaActual >= 4 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">4.
+                        Accesorios</span>
+                </div>
+
+                <div [ngSwitch]="etapaActual">
+
+                    <!-- ETAPA 1 -->
+                    <div *ngSwitchCase="1">
+                        <h6 class="text-white mb-3">Etapa 1: Motivo y Datos del Vehículo</h6>
+
+                        <div class="mb-3">
+                            <label class="form-label text-custom-muted small">Motivo de la Inspección</label>
+                            <select class="form-select bg-dark text-white border-custom rounded-3"
+                                [(ngModel)]="dto.motivo">
+                                <option value="RUTINARIO">Rutinario</option>
+                                <option value="CORRECTIVO">Correctivo</option>
+                                <option value="SOLICITUD">Solicitud del Usuario</option>
+                            </select>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label text-custom-muted small">Gerencia</label>
+                                <input type="text" class="form-control bg-dark text-white rounded-3"
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('gerencia'), 'border-custom': !erroresEtapa.includes('gerencia')}"
+                                    [(ngModel)]="dto.gerenciaSolicitante">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label text-custom-muted small">Unidad Usuaria</label>
+                                <input type="text" class="form-control bg-dark text-white rounded-3"
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('unidadUsuaria'), 'border-custom': !erroresEtapa.includes('unidadUsuaria')}"
+                                    [(ngModel)]="dto.unidadUsuaria">
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <label class="form-label text-custom-muted small">Centro Costo</label>
+                                <input type="text" class="form-control bg-dark text-white rounded-3"
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('centroCosto'), 'border-custom': !erroresEtapa.includes('centroCosto')}"
+                                    [(ngModel)]="dto.centroCosto">
+                            </div>
+                        </div>
+
+                        <h6 class="text-warning mt-3 mb-2 small fw-bold">Identidad del Vehículo</h6>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6 col-md-4">
+                                <label class="form-label text-custom-muted small">Placa</label>
+                                <input type="text" class="form-control bg-dark text-white border-custom rounded-3"
+                                    [value]="vehiculoActual?.placa" disabled>
+                            </div>
+                            <div class="col-12 col-md-8">
+                                <label class="form-label text-custom-muted small">Marca / Modelo</label>
+                                <input type="text" class="form-control bg-dark text-white border-custom rounded-3"
+                                    [value]="vehiculoActual?.marcaModelo ? vehiculoActual?.marcaModelo : (vehiculoActual?.marca ? vehiculoActual?.marca + ' ' + (vehiculoActual?.modelo || '') : 'N/A')"
+                                    disabled>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label text-custom-muted small">Serial Carrocería</label>
+                                <input type="text" class="form-control bg-dark text-white border-custom rounded-3"
+                                    [value]="vehiculoActual?.vin || 'N/A'" disabled>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label text-custom-muted small">Color</label>
+                                <input type="text" class="form-control bg-dark text-white border-custom rounded-3"
+                                    [value]="vehiculoActual?.color || 'N/A'" disabled>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label text-custom-muted small">Año</label>
+                                <input type="text" class="form-control bg-dark text-white border-custom rounded-3"
+                                    [value]="vehiculoActual?.anio || 'N/A'" disabled>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label text-custom-muted small">Tipo</label>
+                                <input type="text" class="form-control bg-dark text-white border-custom rounded-3"
+                                    [value]="vehiculoActual?.tipoVehiculo || 'N/A'" disabled>
+                            </div>
+                        </div>
+
+                        <h6 class="text-warning mt-3 mb-2 small fw-bold">Kilometraje y Transmisión</h6>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label text-custom-muted small">Km Entregado</label>
+                                <input type="number" class="form-control bg-dark text-white rounded-3"
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('kilometrajeEntregado'), 'border-custom': !erroresEtapa.includes('kilometrajeEntregado')}"
+                                    [(ngModel)]="dto.kilometrajeEntregado">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label text-custom-muted small">Km Recibido</label>
+                                <input type="number" class="form-control bg-dark text-white rounded-3"
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('kilometrajeRecibido'), 'border-custom': !erroresEtapa.includes('kilometrajeRecibido')}"
+                                    [(ngModel)]="dto.kilometrajeRecibido">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label text-custom-muted small">Transmisión / Tracción</label>
+                                <select class="form-select bg-dark text-white rounded-3"
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('transmision'), 'border-custom': !erroresEtapa.includes('transmision')}"
+                                    [(ngModel)]="dto.transmision">
+                                    <option value="AUTOMATICO">Automático</option>
+                                    <option value="SINCRONICO">Sincrónico</option>
+                                    <option value="4x4">4x4</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
-            <!-- Selector de Daño -->
-            <div class="col-12 col-md-5">
-                <div class="d-flex flex-wrap gap-1 mb-3">
-                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===1 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(1, 'GOLPE')">1. GOLPE</button>
-                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===2 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(2, 'SUELTO')">2. SUELTO</button>
-                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===3 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(3, 'RAYA')">3. RAYA</button>
-                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===4 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(4, 'DESCONCHADO')">4. DESCONCHADO</button>
-                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===5 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(5, 'VIDRIO ROTO')">5. VIDRIO ROTO</button>
-                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===6 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(6, 'ESPEJO ROTO')">6. ESPEJO ROTO</button>
-                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===7 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(7, 'FALTA MOLDURA')">7. MOLDURA</button>
-                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===8 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(8, 'FALTA FARO')">8. FARO</button>
-                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===9 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(9, 'ACCESORIO FALTA')">9. ACCESORIOS</button>
-                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===10 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(10, 'FALTA COPAS')">10. COPAS</button>
-                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===11 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(11, 'FALTA EMBLEMA')">11. EMBLEMA</button>
-                    <button class="btn btn-sm" [ngClass]="codigoDanoSeleccionado===12 ? 'btn-danger' : 'btn-outline-secondary text-white'" (click)="seleccionarDano(12, 'TAP. MANCHADA')">12. TAP. MANCHADA</button>
-                </div>
+                    <!-- ETAPA 2 -->
+                    <div *ngSwitchCase="2">
+                        <h6 class="text-white mb-3">Etapa 2: Niveles de Fluidos y Documentos</h6>
 
-                <div class="bg-dark p-2 rounded-3 border border-custom">
-                    <h6 class="text-white small mb-2 border-bottom pb-1 border-secondary">Lista de Daños</h6>
-                    <ul class="list-unstyled small mb-0" style="max-height: 120px; overflow-y: auto;">
-                        <li *ngIf="danos.length===0" class="text-custom-muted">Ningún daño marcado.</li>
-                        <li *ngFor="let d of danos; let i = index" class="d-flex justify-content-between align-items-center mb-1 text-white">
-                            <span><span class="badge bg-danger rounded-pill me-1">{{ d.codigoDano }}</span> {{ d.nombreDano }}</span>
-                            <button class="btn btn-sm text-danger p-0 m-0" (click)="quitarDano(i)"><i class="bi bi-trash"></i></button>
-                        </li>
-                    </ul>
-                </div>
+                        <h6 class="text-warning mt-3 mb-2 small fw-bold">Fluidos (ALTO / MEDIO / BAJO)</h6>
+                        <div class="row g-2 mb-4">
+                            <div class="col-6 col-md-4">
+                                <label class="form-label text-custom-muted small mb-1">Combustible</label>
+                                <select class="form-select bg-dark text-white rounded-3"
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelCombustible'), 'border-custom': !erroresEtapa.includes('nivelCombustible')}"
+                                    [(ngModel)]="dto.nivelCombustible">
+                                    <option value="" disabled selected>-- Seleccione --</option>
+                                    <option value="ALTO">Alto</option>
+                                    <option value="MEDIO">Medio</option>
+                                    <option value="BAJO">Bajo</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label text-custom-muted small mb-1">Aceite Motor</label>
+                                <select class="form-select bg-dark text-white rounded-3"
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelAceiteMotor'), 'border-custom': !erroresEtapa.includes('nivelAceiteMotor')}"
+                                    [(ngModel)]="dto.nivelAceiteMotor">
+                                    <option value="" disabled selected>-- Seleccione --</option>
+                                    <option value="ALTO">Alto</option>
+                                    <option value="MEDIO">Medio</option>
+                                    <option value="BAJO">Bajo</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label text-custom-muted small mb-1">Liga de Frenos</label>
+                                <select class="form-select bg-dark text-white rounded-3"
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelLigaFrenos'), 'border-custom': !erroresEtapa.includes('nivelLigaFrenos')}"
+                                    [(ngModel)]="dto.nivelLigaFrenos">
+                                    <option value="" disabled selected>-- Seleccione --</option>
+                                    <option value="ALTO">Alto</option>
+                                    <option value="MEDIO">Medio</option>
+                                    <option value="BAJO">Bajo</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label text-custom-muted small mb-1">Aceite Caja</label>
+                                <select class="form-select bg-dark text-white rounded-3"
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelAceiteCaja'), 'border-custom': !erroresEtapa.includes('nivelAceiteCaja')}"
+                                    [(ngModel)]="dto.nivelAceiteCaja">
+                                    <option value="" disabled selected>-- Seleccione --</option>
+                                    <option value="ALTO">Alto</option>
+                                    <option value="MEDIO">Medio</option>
+                                    <option value="BAJO">Bajo</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label text-custom-muted small mb-1">Refrigerante</label>
+                                <select class="form-select bg-dark text-white rounded-3"
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelRefrigerante'), 'border-custom': !erroresEtapa.includes('nivelRefrigerante')}"
+                                    [(ngModel)]="dto.nivelRefrigerante">
+                                    <option value="" disabled selected>-- Seleccione --</option>
+                                    <option value="ALTO">Alto</option>
+                                    <option value="MEDIO">Medio</option>
+                                    <option value="BAJO">Bajo</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <label class="form-label text-custom-muted small mb-1">Tipo de Cobertura</label>
+                                <input type="text" class="form-control bg-dark text-white rounded-3"
+                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('tipoCobertura'), 'border-custom': !erroresEtapa.includes('tipoCobertura')}"
+                                    [(ngModel)]="dto.tipoCobertura" placeholder="RCV / Amplia">
+                            </div>
+                        </div>
 
-                <div class="mt-3">
-                    <label class="form-label text-custom-muted small">Observaciones Generales</label>
-                    <textarea class="form-control bg-dark text-white border-custom rounded-3" rows="2" [(ngModel)]="dto.observacionesDanos"></textarea>
-                </div>
-            </div>
-          </div>
-        </div>
+                        <h6 class="text-warning mt-3 mb-2 small fw-bold">Documentos del Vehículo</h6>
+                        <div class="bg-dark p-2 rounded-3 border border-custom mb-3">
+                            <div class="form-check form-switch mb-2 d-flex align-items-center">
+                                <input class="form-check-input me-3 ms-0" type="checkbox" role="switch"
+                                    [(ngModel)]="dto.docCarnet" style="transform: scale(1.1);">
+                                <label class="form-check-label text-white small">Carnet de Circulación</label>
+                            </div>
+                            <div class="form-check form-switch mb-2 d-flex align-items-center">
+                                <input class="form-check-input me-3 ms-0" type="checkbox" role="switch"
+                                    [(ngModel)]="dto.docAutorizacion" style="transform: scale(1.1);">
+                                <label class="form-check-label text-white small">Autorización para Conducir</label>
+                            </div>
+                            <div class="form-check form-switch d-flex align-items-center">
+                                <input class="form-check-input me-3 ms-0" type="checkbox" role="switch"
+                                    [(ngModel)]="dto.docAsignacion" style="transform: scale(1.1);">
+                                <label class="form-check-label text-white small">Asignación de Vehículo</label>
+                            </div>
+                        </div>
 
-        <!-- ETAPA 4: Puntos de Revisión -->
-        <div *ngSwitchCase="4">
-            <h6 class="text-white mb-3">Etapa 4: Puntos de Revisión y Accesorios</h6>
-            
-            <h6 class="text-warning mt-3 mb-2 small fw-bold">Sistema de Seguridad</h6>
-            <div class="row g-2 mb-3">
-                <div class="col-6 col-md-3">
-                    <div class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
-                        <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.segAlarma">
-                        <label class="form-check-label text-white small">Alarma</label>
+                        <h6 class="text-warning mt-3 mb-2 small fw-bold">Documentos del Conductor</h6>
+                        <div class="bg-dark p-2 rounded-3 border border-custom mb-3">
+                            <div class="form-check form-switch mb-2 d-flex align-items-center">
+                                <input class="form-check-input me-3 ms-0" type="checkbox" role="switch"
+                                    [(ngModel)]="dto.docLicencia" style="transform: scale(1.1);">
+                                <label class="form-check-label text-white small">Licencia para Conducir</label>
+                            </div>
+                            <div class="form-check form-switch d-flex align-items-center">
+                                <input class="form-check-input me-3 ms-0" type="checkbox" role="switch"
+                                    [(ngModel)]="dto.docCertificadoMedico" style="transform: scale(1.1);">
+                                <label class="form-check-label text-white small">Certificado Médico</label>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
-                        <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.segBoveda">
-                        <label class="form-check-label text-white small">Bóveda</label>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
-                        <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.segExtintor">
-                        <label class="form-check-label text-white small">Extintor</label>
-                    </div>
-                </div>
-                <div class="col-6 col-md-3">
-                    <div class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
-                        <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="dto.segTrancaPalanca">
-                        <label class="form-check-label text-white small">Tranca Palanca</label>
-                    </div>
-                </div>
-            </div>
 
-            <h6 class="text-warning mt-3 mb-2 small fw-bold">Accesorios</h6>
-            <div class="row g-2 mb-3">
-                <div class="col-6 col-md-4" *ngFor="let acc of [
+                    <!-- ETAPA 3: EVALUACIÓN GRÁFICA -->
+                    <div *ngSwitchCase="3">
+                        <h6 class="text-white mb-1"><i class="bi bi-shield-check text-info"></i> Evaluación Gráfica</h6>
+                        <p class="text-custom-muted small mb-3">Selecciona un tipo de daño y haz clic sobre el vehículo
+                            para agregarlo.</p>
+
+                        <div class="row">
+                            <!-- Diagrama SVG -->
+                            <div class="col-12 col-md-7 mb-3">
+                                <div
+                                    class="bg-dark border border-custom p-2 rounded-4 d-flex justify-content-center align-items-center">
+                                    <div style="position: relative; width: 100%; max-width: 350px; aspect-ratio: 1 / 1; margin: 0 auto; cursor: crosshair; user-select: none;"
+                                        (mousedown)="agregarDano($event)">
+                                        <!-- Imagen de Vehículo -->
+                                        <img [src]="getVehiculoImagenUrl()" alt="Vehiculo"
+                                            style="width: 100%; height: 100%; object-fit: cover; pointer-events: none; border-radius: 10px;">
+
+                                        <!-- PINES ROJOS -->
+                                        <div *ngFor="let dano of danos; let i = index"
+                                            style="position: absolute; width: 22px; height: 22px; background: #ef4444; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; transform: translate(-50%, -50%); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3); pointer-events: none; z-index: 10;"
+                                            [style.left.%]="dano.coordX" [style.top.%]="dano.coordY">
+                                            {{ dano.codigoDano }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Selector de Daño -->
+                            <div class="col-12 col-md-5">
+                                <div class="d-flex flex-wrap gap-1 mb-3">
+                                    <button class="btn btn-sm"
+                                        [ngClass]="codigoDanoSeleccionado===1 ? 'btn-danger' : 'btn-outline-secondary text-white'"
+                                        (click)="seleccionarDano(1, 'GOLPE')">1. GOLPE</button>
+                                    <button class="btn btn-sm"
+                                        [ngClass]="codigoDanoSeleccionado===2 ? 'btn-danger' : 'btn-outline-secondary text-white'"
+                                        (click)="seleccionarDano(2, 'SUELTO')">2. SUELTO</button>
+                                    <button class="btn btn-sm"
+                                        [ngClass]="codigoDanoSeleccionado===3 ? 'btn-danger' : 'btn-outline-secondary text-white'"
+                                        (click)="seleccionarDano(3, 'RAYA')">3. RAYA</button>
+                                    <button class="btn btn-sm"
+                                        [ngClass]="codigoDanoSeleccionado===4 ? 'btn-danger' : 'btn-outline-secondary text-white'"
+                                        (click)="seleccionarDano(4, 'DESCONCHADO')">4. DESCONCHADO</button>
+                                    <button class="btn btn-sm"
+                                        [ngClass]="codigoDanoSeleccionado===5 ? 'btn-danger' : 'btn-outline-secondary text-white'"
+                                        (click)="seleccionarDano(5, 'VIDRIO ROTO')">5. VIDRIO ROTO</button>
+                                    <button class="btn btn-sm"
+                                        [ngClass]="codigoDanoSeleccionado===6 ? 'btn-danger' : 'btn-outline-secondary text-white'"
+                                        (click)="seleccionarDano(6, 'ESPEJO ROTO')">6. ESPEJO ROTO</button>
+                                    <button class="btn btn-sm"
+                                        [ngClass]="codigoDanoSeleccionado===7 ? 'btn-danger' : 'btn-outline-secondary text-white'"
+                                        (click)="seleccionarDano(7, 'FALTA MOLDURA')">7. MOLDURA</button>
+                                    <button class="btn btn-sm"
+                                        [ngClass]="codigoDanoSeleccionado===8 ? 'btn-danger' : 'btn-outline-secondary text-white'"
+                                        (click)="seleccionarDano(8, 'FALTA FARO')">8. FARO</button>
+                                    <button class="btn btn-sm"
+                                        [ngClass]="codigoDanoSeleccionado===9 ? 'btn-danger' : 'btn-outline-secondary text-white'"
+                                        (click)="seleccionarDano(9, 'ACCESORIO FALTA')">9. ACCESORIOS</button>
+                                    <button class="btn btn-sm"
+                                        [ngClass]="codigoDanoSeleccionado===10 ? 'btn-danger' : 'btn-outline-secondary text-white'"
+                                        (click)="seleccionarDano(10, 'FALTA COPAS')">10. COPAS</button>
+                                    <button class="btn btn-sm"
+                                        [ngClass]="codigoDanoSeleccionado===11 ? 'btn-danger' : 'btn-outline-secondary text-white'"
+                                        (click)="seleccionarDano(11, 'FALTA EMBLEMA')">11. EMBLEMA</button>
+                                    <button class="btn btn-sm"
+                                        [ngClass]="codigoDanoSeleccionado===12 ? 'btn-danger' : 'btn-outline-secondary text-white'"
+                                        (click)="seleccionarDano(12, 'TAP. MANCHADA')">12. TAP. MANCHADA</button>
+                                </div>
+
+                                <div class="bg-dark p-2 rounded-3 border border-custom">
+                                    <h6 class="text-white small mb-2 border-bottom pb-1 border-secondary">Lista de Daños
+                                    </h6>
+                                    <ul class="list-unstyled small mb-0" style="max-height: 120px; overflow-y: auto;">
+                                        <li *ngIf="danos.length===0" class="text-custom-muted">Ningún daño marcado.</li>
+                                        <li *ngFor="let d of danos; let i = index"
+                                            class="d-flex justify-content-between align-items-center mb-1 text-white">
+                                            <span><span class="badge bg-danger rounded-pill me-1">{{ d.codigoDano
+                                                    }}</span> {{ d.nombreDano }}</span>
+                                            <button class="btn btn-sm text-danger p-0 m-0" (click)="quitarDano(i)"><i
+                                                    class="bi bi-trash"></i></button>
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div class="mt-3">
+                                    <label class="form-label text-custom-muted small">Observaciones Generales</label>
+                                    <textarea class="form-control bg-dark text-white border-custom rounded-3" rows="2"
+                                        [(ngModel)]="dto.observacionesDanos"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ETAPA 4: Puntos de Revisión -->
+                    <div *ngSwitchCase="4">
+                        <h6 class="text-white mb-3">Etapa 4: Puntos de Revisión y Accesorios</h6>
+
+                        <h6 class="text-warning mt-3 mb-2 small fw-bold">Sistema de Seguridad</h6>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6 col-md-3">
+                                <div
+                                    class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                                    <input class="form-check-input me-2 ms-0" type="checkbox" role="switch"
+                                        [(ngModel)]="dto.segAlarma">
+                                    <label class="form-check-label text-white small">Alarma</label>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div
+                                    class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                                    <input class="form-check-input me-2 ms-0" type="checkbox" role="switch"
+                                        [(ngModel)]="dto.segBoveda">
+                                    <label class="form-check-label text-white small">Bóveda</label>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div
+                                    class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                                    <input class="form-check-input me-2 ms-0" type="checkbox" role="switch"
+                                        [(ngModel)]="dto.segExtintor">
+                                    <label class="form-check-label text-white small">Extintor</label>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div
+                                    class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                                    <input class="form-check-input me-2 ms-0" type="checkbox" role="switch"
+                                        [(ngModel)]="dto.segTrancaPalanca">
+                                    <label class="form-check-label text-white small">Tranca Palanca</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="text-warning mt-3 mb-2 small fw-bold">Accesorios</h6>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6 col-md-4" *ngFor="let acc of [
                     {key:'accCables', label:'Cables Aux'}, {key:'accCauchoRepuesto', label:'Repuesto'},
                     {key:'accCornetas', label:'Cornetas'}, {key:'accGato', label:'Gato Hidráulico'},
                     {key:'accHerramientas', label:'Herramientas'}, {key:'accLlaveCruz', label:'Llave Cruz'},
                     {key:'accPalancaGato', label:'Palanca Gato'}, {key:'accRadio', label:'Radio/CD'},
                     {key:'accRines', label:'Rines'}, {key:'accTasa', label:'Tasa'}, {key:'accTriangulo', label:'Triángulo'}
                 ]">
-                    <div class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
-                        <input class="form-check-input me-2 ms-0" type="checkbox" role="switch" [(ngModel)]="dto[acc.key]">
-                        <label class="form-check-label text-white small">{{acc.label}}</label>
-                    </div>
-                </div>
-            </div>
+                                <div
+                                    class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
+                                    <input class="form-check-input me-2 ms-0" type="checkbox" role="switch"
+                                        [(ngModel)]="dto[acc.key]">
+                                    <label class="form-check-label text-white small">{{acc.label}}</label>
+                                </div>
+                            </div>
+                        </div>
 
-            <h6 class="text-warning mt-3 mb-2 small fw-bold">Estado General de Componentes (B, R, M)</h6>
-            <div class="row g-2 mb-3">
-                <div class="col-6 col-md-3" *ngFor="let rev of [
+                        <h6 class="text-warning mt-3 mb-2 small fw-bold">Estado General de Componentes (B, R, M)</h6>
+                        <div class="row g-2 mb-3">
+                            <div class="col-6 col-md-3" *ngFor="let rev of [
                     {key:'revAire', label:'Aire Acond.'}, {key:'revAntena', label:'Antena'},
                     {key:'revCauchos', label:'Cauchos'}, {key:'revFaros', label:'Faros/Luces'},
                     {key:'revFrenos', label:'Frenos'}, {key:'revVidrios', label:'Vidrios'},
@@ -434,86 +566,101 @@
                     {key:'revCinturonSeguridad', label:'Cinturones'}, {key:'revPuertas', label:'Puertas'},
                     {key:'revTecho', label:'Techo'}
                 ]">
-                    <label class="form-label text-custom-muted small mb-1">{{rev.label}}</label>
-                    <select class="form-select bg-dark text-white border-custom rounded-3" [(ngModel)]="dto[rev.key]">
-                        <option value="B">Bueno (B)</option><option value="R">Regular (R)</option><option value="M">Malo (M)</option>
-                    </select>
-                </div>
-            </div>
+                                <label class="form-label text-custom-muted small mb-1">{{rev.label}}</label>
+                                <select class="form-select bg-dark text-white border-custom rounded-3"
+                                    [(ngModel)]="dto[rev.key]">
+                                    <option value="B">Bueno (B)</option>
+                                    <option value="R">Regular (R)</option>
+                                    <option value="M">Malo (M)</option>
+                                </select>
+                            </div>
+                        </div>
 
-            <!-- Batería y Cauchos Especificaciones -->
-            <div class="row g-3 mt-1 mb-3">
-                <div class="col-12 col-md-6">
-                    <div class="bg-dark p-3 rounded-4 border border-custom h-100">
-                        <h6 class="text-warning small fw-bold mb-3"><i class="bi bi-battery-half"></i> BATERÍA (10)</h6>
-                        <div class="row g-2">
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
-                                [ngClass]="{'campo-invalido': erroresEtapa.includes('batMarca'), 'border-custom': !erroresEtapa.includes('batMarca')}"
-                                placeholder="Marca" [(ngModel)]="dto.batMarca"></div>
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
-                                [ngClass]="{'campo-invalido': erroresEtapa.includes('batModelo'), 'border-custom': !erroresEtapa.includes('batModelo')}"
-                                placeholder="Modelo" [(ngModel)]="dto.batModelo"></div>
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
-                                [ngClass]="{'campo-invalido': erroresEtapa.includes('batCodigo'), 'border-custom': !erroresEtapa.includes('batCodigo')}"
-                                placeholder="Código" [(ngModel)]="dto.batCodigo"></div>
-                            <div class="col-6">
-                                <select class="form-select bg-dark text-white rounded-3" 
-                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('batVida'), 'border-custom': !erroresEtapa.includes('batVida')}"
-                                    [(ngModel)]="dto.batVida">
-                                    <option value="" disabled selected>Vida Útil</option>
-                                    <option value="Bueno">Bueno</option>
-                                    <option value="Regular">Regular</option>
-                                    <option value="Malo">Malo</option>
-                                </select>
+                        <!-- Batería y Cauchos Especificaciones -->
+                        <div class="row g-3 mt-1 mb-3">
+                            <div class="col-12 col-md-6">
+                                <div class="bg-dark p-3 rounded-4 border border-custom h-100">
+                                    <h6 class="text-warning small fw-bold mb-3"><i class="bi bi-battery-half"></i>
+                                        BATERÍA (10)</h6>
+                                    <div class="row g-2">
+                                        <div class="col-6"><input type="text"
+                                                class="form-control bg-dark text-white rounded-3"
+                                                [ngClass]="{'campo-invalido': erroresEtapa.includes('batMarca'), 'border-custom': !erroresEtapa.includes('batMarca')}"
+                                                placeholder="Marca" [(ngModel)]="dto.batMarca"></div>
+                                        <div class="col-6"><input type="text"
+                                                class="form-control bg-dark text-white rounded-3"
+                                                [ngClass]="{'campo-invalido': erroresEtapa.includes('batModelo'), 'border-custom': !erroresEtapa.includes('batModelo')}"
+                                                placeholder="Modelo" [(ngModel)]="dto.batModelo"></div>
+                                        <div class="col-6"><input type="text"
+                                                class="form-control bg-dark text-white rounded-3"
+                                                [ngClass]="{'campo-invalido': erroresEtapa.includes('batCodigo'), 'border-custom': !erroresEtapa.includes('batCodigo')}"
+                                                placeholder="Código" [(ngModel)]="dto.batCodigo"></div>
+                                        <div class="col-6">
+                                            <select class="form-select bg-dark text-white rounded-3"
+                                                [ngClass]="{'campo-invalido': erroresEtapa.includes('batVida'), 'border-custom': !erroresEtapa.includes('batVida')}"
+                                                [(ngModel)]="dto.batVida">
+                                                <option value="" disabled selected>Vida Útil</option>
+                                                <option value="Bueno">Bueno</option>
+                                                <option value="Regular">Regular</option>
+                                                <option value="Malo">Malo</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="bg-dark p-3 rounded-4 border border-custom h-100">
+                                    <h6 class="text-warning small fw-bold mb-3"><i class="bi bi-vinyl-fill"></i> CAUCHOS
+                                        (11)</h6>
+                                    <div class="row g-2">
+                                        <div class="col-6"><input type="text"
+                                                class="form-control bg-dark text-white rounded-3"
+                                                [ngClass]="{'campo-invalido': erroresEtapa.includes('cauMarca'), 'border-custom': !erroresEtapa.includes('cauMarca')}"
+                                                placeholder="Marca" [(ngModel)]="dto.cauMarca"></div>
+                                        <div class="col-6"><input type="text"
+                                                class="form-control bg-dark text-white rounded-3"
+                                                [ngClass]="{'campo-invalido': erroresEtapa.includes('cauModelo'), 'border-custom': !erroresEtapa.includes('cauModelo')}"
+                                                placeholder="Modelo" [(ngModel)]="dto.cauModelo"></div>
+                                        <div class="col-6"><input type="text"
+                                                class="form-control bg-dark text-white rounded-3"
+                                                [ngClass]="{'campo-invalido': erroresEtapa.includes('cauCodigo'), 'border-custom': !erroresEtapa.includes('cauCodigo')}"
+                                                placeholder="Código" [(ngModel)]="dto.cauCodigo"></div>
+                                        <div class="col-6">
+                                            <select class="form-select bg-dark text-white rounded-3"
+                                                [ngClass]="{'campo-invalido': erroresEtapa.includes('cauVida'), 'border-custom': !erroresEtapa.includes('cauVida')}"
+                                                [(ngModel)]="dto.cauVida">
+                                                <option value="" disabled selected>Vida Útil</option>
+                                                <option value="Bueno">Bueno</option>
+                                                <option value="Regular">Regular</option>
+                                                <option value="Malo">Malo</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
+
                 </div>
-                <div class="col-12 col-md-6">
-                    <div class="bg-dark p-3 rounded-4 border border-custom h-100">
-                        <h6 class="text-warning small fw-bold mb-3"><i class="bi bi-vinyl-fill"></i> CAUCHOS (11)</h6>
-                        <div class="row g-2">
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
-                                [ngClass]="{'campo-invalido': erroresEtapa.includes('cauMarca'), 'border-custom': !erroresEtapa.includes('cauMarca')}"
-                                placeholder="Marca" [(ngModel)]="dto.cauMarca"></div>
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
-                                [ngClass]="{'campo-invalido': erroresEtapa.includes('cauModelo'), 'border-custom': !erroresEtapa.includes('cauModelo')}"
-                                placeholder="Modelo" [(ngModel)]="dto.cauModelo"></div>
-                            <div class="col-6"><input type="text" class="form-control bg-dark text-white rounded-3" 
-                                [ngClass]="{'campo-invalido': erroresEtapa.includes('cauCodigo'), 'border-custom': !erroresEtapa.includes('cauCodigo')}"
-                                placeholder="Código" [(ngModel)]="dto.cauCodigo"></div>
-                            <div class="col-6">
-                                <select class="form-select bg-dark text-white rounded-3" 
-                                    [ngClass]="{'campo-invalido': erroresEtapa.includes('cauVida'), 'border-custom': !erroresEtapa.includes('cauVida')}"
-                                    [(ngModel)]="dto.cauVida">
-                                    <option value="" disabled selected>Vida Útil</option>
-                                    <option value="Bueno">Bueno</option>
-                                    <option value="Regular">Regular</option>
-                                    <option value="Malo">Malo</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+
+                <!-- Footer navigation -->
+                <div class="d-flex justify-content-between mt-4">
+                    <button class="btn btn-outline-secondary fw-bold px-4 rounded-pill" (click)="retroceder()"
+                        [disabled]="etapaActual === 1">
+                        <i class="bi bi-arrow-left"></i> Atrás
+                    </button>
+                    <button *ngIf="etapaActual < 4" class="btn btn-primary fw-bold px-4 rounded-pill"
+                        (click)="avanzar()">
+                        Siguiente <i class="bi bi-arrow-right"></i>
+                    </button>
+                    <button *ngIf="etapaActual === 4"
+                        class="btn btn-success text-white fw-bold px-4 rounded-pill shadow-lg"
+                        (click)="finalizarInspeccion()" [disabled]="guardando">
+                        <span *ngIf="!guardando">Finalizar <i class="bi bi-check2-all"></i></span>
+                        <span *ngIf="guardando">Enviando...</span>
+                    </button>
                 </div>
+
             </div>
         </div>
-
-      </div>
-
-      <!-- Footer navigation -->
-      <div class="d-flex justify-content-between mt-4">
-        <button class="btn btn-outline-secondary fw-bold px-4 rounded-pill" (click)="retroceder()" [disabled]="etapaActual === 1">
-          <i class="bi bi-arrow-left"></i> Atrás
-        </button>
-        <button *ngIf="etapaActual < 4" class="btn btn-primary fw-bold px-4 rounded-pill" (click)="avanzar()">
-          Siguiente <i class="bi bi-arrow-right"></i>
-        </button>
-        <button *ngIf="etapaActual === 4" class="btn btn-success text-white fw-bold px-4 rounded-pill shadow-lg" (click)="finalizarInspeccion()" [disabled]="guardando">
-          <span *ngIf="!guardando">Finalizar <i class="bi bi-check2-all"></i></span>
-          <span *ngIf="guardando">Enviando...</span>
-        </button>
-      </div>
-
     </div>
-  </div>
-</div>
