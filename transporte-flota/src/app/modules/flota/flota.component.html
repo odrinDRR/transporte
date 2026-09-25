@@ -206,7 +206,7 @@
                 <div class="col-12 col-md-4 text-center mb-3 mb-md-0">
                   <div class="p-2 bg-white rounded-4 d-inline-block shadow-lg border border-4 border-light">
                     <img
-                      src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}"
+                      src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ originUrl }}?ficha={{ vehiculoSeleccionado.id }}"
                       alt="Código QR" class="img-fluid" style="width: 130px; height: 130px;">
                   </div>
                 </div>
@@ -389,10 +389,12 @@
                 (click)="imprimirQR()">
                 <i class="bi bi-qr-code me-1"></i> Imprimir QR
               </button>
-              <button class="btn btn-primary-neon text-white px-4 fw-bold rounded-pill btn-touch-action"
+
+              <button class="btn btn-primary px-4 rounded-pill fw-bold shadow-lg d-flex align-items-center"
                 (click)="imprimirFicha()">
                 <i class="bi bi-printer-fill me-1"></i> Imprimir Ficha
               </button>
+
             </div>
           </div>
         </div>
@@ -568,12 +570,12 @@
             <div class="row g-3">
               <div class="col-12 col-md-6">
                 <label class="form-label text-white-50 fw-bold fs-xs tracking-wide">DEPENDENCIA <span
-                      class="text-danger">*</span></label>
-                  <select class="form-select bg-dark text-white border-secondary border-opacity-50 touch-input"
-                    [(ngModel)]="nuevoVehiculo.dependencia">
-                    <option value="" disabled selected>Seleccione dependencia...</option>
-                    <option *ngFor="let dep of listaDependencias" [value]="dep.nombre">{{ dep.nombre }}</option>
-                  </select>
+                    class="text-danger">*</span></label>
+                <select class="form-select bg-dark text-white border-secondary border-opacity-50 touch-input"
+                  [(ngModel)]="nuevoVehiculo.dependencia">
+                  <option value="" disabled selected>Seleccione dependencia...</option>
+                  <option *ngFor="let dep of listaDependencias" [value]="dep.nombre">{{ dep.nombre }}</option>
+                </select>
               </div>
 
               <div class="col-6 col-md-3">
@@ -728,28 +730,29 @@
           <button type="button"
             class="btn btn-outline-light rounded-circle position-absolute top-0 end-0 m-3 z-3 shadow-lg"
             (click)="cerrarCarrusel()"><i class="bi bi-x-lg"></i></button>
-          
+
           <div class="modal-body p-0">
             <div id="carruselVehiculo" class="carousel slide" data-bs-ride="carousel">
               <div class="carousel-indicators" *ngIf="fotosCarrusel.length > 1">
-                <button type="button" data-bs-target="#carruselVehiculo" 
-                        *ngFor="let foto of fotosCarrusel; let i = index" 
-                        [attr.data-bs-slide-to]="i" 
-                        [class.active]="i === 0" 
-                        [attr.aria-current]="i === 0 ? 'true' : null"></button>
+                <button type="button" data-bs-target="#carruselVehiculo"
+                  *ngFor="let foto of fotosCarrusel; let i = index" [attr.data-bs-slide-to]="i" [class.active]="i === 0"
+                  [attr.aria-current]="i === 0 ? 'true' : null"></button>
               </div>
               <div class="carousel-inner">
                 <div class="carousel-item" *ngFor="let foto of fotosCarrusel; let i = index" [class.active]="i === 0">
                   <div class="d-flex align-items-center justify-content-center" style="height: 80vh;">
-                    <img [src]="foto" class="d-block mw-100 mh-100 object-fit-contain rounded-4 shadow-lg" alt="Foto Vehículo">
+                    <img [src]="foto" class="d-block mw-100 mh-100 object-fit-contain rounded-4 shadow-lg"
+                      alt="Foto Vehículo">
                   </div>
                 </div>
               </div>
-              <button class="carousel-control-prev" type="button" data-bs-target="#carruselVehiculo" data-bs-slide="prev" *ngIf="fotosCarrusel.length > 1">
+              <button class="carousel-control-prev" type="button" data-bs-target="#carruselVehiculo"
+                data-bs-slide="prev" *ngIf="fotosCarrusel.length > 1">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                 <span class="visually-hidden">Anterior</span>
               </button>
-              <button class="carousel-control-next" type="button" data-bs-target="#carruselVehiculo" data-bs-slide="next" *ngIf="fotosCarrusel.length > 1">
+              <button class="carousel-control-next" type="button" data-bs-target="#carruselVehiculo"
+                data-bs-slide="next" *ngIf="fotosCarrusel.length > 1">
                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
                 <span class="visually-hidden">Siguiente</span>
               </button>
@@ -770,7 +773,7 @@
       <tr>
         <td colspan="4" class="align-middle border-dark" style="border-width: 2px !important;">
           <div class="d-flex align-items-center">
-            <h3 class="mb-0 fw-bold ms-2" style="color: #333;">Pequiven</h3>
+            <img src="assets/images/Pequiven.png" alt="Pequiven" height="30" class="ms-2">
           </div>
         </td>
         <td colspan="2" class="p-0 border-dark" style="border-width: 2px !important;">
@@ -961,7 +964,7 @@
         <tr>
           <td colspan="4" class="align-middle">
             <div class="d-flex align-items-center">
-              <h3 class="mb-0 fw-bold ms-2" style="color: #333;">Pequiven</h3>
+              <img src="/assets/images/Pequiven.png" alt="Pequiven" height="30" class="ms-2">
             </div>
           </td>
           <td colspan="2" class="p-0">
@@ -1073,7 +1076,7 @@
     <div *ngIf="vehiculoSeleccionado" class="w-100 text-center bg-white text-black pt-5 print-container">
       <div class="mt-5 pt-5">
         <img
-          src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={{ vehiculoSeleccionado.placa }}|{{ vehiculoSeleccionado.vin }}"
+          src="https://api.qrserver.com/v1/create-qr-code/?size=400x400&data={{ originUrl }}?ficha={{ vehiculoSeleccionado.id }}"
           style="width: 400px; height: 400px;">
         <h1 class="mt-4 display-3 fw-bold text-black font-monospace">{{ vehiculoSeleccionado.placa }}</h1>
         <h3 class="mt-2 text-dark">{{ vehiculoSeleccionado.identificador }}</h3>

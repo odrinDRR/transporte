@@ -92,10 +92,8 @@ export class ListadoAuditoriasComponent implements OnInit {
 
   imprimir(tipo: 'inspeccion' | 'auditoria', id: number) {
     if (tipo === 'inspeccion') {
-      // Óptimo: Buscar directamente por ID en la BD
-      this.http.get<any>(`${environment.apiUrl}/inspecciones-livianos/${id}`).subscribe(res => {
-        this.generarPdfEImprimir(res, null);
-      });
+      const url = `${environment.apiUrl}/reportes/inspeccion/${id}`;
+      window.open(url, '_blank');
     } else {
       this.http.get<any>(`${environment.apiUrl}/auditorias-patio/${id}`).subscribe(aud => {
         // Óptimo: Traer ambas inspecciones en paralelo usando forkJoin

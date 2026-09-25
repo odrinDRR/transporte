@@ -1,0 +1,29 @@
+.ficha-container {
+  min-height: 100vh;
+}
+
+@media print {
+  .ficha-container {
+    min-height: auto;
+    padding: 0 !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+
+  @page {
+    margin: 0.5cm;
+    size: auto;
+  }
+
+  html, body {
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .custom-print-table, .custom-print-table tr, .custom-print-table td {
+    page-break-inside: avoid !important;
+  }
+}

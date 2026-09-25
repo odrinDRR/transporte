@@ -20,6 +20,10 @@ export class FlotaComponent implements OnInit {
   sidebarAbierto = false;
 
   listaDependencias: Dependencia[] = [];
+  
+  get originUrl(): string {
+    return window.location.origin;
+  }
 
   // ==========================================
   // ESTADOS Y PROPIEDADES DEL COMPONENTE

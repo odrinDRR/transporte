@@ -362,8 +362,12 @@ select.touch-input option:disabled {
       .fleet-mobile-container {
         background: #ffffff !important;
         color: #000000 !important;
+        height: auto !important;
         min-height: auto !important;
         padding: 0 !important;
+      }
+      .custom-print-table, .custom-print-table tr, .custom-print-table td {
+        page-break-inside: avoid !important;
       }
     }
     
@@ -374,6 +378,7 @@ select.touch-input option:disabled {
       .fleet-mobile-container {
         background: #ffffff !important;
         color: #000000 !important;
+        height: auto !important;
         min-height: auto !important;
         padding: 0 !important;
       }

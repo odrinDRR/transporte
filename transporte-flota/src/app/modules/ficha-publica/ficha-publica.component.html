@@ -1,0 +1,133 @@
+<div *ngIf="vehiculo" class="w-100 bg-white text-black p-4 ficha-container">
+  <!-- Mismo código de la tabla pero en un template -->
+  <style>
+    .custom-print-table {
+      border-collapse: collapse;
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      font-size: 11px;
+    }
+
+    .custom-print-table th,
+    .custom-print-table td {
+      border: 2px solid #000 !important;
+      padding: 4px 6px !important;
+      vertical-align: middle !important;
+      line-height: 1.3 !important;
+      white-space: normal !important;
+    }
+
+    .custom-print-table .p-0 { padding: 0 !important; }
+    .custom-print-table .p-1 { padding: 0.25rem !important; }
+    .custom-print-table .p-2 { padding: 0.5rem !important; }
+    .custom-print-table .text-center { text-align: center !important; }
+    .custom-print-table .align-middle { vertical-align: middle !important; }
+    .custom-print-table .border-top { border-top: 2px solid #000 !important; }
+  </style>
+
+  <table class="custom-print-table m-0 bg-white">
+    <tr>
+      <td colspan="4" class="align-middle">
+        <div class="d-flex align-items-center">
+          <img src="assets/images/Pequiven.png" alt="Pequiven" height="30" class="ms-2">
+        </div>
+      </td>
+      <td colspan="2" class="p-0">
+        <div class="p-1">1. FECHA: </div>
+        <div class="p-1 border-top">2. HORA: </div>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="6" class="text-center" style="background-color: #f0f0f0 !important;">
+        <h5 class="mb-0 py-1 fw-bold text-uppercase">FICHA TÉCNICA VEHICULAR</h5>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" style="width: 33%;">3. DEPENDENCIA:<br> <strong>{{ vehiculo.dependencia }}</strong></td>
+      <td>4. MARCA:<br> <strong>{{ vehiculo.marcaModelo }}</strong></td>
+      <td>5. MODELO:<br> <strong>{{ vehiculo.marcaModelo }}</strong></td>
+      <td>6. PLACA N°:<br> <strong>{{ vehiculo.placa }}</strong></td>
+      <td>7. AÑO:<br> <strong>{{ vehiculo.anio }}</strong></td>
+    </tr>
+    <tr>
+      <td colspan="3" style="width: 50%;">8. SERIAL DE CARROCERÍA:<br> <strong>{{ vehiculo.vin }}</strong></td>
+      <td colspan="2" style="width: 33%;">9. COLOR:<br> <strong>{{ vehiculo.color }}</strong></td>
+      <td>10. N° BIEN:<br> <strong>{{ vehiculo.numeroBien }}</strong></td>
+    </tr>
+    <tr>
+      <td colspan="6" class="text-center fw-bold py-1" style="background-color: #f0f0f0 !important;">
+        11. MEMORIA FOTOGRÁFICA
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3" class="text-center p-1" style="height: 100px; width: 50%;">
+        <img [src]="vehiculo.fotosEstructuradas?.vistaFrontal || vehiculo.fotos?.[0] || ''" style="max-height: 75px; max-width: 100%;">
+        <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 1<br>VISTA FRONTAL DEL VEHÍCULO</div>
+      </td>
+      <td colspan="3" class="text-center p-1" style="height: 100px; width: 50%;">
+        <img [src]="vehiculo.fotosEstructuradas?.vistaTrasera || vehiculo.fotos?.[1] || ''" style="max-height: 75px; max-width: 100%;">
+        <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 2<br>VISTA TRASERA DEL VEHÍCULO</div>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3" class="text-center p-1" style="height: 100px; width: 50%;">
+        <img [src]="vehiculo.fotosEstructuradas?.vistaLateralDerecha || vehiculo.fotos?.[2] || ''" style="max-height: 75px; max-width: 100%;">
+        <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 3<br>VISTA LATERAL DERECHA DEL VEHÍCULO</div>
+      </td>
+      <td colspan="3" class="text-center p-1" style="height: 100px; width: 50%;">
+        <img [src]="vehiculo.fotosEstructuradas?.vistaLateralIzquierda || vehiculo.fotos?.[3] || ''" style="max-height: 75px; max-width: 100%;">
+        <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 4<br>VISTA LATERAL IZQUIERDO DEL VEHÍCULO</div>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="6" class="text-center p-1" style="height: 100px;">
+        <img [src]="vehiculo.fotosEstructuradas?.vistaSerialCarroceria || vehiculo.fotos?.[4] || ''" style="max-height: 75px; max-width: 100%;">
+        <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 5<br>VISTA DEL SERIAL DE CARROCERIA DEL VEHÍCULO</div>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="6" class="text-center p-1" style="height: 100px;">
+        <img [src]="vehiculo.fotosEstructuradas?.vistaNumeroBien || vehiculo.fotos?.[5] || ''" style="max-height: 75px; max-width: 100%;">
+        <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 6<br>VISTA DEL NUMERO DE BIEN NACIONAL DEL VEHÍCULO</div>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="6" class="p-1" style="height: 60px; vertical-align: top !important;">
+        12. OBSERVACIONES: <strong>{{ vehiculo.observaciones }}</strong>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3" class="p-1" style="vertical-align: top; height: 80px; width: 50%;">
+        <div class="mb-2">13. RESPONSABLE DE LA VERIFICACIÓN TÉCNICA:</div>
+        <div class="mb-1">Nombres y Apellidos:</div>
+        <div class="mb-1">N° C.I.:</div>
+        <div>N° TLF:</div>
+      </td>
+      <td colspan="3" class="p-1" style="vertical-align: top; height: 80px; width: 50%;">
+        <ng-container *ngIf="conductor; else sinConductorPrint">
+          <div class="mb-2">14. RESPONSABLE DEL VEHÍCULO:</div>
+          <div class="mb-1">Nombres y Apellidos: <strong>{{ conductor.nombre }}</strong></div>
+          <div class="mb-1">N° C.I.: <strong>{{ conductor.cedula }}</strong></div>
+          <div>N° TLF: <strong>{{ conductor.telefono || '' }}</strong></div>
+        </ng-container>
+        <ng-template #sinConductorPrint>
+          <div class="mb-2">14. RESPONSABLE DEL VEHÍCULO:</div>
+          <div class="mb-1">Nombres y Apellidos:</div>
+          <div class="mb-1">N° C.I.:</div>
+          <div>N° TLF:</div>
+        </ng-template>
+      </td>
+    </tr>
+  </table>
+  <div class="text-center mt-4 no-print">
+    <!-- <button class="btn btn-primary" onclick="window.print()">Imprimir Ficha</button> -->
+  </div>
+</div>
+<div *ngIf="cargando" class="w-100 vh-100 d-flex justify-content-center align-items-center bg-white text-black">
+  <div class="spinner-border text-primary" role="status"></div>
+  <span class="ms-2 fw-bold">Cargando datos del vehículo...</span>
+</div>
+<div *ngIf="error" class="w-100 vh-100 d-flex justify-content-center align-items-center bg-white text-danger">
+  <h4 class="fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}</h4>
+</div>

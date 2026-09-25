@@ -11,10 +11,20 @@ export class AppComponent implements OnInit {
   moduloActivo: string = 'flota';
   isLoggedIn: boolean = false;
   sidebarAbierto: boolean = false;
+  isVistaPublica: boolean = false;
+  fichaId: number | null = null;
 
   constructor(public flotaService: FlotaService) {}
 
   ngOnInit() {
+    const params = new URLSearchParams(window.location.search);
+    const ficha = params.get('ficha');
+    if (ficha) {
+      this.isVistaPublica = true;
+      this.fichaId = Number(ficha);
+      return;
+    }
+
     // Escuchar si hay un usuario logueado para mostrar el sistema
     this.flotaService.rolActual$.subscribe(rol => {
       this.isLoggedIn = !!rol;
