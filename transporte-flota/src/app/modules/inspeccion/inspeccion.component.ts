@@ -224,11 +224,9 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
 
                 this.dto.vehiculoId = Number(this.vehiculoActual.id);
                 this.dto.usuarioId = usuarioActual.id;
-                // NO pre-cargar nombres en firmas — el usuario debe escribirlos manualmente
                 this.dto.inspectorNombre = '';
                 this.dto.entregaNombre = '';
 
-                // Jump straight to the form (Nuevo flujo)
                 this.tipoInspeccionActual = this.operacionSeleccionada === 'LLEGADA' ? 'CIERRE' : 'INICIO';
                 this.dto.tipoInspeccion = this.tipoInspeccionActual;
                 this.dto.operacion = this.operacionSeleccionada;
@@ -236,7 +234,6 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
                   this.dto.motivo = 'RUTINARIO';
                 }
 
-                // Actualizar tipoVehiculo local y tipo de gráfico
                 this.vehiculoActual.tipoVehiculo = this.vehiculoSeleccionadoUI;
 
                 this.fasePrincipal = 'FORMULARIO';
@@ -270,20 +267,16 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
 
   /**
    * 🚀 ACCESO RÁPIDO PARA DESARROLLO LOCAL
-   * Salta la verificación de cédula usando datos mockeados.
    */
   accesoRapidoDev(): void {
-    // Guard de seguridad: no ejecutar en producción
     if (environment.production) {
       console.warn('accesoRapidoDev() no debería usarse en producción.');
       return;
     }
 
-    // Valores por defecto por si no se ha pasado por las fases previas
     if (!this.operacionSeleccionada) this.operacionSeleccionada = 'GENERAL';
     if (!this.vehiculoSeleccionadoUI) this.vehiculoSeleccionadoUI = 'SEDÁN';
 
-    // Datos mock para desarrollo
     const conductorMock = {
       id: 999,
       nombre: 'Conductor Demo',
@@ -309,13 +302,11 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     this.vehiculoActual = vehiculoMock;
     this.nombreConductorActual = conductorMock.nombre;
 
-    // Cargar DTO
     this.dto.vehiculoId = vehiculoMock.id;
     this.dto.usuarioId = conductorMock.id;
     this.dto.inspectorNombre = '';
     this.dto.entregaNombre = '';
 
-    // Determinar tipo de inspección según operación
     this.tipoInspeccionActual = this.operacionSeleccionada === 'LLEGADA' ? 'CIERRE' : 'INICIO';
     this.dto.tipoInspeccion = this.tipoInspeccionActual;
     this.dto.operacion = this.operacionSeleccionada;
@@ -323,7 +314,6 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
       this.dto.motivo = 'RUTINARIO';
     }
 
-    // Saltar directo al formulario
     this.fasePrincipal = 'FORMULARIO';
     this.etapaActual = 1;
   }
@@ -331,68 +321,178 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
   // --- PASO 2: ELEGIR TIPO DE RUTA (ANTIGUO) ---
   seleccionarRuta(tipo: 'INICIO' | 'CIERRE'): void {
     this.tipoInspeccionActual = tipo;
-    this.dto.motivo = tipo === 'INICIO' ? 'RUTINARIO' : 'RUTINARIO'; // Opcional
+    this.dto.motivo = tipo === 'INICIO' ? 'RUTINARIO' : 'RUTINARIO';
     this.fasePrincipal = 'FORMULARIO';
     this.etapaActual = 1;
   }
 
+  // ============================================================
+  // VALIDACIÓN DE KM (solo dígitos, máx 6, máx 500000)
+  // ============================================================
+  soloDigitos(event: KeyboardEvent): boolean {
+    const charCode = event.which ? event.which : event.keyCode;
+    if (charCode === 8 || charCode === 9 || charCode === 27 || charCode === 46
+        || (charCode >= 35 && charCode <= 40)) {
+      return true;
+    }
+    if (charCode < 48 || charCode > 57) {
+      event.preventDefault();
+      return false;
+    }
+    return true;
+  }
+
+  soloNumerosKm(event: Event, campo: 'kilometrajeEntregado' | 'kilometrajeRecibido'): void {
+    const input = event.target as HTMLInputElement;
+    let valor = input.value;
+
+    valor = valor.replace(/\D/g, '');
+    valor = valor.replace(/^0+(?=\d)/, '');
+
+    if (valor.length > 6) {
+      valor = valor.substring(0, 6);
+    }
+
+    if (valor !== '') {
+      const numero = parseInt(valor, 10);
+      if (numero > 500000) {
+        valor = '500000';
+      }
+    }
+
+    if (input.value !== valor) {
+      input.value = valor;
+    }
+    this.dto[campo] = valor === '' ? null : Number(valor);
+  }
+
+  onPasteKm(event: ClipboardEvent, campo: 'kilometrajeEntregado' | 'kilometrajeRecibido'): void {
+    event.preventDefault();
+    const texto = event.clipboardData?.getData('text') || '';
+
+    let limpio = texto.replace(/\D/g, '').substring(0, 6);
+    limpio = limpio.replace(/^0+(?=\d)/, '');
+
+    if (limpio !== '') {
+      const numero = parseInt(limpio, 10);
+      if (numero > 500000) limpio = '500000';
+    }
+
+    this.dto[campo] = limpio === '' ? null : Number(limpio);
+  }
+
+  // ============================================================
+  // AVANZAR (con validaciones por etapa)
+  // ============================================================
   avanzar(): void {
     this.erroresEtapa = [];
+
+    // ==================== ETAPA 1 ====================
     if (this.etapaActual === 1) {
-      if (!this.dto.gerenciaSolicitante?.trim()) this.erroresEtapa.push('gerencia');
-      if (!this.dto.unidadUsuaria?.trim()) this.erroresEtapa.push('unidadUsuaria');
-      if (!this.dto.centroCosto?.trim()) this.erroresEtapa.push('centroCosto');
-      if (!this.dto.kilometrajeEntregado) this.erroresEtapa.push('kilometrajeEntregado');
-      if (!this.dto.kilometrajeRecibido) this.erroresEtapa.push('kilometrajeRecibido');
+      const gerenciasValidas = [
+        'SEDE ADMINISTRATIVA VALENCIA',
+        'SEDE ADMINISTRATIVA LA CASTELLANA',
+        'COMPLEJO PETROQUIMICO HUGO CHAVEZ',
+        'COMPLEJO PETROQUIMICO ANA MARIA CAMPOS',
+        'COMPLEJO PETROQUIMICO G/D JOSE ANTONIO ANZOATEGUI'
+      ];
+      if (!this.dto.gerenciaSolicitante?.trim() || !gerenciasValidas.includes(this.dto.gerenciaSolicitante)) {
+        this.erroresEtapa.push('gerencia');
+      }
+
+      if (!this.dto.unidadUsuaria?.trim() || this.dto.unidadUsuaria.trim().length > 20) {
+        this.erroresEtapa.push('unidadUsuaria');
+      }
+
+      if (!this.dto.centroCosto?.trim() || this.dto.centroCosto.trim().length > 20) {
+        this.erroresEtapa.push('centroCosto');
+      }
+
+      // Km Entregado
+      const kmEntStr = String(this.dto.kilometrajeEntregado ?? '').trim();
+      const kmEnt = Number(kmEntStr);
+      if (kmEntStr === '' || !/^\d+$/.test(kmEntStr) || isNaN(kmEnt) || kmEnt < 0 || kmEnt > 500000) {
+        this.erroresEtapa.push('kilometrajeEntregado');
+      }
+
+      // Km Recibido
+      const kmRecStr = String(this.dto.kilometrajeRecibido ?? '').trim();
+      const kmRec = Number(kmRecStr);
+      if (kmRecStr === '' || !/^\d+$/.test(kmRecStr) || isNaN(kmRec) || kmRec < 0 || kmRec > 500000) {
+        this.erroresEtapa.push('kilometrajeRecibido');
+      }
+
       if (!this.dto.transmision) this.erroresEtapa.push('transmision');
 
       if (this.erroresEtapa.length > 0) {
-        let msg = 'Debe completar todos los campos requeridos para continuar.';
-        if (this.erroresEtapa.length === 1) {
-          if (this.erroresEtapa[0] === 'gerencia') msg = 'Debe ingresar la Gerencia.';
-          else if (this.erroresEtapa[0] === 'unidadUsuaria') msg = 'Debe ingresar la Unidad Usuaria.';
-          else if (this.erroresEtapa[0] === 'centroCosto') msg = 'Debe ingresar el Centro de Costo.';
-          else if (this.erroresEtapa[0] === 'kilometrajeEntregado') msg = 'Debe ingresar el Km Entregado.';
-          else if (this.erroresEtapa[0] === 'kilometrajeRecibido') msg = 'Debe ingresar el Km Recibido.';
-          else if (this.erroresEtapa[0] === 'transmision') msg = 'Debe seleccionar el tipo de Transmisión.';
-        }
+        const mensajes: Record<string, string> = {
+          'gerencia': 'Seleccione una Gerencia válida de la lista.',
+          'unidadUsuaria': 'La Unidad Usuaria es obligatoria (máx 20 caracteres).',
+          'centroCosto': 'El Centro de Costo es obligatorio (máx 20 caracteres).',
+          'kilometrajeEntregado': 'El Km Entregado debe estar entre 0 y 500.000.',
+          'kilometrajeRecibido': 'El Km Recibido debe estar entre 0 y 500.000.',
+          'transmision': 'Seleccione el tipo de Transmisión.'
+        };
+        const msg = this.erroresEtapa.map(e => '• ' + mensajes[e]).join('\n');
         this.modalService.showAlert(msg, 'Campos Incompletos', 'warning');
         return;
       }
     }
+
+    // ==================== ETAPA 2 ====================
     if (this.etapaActual === 2) {
       if (!this.dto.nivelCombustible) this.erroresEtapa.push('nivelCombustible');
       if (!this.dto.nivelAceiteMotor) this.erroresEtapa.push('nivelAceiteMotor');
       if (!this.dto.nivelLigaFrenos) this.erroresEtapa.push('nivelLigaFrenos');
       if (!this.dto.nivelAceiteCaja) this.erroresEtapa.push('nivelAceiteCaja');
       if (!this.dto.nivelRefrigerante) this.erroresEtapa.push('nivelRefrigerante');
-      if (!this.dto.tipoCobertura?.trim()) this.erroresEtapa.push('tipoCobertura');
+
+      if (!this.dto.tipoCobertura?.trim() || this.dto.tipoCobertura.trim().length > 17) {
+        this.erroresEtapa.push('tipoCobertura');
+      }
 
       if (this.erroresEtapa.length > 0) {
         let msg = 'Debe completar todos los campos de fluidos y documentos para continuar.';
         if (this.erroresEtapa.length === 1) {
-          if (this.erroresEtapa[0] === 'tipoCobertura') msg = 'Debe indicar el Tipo de Cobertura del seguro.';
+          if (this.erroresEtapa[0] === 'tipoCobertura') msg = 'El Tipo de Cobertura es obligatorio (máx 17 caracteres).';
           else msg = 'Falta indicar un nivel de fluido. Por favor revise.';
         }
         this.modalService.showAlert(msg, 'Campos Incompletos', 'warning');
         return;
       }
     }
+
+    // ==================== ETAPA 4 ====================
     if (this.etapaActual === 4) {
-      if (!this.dto.batMarca?.trim()) this.erroresEtapa.push('batMarca');
-      if (!this.dto.batModelo?.trim()) this.erroresEtapa.push('batModelo');
-      if (!this.dto.batCodigo?.trim()) this.erroresEtapa.push('batCodigo');
+      if (!this.dto.batMarca?.trim() || this.dto.batMarca.trim().length > 10)
+        this.erroresEtapa.push('batMarca');
+      if (!this.dto.batModelo?.trim() || this.dto.batModelo.trim().length > 10)
+        this.erroresEtapa.push('batModelo');
+      if (!this.dto.batCodigo?.trim() || !/^\d{8}$/.test(this.dto.batCodigo.trim()))
+        this.erroresEtapa.push('batCodigo');
       if (!this.dto.batVida?.trim()) this.erroresEtapa.push('batVida');
-      if (!this.dto.cauMarca?.trim()) this.erroresEtapa.push('cauMarca');
-      if (!this.dto.cauModelo?.trim()) this.erroresEtapa.push('cauModelo');
-      if (!this.dto.cauCodigo?.trim()) this.erroresEtapa.push('cauCodigo');
+
+      if (!this.dto.cauMarca?.trim() || this.dto.cauMarca.trim().length > 10)
+        this.erroresEtapa.push('cauMarca');
+      if (!this.dto.cauModelo?.trim() || this.dto.cauModelo.trim().length > 10)
+        this.erroresEtapa.push('cauModelo');
+      if (!this.dto.cauCodigo?.trim() || this.dto.cauCodigo.trim().length > 10)
+        this.erroresEtapa.push('cauCodigo');
       if (!this.dto.cauVida?.trim()) this.erroresEtapa.push('cauVida');
 
       if (this.erroresEtapa.length > 0) {
-        this.modalService.showAlert(
-          'Debe completar los datos de Batería y Cauchos para continuar.',
-          'Campos Incompletos', 'warning'
-        );
+        const mensajes: Record<string, string> = {
+          'batMarca': 'Batería: Marca obligatoria (máx 10 caracteres).',
+          'batModelo': 'Batería: Modelo obligatorio (máx 10 caracteres).',
+          'batCodigo': 'Batería: Código debe tener exactamente 8 dígitos.',
+          'batVida': 'Batería: Seleccione Vida Útil.',
+          'cauMarca': 'Cauchos: Marca obligatoria (máx 10 caracteres).',
+          'cauModelo': 'Cauchos: Modelo obligatorio (máx 10 caracteres).',
+          'cauCodigo': 'Cauchos: Código obligatorio (máx 10 caracteres).',
+          'cauVida': 'Cauchos: Seleccione Vida Útil.'
+        };
+        const msg = this.erroresEtapa.map(e => '• ' + mensajes[e]).join('\n');
+        this.modalService.showAlert(msg, 'Campos Incompletos', 'warning');
         return;
       }
     }
@@ -439,7 +539,7 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     const ctx = canvas.getContext('2d')!;
     if (canvas.parentElement) {
       canvas.width = canvas.parentElement.clientWidth;
-      canvas.height = 150; // Fixed height for signatures
+      canvas.height = 150;
     }
 
     const startDraw = (x: number, y: number) => {
@@ -453,7 +553,7 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
       const isDrawing = num === 1 ? this.drawing1 : num === 2 ? this.drawing2 : this.drawing3;
       if (isDrawing) {
         ctx.lineTo(x, y);
-        ctx.strokeStyle = '#fff'; // White ink for dark mode
+        ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
         ctx.stroke();
       }
@@ -491,7 +591,6 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
   }
 
   finalizarInspeccion() {
-    // Validar nombres y firmas
     const errores: string[] = [];
     if (!this.dto.inspectorNombre?.trim()) errores.push('Nombre del Inspector');
     else if (this.sig1 && this.isCanvasBlank(this.sig1.nativeElement)) errores.push('Firma del Inspector');
@@ -530,7 +629,6 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
         if (this.isAuditoria) {
           this.onFinalizado.emit(response);
         } else {
-          // Volver a inicio para flujo normal
           this.fasePrincipal = 'SELECCION_OPERACION';
           this.etapaActual = 1;
           this.cedulaInput = '';
@@ -593,7 +691,6 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
       { key: 'revTecho', label: 'Techo', icon: 'bi-house-up', categoria: 'Exterior' }
     ];
 
-    // Filtra por vehículo (ejemplo básico)
     const t = (this.vehiculoActual?.tipoVehiculo || '').toUpperCase();
     if (t.includes('MOTO')) {
       const noAplica = ['revAire', 'revMaletero', 'revApoyaCabezas', 'revCenicero', 'revEncendedor', 'revTecho', 'revAlfombras', 'revTapaGasolina', 'revParrilla', 'revPlacas'];
@@ -602,7 +699,6 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
     return base;
   }
 
-  // Método para ciclar el estado: B -> R -> M -> B
   ciclarEstadoComponente(key: string): void {
     const current = this.dto[key];
     if (current === 'B') this.dto[key] = 'R';
