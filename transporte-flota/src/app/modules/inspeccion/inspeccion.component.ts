@@ -282,57 +282,88 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
       if (!this.dto.gerenciaSolicitante?.trim()) this.erroresEtapa.push('gerencia');
       if (!this.dto.unidadUsuaria?.trim()) this.erroresEtapa.push('unidadUsuaria');
       if (!this.dto.centroCosto?.trim()) this.erroresEtapa.push('centroCosto');
-      if (!this.dto.kilometrajeEntregado) this.erroresEtapa.push('kilometrajeEntregado');
-      if (!this.dto.kilometrajeRecibido) this.erroresEtapa.push('kilometrajeRecibido');
+
+      const kmEntStr = String(this.dto.kilometrajeEntregado ?? '').trim();
+      const kmEnt = Number(kmEntStr);
+      if (kmEntStr === '' || !/^\d+$/.test(kmEntStr) || isNaN(kmEnt) || kmEnt < 0 || kmEnt > 500000) {
+        this.erroresEtapa.push('kilometrajeEntregado');
+      }
+
+      const kmRecStr = String(this.dto.kilometrajeRecibido ?? '').trim();
+      const kmRec = Number(kmRecStr);
+      if (kmRecStr === '' || !/^\d+$/.test(kmRecStr) || isNaN(kmRec) || kmRec < 0 || kmRec > 500000) {
+        this.erroresEtapa.push('kilometrajeRecibido');
+      }
+
       if (!this.dto.transmision) this.erroresEtapa.push('transmision');
-      
+
       if (this.erroresEtapa.length > 0) {
-        let msg = 'Debe completar todos los campos requeridos para continuar.';
-        if (this.erroresEtapa.length === 1) {
-           if (this.erroresEtapa[0] === 'gerencia') msg = 'Debe ingresar la Gerencia.';
-           else if (this.erroresEtapa[0] === 'unidadUsuaria') msg = 'Debe ingresar la Unidad Usuaria.';
-           else if (this.erroresEtapa[0] === 'centroCosto') msg = 'Debe ingresar el Centro de Costo.';
-           else if (this.erroresEtapa[0] === 'kilometrajeEntregado') msg = 'Debe ingresar el Km Entregado.';
-           else if (this.erroresEtapa[0] === 'kilometrajeRecibido') msg = 'Debe ingresar el Km Recibido.';
-           else if (this.erroresEtapa[0] === 'transmision') msg = 'Debe seleccionar el tipo de Transmisión.';
-        }
+        const mensajes: Record<string, string> = {
+          'gerencia': 'Seleccione una Gerencia válida de la lista.',
+          'unidadUsuaria': 'La Unidad Usuaria es obligatoria (máx 20 caracteres).',
+          'centroCosto': 'El Centro de Costo es obligatorio (máx 20 caracteres).',
+          'kilometrajeEntregado': 'El Km Entregado debe estar entre 0 y 500.000.',
+          'kilometrajeRecibido': 'El Km Recibido debe estar entre 0 y 500.000.',
+          'transmision': 'Seleccione el tipo de Transmisión.'
+        };
+        const msg = this.erroresEtapa.map(e => '• ' + mensajes[e]).join('\n');
         this.modalService.showAlert(msg, 'Campos Incompletos', 'warning');
         return;
       }
     }
+
     if (this.etapaActual === 2) {
       if (!this.dto.nivelCombustible) this.erroresEtapa.push('nivelCombustible');
       if (!this.dto.nivelAceiteMotor) this.erroresEtapa.push('nivelAceiteMotor');
       if (!this.dto.nivelLigaFrenos) this.erroresEtapa.push('nivelLigaFrenos');
       if (!this.dto.nivelAceiteCaja) this.erroresEtapa.push('nivelAceiteCaja');
       if (!this.dto.nivelRefrigerante) this.erroresEtapa.push('nivelRefrigerante');
-      if (!this.dto.tipoCobertura?.trim()) this.erroresEtapa.push('tipoCobertura');
-      
+
+      if (!this.dto.tipoCobertura?.trim() || this.dto.tipoCobertura.trim().length > 17) {
+        this.erroresEtapa.push('tipoCobertura');
+      }
+
       if (this.erroresEtapa.length > 0) {
         let msg = 'Debe completar todos los campos de fluidos y documentos para continuar.';
         if (this.erroresEtapa.length === 1) {
-          if (this.erroresEtapa[0] === 'tipoCobertura') msg = 'Debe indicar el Tipo de Cobertura del seguro.';
+          if (this.erroresEtapa[0] === 'tipoCobertura') msg = 'El Tipo de Cobertura es obligatorio (máx 17 caracteres).';
           else msg = 'Falta indicar un nivel de fluido. Por favor revise.';
         }
         this.modalService.showAlert(msg, 'Campos Incompletos', 'warning');
         return;
       }
     }
+
     if (this.etapaActual === 4) {
-      if (!this.dto.batMarca?.trim()) this.erroresEtapa.push('batMarca');
-      if (!this.dto.batModelo?.trim()) this.erroresEtapa.push('batModelo');
-      if (!this.dto.batCodigo?.trim()) this.erroresEtapa.push('batCodigo');
+      if (!this.dto.batMarca?.trim() || this.dto.batMarca.trim().length > 10)
+        this.erroresEtapa.push('batMarca');
+      if (!this.dto.batModelo?.trim() || this.dto.batModelo.trim().length > 10)
+        this.erroresEtapa.push('batModelo');
+      if (!this.dto.batCodigo?.trim() || !/^\d{8}$/.test(this.dto.batCodigo.trim()))
+        this.erroresEtapa.push('batCodigo');
       if (!this.dto.batVida?.trim()) this.erroresEtapa.push('batVida');
-      if (!this.dto.cauMarca?.trim()) this.erroresEtapa.push('cauMarca');
-      if (!this.dto.cauModelo?.trim()) this.erroresEtapa.push('cauModelo');
-      if (!this.dto.cauCodigo?.trim()) this.erroresEtapa.push('cauCodigo');
+
+      if (!this.dto.cauMarca?.trim() || this.dto.cauMarca.trim().length > 10)
+        this.erroresEtapa.push('cauMarca');
+      if (!this.dto.cauModelo?.trim() || this.dto.cauModelo.trim().length > 10)
+        this.erroresEtapa.push('cauModelo');
+      if (!this.dto.cauCodigo?.trim() || this.dto.cauCodigo.trim().length > 10)
+        this.erroresEtapa.push('cauCodigo');
       if (!this.dto.cauVida?.trim()) this.erroresEtapa.push('cauVida');
 
       if (this.erroresEtapa.length > 0) {
-        this.modalService.showAlert(
-          'Debe completar los datos de Batería y Cauchos para continuar.',
-          'Campos Incompletos', 'warning'
-        );
+        const mensajes: Record<string, string> = {
+          'batMarca': 'Batería: Marca obligatoria (máx 10 caracteres).',
+          'batModelo': 'Batería: Modelo obligatorio (máx 10 caracteres).',
+          'batCodigo': 'Batería: Código debe tener exactamente 8 dígitos.',
+          'batVida': 'Batería: Seleccione Vida Útil.',
+          'cauMarca': 'Cauchos: Marca obligatoria (máx 10 caracteres).',
+          'cauModelo': 'Cauchos: Modelo obligatorio (máx 10 caracteres).',
+          'cauCodigo': 'Cauchos: Código obligatorio (máx 10 caracteres).',
+          'cauVida': 'Cauchos: Seleccione Vida Útil.'
+        };
+        const msg = this.erroresEtapa.map(e => '• ' + mensajes[e]).join('\n');
+        this.modalService.showAlert(msg, 'Campos Incompletos', 'warning');
         return;
       }
     }
