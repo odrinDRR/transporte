@@ -105,11 +105,11 @@
           registro de vehículos.</p>
       </div>
       <div class="col-12 col-md-6 text-md-end">
-        <div class="d-flex justify-content-md-end gap-2">
-          <input type="text" class="form-control bg-dark text-white border-custom" style="max-width: 250px;"
+        <div class="d-flex flex-column flex-sm-row justify-content-md-end gap-2">
+          <input type="text" class="form-control bg-dark text-white border-custom w-100" style="max-width: 300px;"
             placeholder="Nombre de nueva sede..." [(ngModel)]="nuevaDependenciaNombre"
             (keyup.enter)="agregarDependencia()">
-          <button class="btn btn-primary text-nowrap" (click)="agregarDependencia()"
+          <button class="btn btn-primary text-nowrap w-100 w-sm-auto" (click)="agregarDependencia()"
             [disabled]="creandoDependencia || !nuevaDependenciaNombre">
             <i class="bi bi-plus-lg"></i> Agregar
           </button>

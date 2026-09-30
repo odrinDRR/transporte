@@ -48,12 +48,14 @@
             <span *ngIf="s.cargo !== 'CONDUCTOR'" class="text-custom-muted small">N/A</span>
           </td>
           <td>
-            <button class="btn btn-sm btn-success me-2 fw-bold" (click)="aprobar(s.id, s.nombre)">
-              <i class="bi bi-check-lg"></i> Aprobar
-            </button>
-            <button class="btn btn-sm btn-outline-danger" (click)="rechazar(s.id)">
-              <i class="bi bi-x-lg"></i>
-            </button>
+            <div class="d-flex flex-wrap gap-2">
+              <button class="btn btn-sm btn-success fw-bold text-nowrap" (click)="aprobar(s.id, s.nombre)">
+                <i class="bi bi-check-lg"></i> Aprobar
+              </button>
+              <button class="btn btn-sm btn-outline-danger" (click)="rechazar(s.id)">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>

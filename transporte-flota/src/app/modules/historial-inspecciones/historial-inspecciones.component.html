@@ -16,14 +16,14 @@
 
     <!-- Filtros por Operación -->
     <div class="d-flex align-items-end">
-      <div class="btn-group" role="group">
-        <button type="button" class="btn btn-outline-primary" [class.active]="filtroOperacion === 'TODAS'"
+      <div class="d-flex flex-wrap gap-2" role="group">
+        <button type="button" class="btn btn-outline-primary rounded" [class.active]="filtroOperacion === 'TODAS'"
           (click)="setFiltroOperacion('TODAS')">Todas</button>
-        <button type="button" class="btn btn-outline-info" [class.active]="filtroOperacion === 'GENERAL'"
+        <button type="button" class="btn btn-outline-info rounded" [class.active]="filtroOperacion === 'GENERAL'"
           (click)="setFiltroOperacion('GENERAL')">General</button>
-        <button type="button" class="btn btn-outline-success" [class.active]="filtroOperacion === 'SALIDA'"
+        <button type="button" class="btn btn-outline-success rounded" [class.active]="filtroOperacion === 'SALIDA'"
           (click)="setFiltroOperacion('SALIDA')">Salida</button>
-        <button type="button" class="btn btn-outline-warning" [class.active]="filtroOperacion === 'LLEGADA'"
+        <button type="button" class="btn btn-outline-warning rounded" [class.active]="filtroOperacion === 'LLEGADA'"
           (click)="setFiltroOperacion('LLEGADA')">Llegada</button>
       </div>
     </div>
