@@ -11,17 +11,22 @@ export class ConductorService {
 
   constructor(private http: HttpClient) { }
 
-  obtenerConductores(): Observable<Conductor[]> { 
-    return this.http.get<any[]>(this.apiUrl).pipe(
-      map(usuarios => usuarios.filter(u => u.cargo === 'CONDUCTOR' || u.cargo === 'COORDINADOR').map(u => ({
-        id: u.id,
-        nombre: u.nombre + ' ' + u.apellido,
-        cedula: u.cedula,
-        fichaNumerica: u.ficha || u.licencia,
-        telefono: u.telefono,
-        fotoUrl: u.fotoUrl,
-        activo: u.activo
-      })))
+  obtenerConductores(page: number = 0, size: number = 10): Observable<any> { 
+    return this.http.get<any>(`${this.apiUrl}?page=${page}&size=${size}`).pipe(
+      map(res => {
+        const usuarios = res.content || res;
+        const pageData = { ...res };
+        pageData.content = usuarios.filter((u: any) => u.cargo === 'CONDUCTOR' || u.cargo === 'COORDINADOR').map((u: any) => ({
+          id: u.id,
+          nombre: u.nombre + ' ' + (u.apellido || ''),
+          cedula: u.cedula,
+          fichaNumerica: u.ficha || u.licencia,
+          telefono: u.telefono,
+          fotoUrl: u.fotoUrl,
+          activo: u.activo
+        }));
+        return pageData;
+      })
     );
   }
 }

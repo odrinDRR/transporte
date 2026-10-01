@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { InspeccionService } from '../../services/inspeccion.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -15,8 +15,13 @@ export class HistorialInspeccionesComponent implements OnInit {
   filtroTexto: string = '';
   filtroOperacion: string = 'TODAS'; // TODAS, GENERAL, SALIDA, LLEGADA
   inspeccionDetalle: any = null;
+  
+  currentPage: number = 0;
+  totalPages: number = 1;
+  pageSize: number = 10;
+  totalElements: number = 0;
 
-  constructor(private http: HttpClient) { }
+  constructor(private inspeccionService: InspeccionService) { }
 
   ngOnInit(): void {
     this.cargarInspecciones();
@@ -24,10 +29,13 @@ export class HistorialInspeccionesComponent implements OnInit {
 
   cargarInspecciones(): void {
     this.cargando = true;
-    this.http.get<any[]>(`${environment.apiUrl}/inspecciones-livianos`).subscribe({
-      next: (data) => {
+    this.inspeccionService.obtenerInspeccionesLivianos(this.currentPage, this.pageSize).subscribe({
+      next: (res) => {
+        this.totalPages = res.totalPages;
+        this.totalElements = res.totalElements;
+        const data = res.content || res;
         // Ordenar por fecha descendente (más recientes primero)
-        this.inspecciones = data.sort((a, b) => {
+        this.inspecciones = data.sort((a: any, b: any) => {
           return new Date(b.fechaCreacion).getTime() - new Date(a.fechaCreacion).getTime();
         });
         this.aplicarFiltros();
@@ -80,6 +88,14 @@ export class HistorialInspeccionesComponent implements OnInit {
 
   cerrarDetalles(): void {
     this.inspeccionDetalle = null;
+  }
+
+  cambiarPagina(incremento: number): void {
+    const nuevaPagina = this.currentPage + incremento;
+    if (nuevaPagina >= 0 && nuevaPagina < this.totalPages) {
+      this.currentPage = nuevaPagina;
+      this.cargarInspecciones();
+    }
   }
 
 }

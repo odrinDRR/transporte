@@ -15,6 +15,11 @@ export class AprobacionesComponent implements OnInit {
   solicitudDetalle: any = null;
   rolActual: string | null = null;
 
+  currentPage: number = 0;
+  totalPages: number = 1;
+  pageSize: number = 10;
+  totalElements: number = 0;
+
   constructor(private usuarioService: UsuarioService, public authService: AuthService, private modalService: ModalService) { }
 
   ngOnInit(): void {
@@ -39,8 +44,11 @@ export class AprobacionesComponent implements OnInit {
     
     const cargoFiltro = this.rolActual === 'EMPLEADO' ? 'CONDUCTOR' : undefined;
 
-    this.usuarioService.obtenerPendientes(cargoFiltro).subscribe({
-      next: (usuarios) => {
+    this.usuarioService.obtenerPendientes(cargoFiltro, this.currentPage, this.pageSize).subscribe({
+      next: (res) => {
+        this.totalPages = res.totalPages;
+        this.totalElements = res.totalElements;
+        const usuarios = res.content || res;
         // Ya vienen filtrados por estado PENDIENTE desde el backend
         this.solicitudesPendientes = usuarios;
         this.filtrarPorNivelDeAcceso();
@@ -89,6 +97,14 @@ export class AprobacionesComponent implements OnInit {
         },
         error: (err) => console.error('Error al rechazar', err)
       });
+    }
+  }
+
+  cambiarPagina(incremento: number): void {
+    const nuevaPagina = this.currentPage + incremento;
+    if (nuevaPagina >= 0 && nuevaPagina < this.totalPages) {
+      this.currentPage = nuevaPagina;
+      this.cargarUsuarios();
     }
   }
 }

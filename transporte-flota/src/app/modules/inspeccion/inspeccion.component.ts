@@ -208,8 +208,9 @@ export class InspeccionComponent implements AfterViewInit, OnChanges {
 
         if (usuarioActual) {
           this.vehiculoService.obtenerVehiculos().subscribe({
-            next: (vehs) => {
-              this.vehiculoActual = vehs.find(v => v.conductorId === usuarioActual.id) || null;
+            next: (res) => {
+              const vehs = res.content || res;
+              this.vehiculoActual = vehs.find((v: any) => v.conductorId === usuarioActual.id) || null;
               
               if (this.vehiculoActual) {
                 this.nombreConductorActual = usuarioActual.nombre;

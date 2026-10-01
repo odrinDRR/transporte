@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface Dependencia {
   id?: number;
@@ -18,12 +19,12 @@ export class DependenciaService {
 
   constructor(private http: HttpClient) { }
 
-  obtenerDependencias(): Observable<Dependencia[]> {
-    return this.http.get<Dependencia[]>(this.apiUrl);
+  obtenerDependencias(page: number = 0, size: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}?page=${page}&size=${size}`);
   }
 
-  obtenerTodasDependencias(): Observable<Dependencia[]> {
-    return this.http.get<Dependencia[]>(`${this.apiUrl}/all`);
+  obtenerTodasDependencias(page: number = 0, size: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/all?page=${page}&size=${size}`);
   }
 
   crearDependencia(dependencia: Dependencia): Observable<Dependencia> {

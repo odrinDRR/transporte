@@ -29,10 +29,20 @@ export class MantenimientoComponent implements OnInit {
   private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([]);
   vehiculos$ = this.vehiculosSubject.asObservable();
   
+  currentPageVehiculos: number = 0;
+  totalPagesVehiculos: number = 1;
+  pageSizeVehiculos: number = 10;
+  totalElementsVehiculos: number = 0;
+  
   // Lista de todas las dependencias
   listaDependencias: Dependencia[] = [];
   nuevaDependenciaNombre: string = '';
   creandoDependencia = false;
+  
+  currentPageDependencias: number = 0;
+  totalPagesDependencias: number = 1;
+  pageSizeDependencias: number = 10;
+  totalElementsDependencias: number = 0;
 
   // Contadores
   totalVehiculos = 0;
@@ -46,8 +56,11 @@ export class MantenimientoComponent implements OnInit {
 
   cargarDatos(): void {
     this.cargando = true;
-    this.vehiculoService.obtenerVehiculos().subscribe({
-      next: (data) => {
+    this.vehiculoService.obtenerVehiculos(this.currentPageVehiculos, this.pageSizeVehiculos).subscribe({
+      next: (res) => {
+        this.totalPagesVehiculos = res.totalPages;
+        this.totalElementsVehiculos = res.totalElements;
+        const data = res.content || res;
         this.vehiculosSubject.next(data);
         this.calcularEstadisticas(data);
         this.cargando = false;
@@ -63,8 +76,11 @@ export class MantenimientoComponent implements OnInit {
 
   cargarDependencias(): void {
     this.cargandoDependencias = true;
-    this.dependenciaService.obtenerTodasDependencias().subscribe({
-      next: (data) => {
+    this.dependenciaService.obtenerTodasDependencias(this.currentPageDependencias, this.pageSizeDependencias).subscribe({
+      next: (res) => {
+        this.totalPagesDependencias = res.totalPages;
+        this.totalElementsDependencias = res.totalElements;
+        const data = res.content || res;
         this.listaDependencias = data;
         this.cargandoDependencias = false;
       },
@@ -159,5 +175,21 @@ export class MantenimientoComponent implements OnInit {
         this.creandoDependencia = false;
       }
     });
+  }
+
+  cambiarPaginaVehiculos(incremento: number): void {
+    const nuevaPagina = this.currentPageVehiculos + incremento;
+    if (nuevaPagina >= 0 && nuevaPagina < this.totalPagesVehiculos) {
+      this.currentPageVehiculos = nuevaPagina;
+      this.cargarDatos(); // Solo vuelve a cargar vehículos
+    }
+  }
+
+  cambiarPaginaDependencias(incremento: number): void {
+    const nuevaPagina = this.currentPageDependencias + incremento;
+    if (nuevaPagina >= 0 && nuevaPagina < this.totalPagesDependencias) {
+      this.currentPageDependencias = nuevaPagina;
+      this.cargarDependencias();
+    }
   }
 }

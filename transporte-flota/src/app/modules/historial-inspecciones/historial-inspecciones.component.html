@@ -81,6 +81,18 @@
       </tbody>
     </table>
   </div>
+  
+  <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="!cargando && !inspeccionDetalle">
+    <span class="text-custom-muted small">Mostrando página {{ currentPage + 1 }} de {{ totalPages || 1 }} (Total: {{ totalElements }})</span>
+    <div class="btn-group">
+      <button class="btn btn-outline-secondary btn-sm" [disabled]="currentPage === 0" (click)="cambiarPagina(-1)">
+        <i class="bi bi-chevron-left"></i> Anterior
+      </button>
+      <button class="btn btn-outline-secondary btn-sm" [disabled]="currentPage >= totalPages - 1" (click)="cambiarPagina(1)">
+        Siguiente <i class="bi bi-chevron-right"></i>
+      </button>
+    </div>
+  </div>
 
   <!-- ==========================================
        VISTA DE DETALLES (MASTER-DETAIL)

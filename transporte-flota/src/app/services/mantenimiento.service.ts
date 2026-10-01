@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Mantenimiento } from '../core/models/fleet.models';
 
@@ -12,8 +13,8 @@ export class MantenimientoService {
 
   constructor(private http: HttpClient) { }
 
-  obtenerMantenimientos(): Observable<Mantenimiento[]> {
-    return this.http.get<Mantenimiento[]>(this.apiUrl);
+  obtenerMantenimientos(page: number = 0, size: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}?page=${page}&size=${size}`);
   }
 
   registrarMantenimiento(mantenimiento: Mantenimiento): Observable<Mantenimiento> {

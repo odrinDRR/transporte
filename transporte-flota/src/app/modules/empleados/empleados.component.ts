@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { UsuarioService } from '../../services/usuario.service';
 import { environment } from '../../../environments/environment';
 import { ModalService } from '../../core/services/modal.service';
 
@@ -15,7 +15,12 @@ export class EmpleadosComponent implements OnInit {
   filtroRol: 'TODOS' | 'EMPLEADOS' | 'COORDINADORES' = 'TODOS';
   empleadoDetalle: any = null;
 
-  constructor(private http: HttpClient, private modalService: ModalService) {}
+  currentPage: number = 0;
+  totalPages: number = 1;
+  pageSize: number = 10;
+  totalElements: number = 0;
+
+  constructor(private usuarioService: UsuarioService, private modalService: ModalService) {}
 
   ngOnInit(): void {
     this.cargarEmpleados();
@@ -23,12 +28,15 @@ export class EmpleadosComponent implements OnInit {
 
   cargarEmpleados(): void {
     this.cargando = true;
-    this.http.get<any[]>(`${environment.apiUrl}/usuarios`).subscribe({
-      next: (usuarios) => {
+    this.usuarioService.obtenerUsuarios(this.currentPage, this.pageSize).subscribe({
+      next: (res) => {
+        this.totalPages = res.totalPages;
+        this.totalElements = res.totalElements;
+        const usuarios = res.content || res; // Ya viene con .content si se paginó
         // Mostrar SOLO EMPLEADO y COORDINADOR que no estén pendientes
         this.empleados = usuarios
-          .filter(u => u.estado !== 'PENDIENTE' && (u.cargo === 'EMPLEADO' || u.cargo === 'COORDINADOR'))
-          .sort((a, b) => (a.estado === 'ACTIVO' ? -1 : 1));
+          .filter((u: any) => u.estado !== 'PENDIENTE' && (u.cargo === 'EMPLEADO' || u.cargo === 'COORDINADOR'))
+          .sort((a: any, b: any) => (a.estado === 'ACTIVO' ? -1 : 1));
         this.cargando = false;
       },
       error: (err) => {
@@ -72,7 +80,7 @@ export class EmpleadosComponent implements OnInit {
     
     if (confirmado) {
       this.procesandoId = id;
-      this.http.delete(`${environment.apiUrl}/usuarios/${id}`).subscribe({
+      this.usuarioService.rechazarUsuario(id).subscribe({
         next: () => {
           this.modalService.showAlert(`Usuario ${nombre} desactivado correctamente.`, 'Éxito', 'success');
           this.cargarEmpleados();
@@ -94,7 +102,7 @@ export class EmpleadosComponent implements OnInit {
 
     if (confirmado) {
       this.procesandoId = id;
-      this.http.put(`${environment.apiUrl}/usuarios/aprobar/${id}`, {}).subscribe({
+      this.usuarioService.aprobarUsuario(id).subscribe({
         next: () => {
           this.modalService.showAlert(`Usuario ${nombre} activado correctamente.`, 'Éxito', 'success');
           this.cargarEmpleados();
@@ -106,6 +114,14 @@ export class EmpleadosComponent implements OnInit {
           this.procesandoId = null;
         }
       });
+    }
+  }
+
+  cambiarPagina(incremento: number): void {
+    const nuevaPagina = this.currentPage + incremento;
+    if (nuevaPagina >= 0 && nuevaPagina < this.totalPages) {
+      this.currentPage = nuevaPagina;
+      this.cargarEmpleados();
     }
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { Vehiculo } from '../core/models/fleet.models';
 
@@ -15,8 +16,8 @@ export class VehiculoService {
   constructor(private http: HttpClient) { }
 
   // GET: Obtener todos los vehículos
-  obtenerVehiculos(): Observable<Vehiculo[]> {
-    return this.http.get<Vehiculo[]>(this.apiUrl);
+  obtenerVehiculos(page: number = 0, size: number = 10): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}?page=${page}&size=${size}`);
   }
 
   // GET: Obtener un vehículo por su ID (Opcional, pero muy útil para editar)

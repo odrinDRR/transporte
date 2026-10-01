@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 import { ModalService } from '../../core/services/modal.service';
 import { FlotaService } from '../../core/services/flota.service';
 import { VehiculoService } from '../../services/vehiculo.service';
+import { UsuarioService } from '../../services/usuario.service';
 import { Conductor, Vehiculo } from '../../core/models/fleet.models';
 
 @Component({
@@ -30,28 +31,40 @@ export class ConductoresComponent implements OnInit {
     public flotaService: FlotaService,
     private vehiculoService: VehiculoService,
     private http: HttpClient,
-    private modalService: ModalService
+    private modalService: ModalService,
+    private usuarioService: UsuarioService
   ) {}
 
   cargando = false;
   procesandoId: number | null = null;
   filtroTexto = '';
   conductoresSubject = new BehaviorSubject<Conductor[]>([]);
+  
+  currentPage: number = 0;
+  totalPages: number = 1;
+  pageSize: number = 10;
+  totalElements: number = 0;
 
   ngOnInit(): void {
     this.vehiculos$ = this.vehiculoService.obtenerVehiculos();
     
     this.cargando = true;
     combineLatest([
-      this.http.get<any[]>(`${environment.apiUrl}/usuarios`),
+      this.usuarioService.obtenerUsuarios(this.currentPage, this.pageSize),
       this.vehiculos$
     ]).subscribe({
-      next: ([usuarios, vehiculos]) => {
+      next: ([usuariosRes, vehiculos]) => {
+        this.totalPages = usuariosRes.totalPages;
+        this.totalElements = usuariosRes.totalElements;
+        const usuarios = usuariosRes.content || usuariosRes;
+        
         // Mapear los usuarios con cargo CONDUCTOR a la interfaz Conductor
-        const conductoresMap = usuarios
+        const vehiculosData = (vehiculos as any).content || vehiculos || [];
+        const vehArray = Array.isArray(vehiculosData) ? vehiculosData : [];
+        const conductoresMap = (usuarios as any[])
           .filter(u => u.cargo === 'CONDUCTOR' && u.estado !== 'PENDIENTE')
           .map(u => {
-            const veh = vehiculos.find(v => v.conductorId === u.id);
+            const veh = vehArray.find((v: any) => v.conductorId === u.id);
             return {
               id: u.id,
               nombre: u.nombre + ' ' + u.apellido,
@@ -102,9 +115,11 @@ export class ConductoresComponent implements OnInit {
     this.filtroBusqueda$.next(input.value);
   }
 
-  obtenerPlacaAsignada(idVehiculo: number | null, vehiculos: Vehiculo[]): string {
+  obtenerPlacaAsignada(idVehiculo: number | null, vehiculosRes: any): string {
     if (!idVehiculo) return 'Ninguno';
-    const v = vehiculos.find(veh => veh.id === idVehiculo);
+    const vehiculosData = vehiculosRes?.content || vehiculosRes || [];
+    const vehiculosArray = Array.isArray(vehiculosData) ? vehiculosData : [];
+    const v = vehiculosArray.find(veh => veh.id === idVehiculo);
     return v ? `${v.placa} (${v.identificador})` : 'Desconocido';
   }
 
@@ -185,7 +200,7 @@ export class ConductoresComponent implements OnInit {
     
     if (confirmado) {
       this.procesandoId = id;
-      this.http.delete(`${environment.apiUrl}/usuarios/${id}`).subscribe({
+      this.usuarioService.rechazarUsuario(id).subscribe({
         next: () => {
           this.modalService.showAlert(`Usuario ${nombre} desactivado correctamente.`, 'Éxito', 'success');
           this.ngOnInit(); // Refresh list
@@ -207,7 +222,7 @@ export class ConductoresComponent implements OnInit {
     
     if (confirmado) {
       this.procesandoId = id;
-      this.http.put(`${environment.apiUrl}/usuarios/aprobar/${id}`, {}).subscribe({
+      this.usuarioService.aprobarUsuario(id).subscribe({
         next: () => {
           this.modalService.showAlert(`Usuario ${nombre} activado correctamente.`, 'Éxito', 'success');
           this.ngOnInit(); // Refresh list
@@ -219,6 +234,14 @@ export class ConductoresComponent implements OnInit {
           this.procesandoId = null;
         }
       });
+    }
+  }
+
+  cambiarPagina(incremento: number): void {
+    const nuevaPagina = this.currentPage + incremento;
+    if (nuevaPagina >= 0 && nuevaPagina < this.totalPages) {
+      this.currentPage = nuevaPagina;
+      this.ngOnInit(); // Reloads data
     }
   }
 }

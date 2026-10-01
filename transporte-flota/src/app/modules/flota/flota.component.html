@@ -180,6 +180,18 @@
       </div>
     </div> <!-- ESTE DIV CIERRA EL DASHBOARD PRINCIPAL (*ngIf="!mostrarRegistro") -->
 
+    <div class="d-flex justify-content-between align-items-center mt-3 d-print-none" *ngIf="!cargandoVehiculos && !mostrarRegistro">
+      <span class="text-white-50 small">Mostrando página {{ currentPage + 1 }} de {{ totalPages || 1 }} (Total: {{ totalElements }})</span>
+      <div class="btn-group">
+        <button class="btn btn-outline-secondary btn-sm text-white" [disabled]="currentPage === 0" (click)="cambiarPagina(-1)">
+          <i class="bi bi-chevron-left"></i> Anterior
+        </button>
+        <button class="btn btn-outline-secondary btn-sm text-white" [disabled]="currentPage >= totalPages - 1" (click)="cambiarPagina(1)">
+          Siguiente <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+
     <!-- MODAL FICHA TÉCNICA Y QR COMPLETA (IMPRESIÓN / CONSULTA) -->
     <div class="modal d-block modal-backdrop-glass" tabindex="-1" *ngIf="vehiculoSeleccionado">
       <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
@@ -875,6 +887,7 @@
       </tr>
     </table>
   </div>
+  
   <!-- FIN DE LAS SECCIONES OCULTAS DE IMPRESIÓN -->
 
   <!-- ==========================================

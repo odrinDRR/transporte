@@ -59,6 +59,11 @@ export class FlotaComponent implements OnInit {
 
   private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([]);
   public vehiculos$: Observable<Vehiculo[]> = this.vehiculosSubject.asObservable();
+  
+  currentPage: number = 0;
+  totalPages: number = 1;
+  pageSize: number = 10;
+  totalElements: number = 0;
 
   private conductoresSubject = new BehaviorSubject<Conductor[]>([]);
   public conductores$: Observable<Conductor[]> = this.conductoresSubject.asObservable();
@@ -120,8 +125,11 @@ export class FlotaComponent implements OnInit {
   // --- MÉTODOS HTTP (CONEXIÓN A SPRING BOOT) ---
   cargarDatosBackend(): void {
     this.cargandoVehiculos = true;
-    this.vehiculoService.obtenerVehiculos().subscribe({
-      next: (data) => {
+    this.vehiculoService.obtenerVehiculos(this.currentPage, this.pageSize).subscribe({
+      next: (res) => {
+        this.totalPages = res.totalPages;
+        this.totalElements = res.totalElements;
+        const data = res.content || res;
         this.vehiculosSubject.next(data);
         this.cargandoVehiculos = false;
       },
@@ -133,7 +141,8 @@ export class FlotaComponent implements OnInit {
 
     this.cargandoConductores = true;
     this.conductorService.obtenerConductores().subscribe({
-      next: (data) => {
+      next: (res) => {
+        const data = res.content || res;
         this.conductoresSubject.next(data);
         this.cargandoConductores = false;
       },
@@ -309,15 +318,19 @@ export class FlotaComponent implements OnInit {
     this.filtroEstado$.next(estado);
   }
 
-  obtenerNombreConductor(id?: number | null, conductores?: Conductor[] | null): string {
-    if (!id || !conductores) return 'Sin Asignar';
-    const c = conductores.find(item => item.id === id);
+  obtenerNombreConductor(id?: number | null, conductoresRes?: any): string {
+    if (!id || !conductoresRes) return 'Sin Asignar';
+    const conductoresData = conductoresRes.content || conductoresRes || [];
+    const conductoresArray = Array.isArray(conductoresData) ? conductoresData : [];
+    const c = conductoresArray.find(item => item.id === id);
     return c ? `${c.nombre}` : 'Sin Asignar';
   }
 
-  obtenerDetallesConductor(id?: number | null, conductores?: Conductor[] | null): Conductor | null {
-    if (!id || !conductores) return null;
-    return conductores.find(item => item.id === id) || null;
+  obtenerDetallesConductor(id?: number | null, conductoresRes?: any): Conductor | null {
+    if (!id || !conductoresRes) return null;
+    const conductoresData = conductoresRes.content || conductoresRes || [];
+    const conductoresArray = Array.isArray(conductoresData) ? conductoresData : [];
+    return conductoresArray.find(item => item.id === id) || null;
   }
 
   alternarRegistro(): void {
@@ -609,5 +622,13 @@ export class FlotaComponent implements OnInit {
   seleccionarFoto(index: number): void {
     this.indiceFotoActual = index;
     this.imagenesCargadas['carrusel'] = false;
+  }
+  
+  cambiarPagina(incremento: number): void {
+    const nuevaPagina = this.currentPage + incremento;
+    if (nuevaPagina >= 0 && nuevaPagina < this.totalPages) {
+      this.currentPage = nuevaPagina;
+      this.cargarDatosBackend();
+    }
   }
 }

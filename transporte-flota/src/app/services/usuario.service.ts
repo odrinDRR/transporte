@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 // Importa tu modelo de Usuario y RolUsuario
 
@@ -14,14 +15,15 @@ export class UsuarioService {
 
   constructor(private http: HttpClient) { }
 
-  // --- MÉTODOS HTTP (CRUD) ---
-  obtenerUsuarios(): Observable<any[]> { return this.http.get<any[]>(this.apiUrl); }
-  obtenerPendientes(cargo?: string): Observable<any[]> { 
-    let url = `${this.apiUrl}/pendientes`;
+  obtenerUsuarios(page: number = 0, size: number = 10): Observable<any> { 
+    return this.http.get<any>(`${this.apiUrl}?page=${page}&size=${size}`); 
+  }
+  obtenerPendientes(cargo?: string, page: number = 0, size: number = 10): Observable<any> { 
+    let url = `${this.apiUrl}/pendientes?page=${page}&size=${size}`;
     if (cargo) {
-      url += `?cargo=${cargo}`;
+      url += `&cargo=${cargo}`;
     }
-    return this.http.get<any[]>(url);
+    return this.http.get<any>(url);
   }
   crearUsuario(usuario: any): Observable<any> { return this.http.post<any>(this.apiUrl, usuario); }
   obtenerPorId(id: string | number): Observable<any> { return this.http.get<any>(`${this.apiUrl}/${id}`); }
