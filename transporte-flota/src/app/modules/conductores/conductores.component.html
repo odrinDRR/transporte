@@ -23,28 +23,29 @@
   </div>
 
   <!-- Tabla de Conductores -->
-  <div class="table-responsive" *ngIf="!cargando">
+  <div class="table-responsive" *ngIf="!cargando && !conductorDetalle">
     <table class="table table-dark table-hover border-custom align-middle">
       <thead>
-        <tr class="text-custom-muted">
-          <th>Foto</th>
-          <th>Nombre y Ficha</th>
-          <th>Cédula</th>
+        <tr class="text-custom-muted text-center">
+          <th>Conductor</th>
           <th>Unidad Asignada</th>
-          <th>Documentos</th>
-          <th *ngIf="flotaService.puedeRegistrarOAsignar()">Acciones</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let c of conductoresFiltrados$ | async">
-          <td><img [src]="c.fotoUrl || 'assets/images/default-avatar.png'"
-              class="rounded-circle border border-secondary" width="45" height="45" style="object-fit: cover;"
-              alt="Foto"></td>
+        <tr *ngFor="let c of conductoresFiltrados$ | async" class="text-center">
           <td>
-            <div class="fw-bold text-white">{{ c.nombre }}</div>
-            <small class="text-custom-muted">Ficha: {{ c.fichaNumerica }}</small>
+            <div class="d-flex flex-column align-items-center">
+              <div class="position-relative mb-2" style="width: 45px; height: 45px;">
+                <div *ngIf="!$any(c)['_imgLoaded']" class="spinner-border spinner-border-sm text-secondary position-absolute top-50 start-50 translate-middle" role="status"></div>
+                <img [src]="c.fotoUrl || 'assets/images/default-avatar.png'"
+                  class="rounded-circle border border-secondary" width="45" height="45" style="object-fit: cover;"
+                  alt="Foto" (load)="$any(c)['_imgLoaded']=true" [hidden]="!$any(c)['_imgLoaded']">
+              </div>
+              <div class="fw-bold text-white">{{ c.nombre }}</div>
+              <small class="text-custom-muted">Ficha: {{ c.fichaNumerica }}</small>
+            </div>
           </td>
-          <td class="text-white">{{ c.cedula }}</td>
           <td>
             <span class="badge bg-primary" *ngIf="c.vehiculoAsignadoId">
               {{ obtenerPlacaAsignada(c.vehiculoAsignadoId, vehiculos) }}
@@ -54,47 +55,104 @@
             </span>
           </td>
           <td>
-            <div class="d-flex flex-column gap-1">
-              <a *ngIf="c.urlLicencia" [href]="c.urlLicencia" target="_blank" class="badge bg-dark border border-info text-info text-decoration-none p-2 text-start" title="Ver Licencia">
-                <i class="bi bi-person-vcard"></i> Licencia (Vence: {{ c.fechaVencimientoLicencia | date:'dd/MM/yy' }})
-              </a>
-              <a *ngIf="c.urlCertificadoMedico" [href]="c.urlCertificadoMedico" target="_blank" class="badge bg-dark border border-primary text-primary text-decoration-none p-2 text-start" title="Ver Certificado Médico">
-                <i class="bi bi-file-medical"></i> C. Médico (Vence: {{ c.fechaVencimientoCertificadoMedico | date:'dd/MM/yy' }})
-              </a>
-              <span *ngIf="!c.urlLicencia && !c.urlCertificadoMedico" class="text-custom-muted small">Sin documentos</span>
-            </div>
+            <button class="btn btn-sm btn-outline-info rounded-circle" (click)="verDetalles(c)" title="Información">
+              <i class="bi bi-eye"></i>
+            </button>
           </td>
-          <td *ngIf="flotaService.puedeRegistrarOAsignar()">
-            <div class="d-flex flex-wrap gap-2">
-              <!-- Botón Asignar en la Fila -->
-              <button *ngIf="!c.vehiculoAsignadoId && c.estado === 'ACTIVO'" class="btn btn-sm btn-outline-info text-nowrap" (click)="abrirAsignacion(c)">
-                <i class="bi bi-link-45deg"></i> Asignar Unidad
-              </button>
-              <button *ngIf="c.vehiculoAsignadoId" class="btn btn-sm btn-outline-warning text-nowrap" 
-                      [disabled]="procesandoId === c.id"
-                      (click)="revocarAsignacion(c)">
-                <span *ngIf="procesandoId === c.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                <i *ngIf="procesandoId !== c.id" class="bi bi-x-circle"></i> Desvincular
-              </button>
-
-              <!-- Acciones de Usuario (Activar/Desactivar) -->
-              <button *ngIf="c.estado === 'ACTIVO'" class="btn btn-sm btn-outline-danger text-nowrap" 
-                      [disabled]="procesandoId === c.id"
-                      (click)="desactivarUsuario(c.id, c.nombre)">
-                <span *ngIf="procesandoId === c.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                <i *ngIf="procesandoId !== c.id" class="bi bi-person-x"></i> Desactivar
-              </button>
-              <button *ngIf="c.estado === 'INACTIVO'" class="btn btn-sm btn-outline-success text-nowrap" 
-                      [disabled]="procesandoId === c.id"
-                      (click)="activarUsuario(c.id, c.nombre)">
-                <span *ngIf="procesandoId === c.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                <i *ngIf="procesandoId !== c.id" class="bi bi-person-check"></i> Activar
-              </button>
-            </div>
-          </td>
+        </tr>
+        <!-- Estado vacío -->
+        <tr *ngIf="(conductoresFiltrados$ | async)?.length === 0">
+          <td app-empty-state colspan="3" titulo="No hay conductores registrados" mensaje="El directorio de conductores se encuentra vacío."></td>
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <!-- ==========================================
+       VISTA DE DETALLES (MASTER-DETAIL)
+       ========================================== -->
+  <div *ngIf="conductorDetalle" class="card bg-dark border-custom p-3 p-md-4 animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+      <h5 class="text-white mb-0"><i class="bi bi-info-circle text-info me-2"></i> Información del Conductor</h5>
+      <button class="btn btn-outline-secondary btn-sm" (click)="cerrarDetalles()">
+        <i class="bi bi-arrow-left me-1"></i> Volver
+      </button>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-12 col-md-4 text-center">
+        <div class="position-relative d-inline-block mb-3" style="width: 120px; height: 120px;">
+          <div *ngIf="!$any(conductorDetalle)['_imgLoaded']" class="spinner-border text-secondary position-absolute top-50 start-50 translate-middle" role="status"></div>
+          <img [src]="conductorDetalle.fotoUrl || 'assets/images/default-avatar.png'"
+            class="rounded-circle border border-secondary shadow-lg" width="120" height="120" style="object-fit: cover;"
+            alt="Foto" (load)="$any(conductorDetalle)['_imgLoaded']=true" [hidden]="!$any(conductorDetalle)['_imgLoaded']">
+        </div>
+        <h4 class="text-white fw-bold mb-1">{{ conductorDetalle.nombre }}</h4>
+        <span class="badge bg-secondary mb-2">Ficha: {{ conductorDetalle.fichaNumerica }}</span>
+        <div>
+          <span class="badge bg-success" *ngIf="conductorDetalle.estado === 'ACTIVO'"><i class="bi bi-check-circle me-1"></i> ACTIVO</span>
+          <span class="badge bg-danger" *ngIf="conductorDetalle.estado === 'INACTIVO'"><i class="bi bi-x-circle me-1"></i> INACTIVO</span>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-8">
+        <div class="row g-3">
+          <div class="col-12 col-sm-6">
+            <p class="text-custom-muted small mb-1">Cédula</p>
+            <h6 class="text-white">{{ conductorDetalle.cedula }}</h6>
+          </div>
+          <div class="col-12 col-sm-6">
+            <p class="text-custom-muted small mb-1">Unidad Asignada</p>
+            <h6 class="text-white">
+              <span class="badge bg-primary" *ngIf="conductorDetalle.vehiculoAsignadoId">
+                {{ obtenerPlacaAsignada(conductorDetalle.vehiculoAsignadoId, vehiculos) }}
+              </span>
+              <span class="badge bg-dark border border-warning text-warning" *ngIf="!conductorDetalle.vehiculoAsignadoId">
+                Sin Unidad
+              </span>
+            </h6>
+          </div>
+          <div class="col-12">
+            <p class="text-custom-muted small mb-2">Documentos</p>
+            <div class="d-flex flex-wrap gap-2">
+              <a *ngIf="conductorDetalle.urlLicencia" [href]="conductorDetalle.urlLicencia" target="_blank" class="badge bg-dark border border-info text-info text-decoration-none p-2" title="Ver Licencia">
+                <i class="bi bi-person-vcard"></i> Licencia (Vence: {{ conductorDetalle.fechaVencimientoLicencia | date:'dd/MM/yy' }})
+              </a>
+              <a *ngIf="conductorDetalle.urlCertificadoMedico" [href]="conductorDetalle.urlCertificadoMedico" target="_blank" class="badge bg-dark border border-primary text-primary text-decoration-none p-2" title="Ver Certificado Médico">
+                <i class="bi bi-file-medical"></i> C. Médico (Vence: {{ conductorDetalle.fechaVencimientoCertificadoMedico | date:'dd/MM/yy' }})
+              </a>
+              <span *ngIf="!conductorDetalle.urlLicencia && !conductorDetalle.urlCertificadoMedico" class="text-custom-muted small">Sin documentos</span>
+            </div>
+          </div>
+          <div class="col-12" *ngIf="flotaService.puedeRegistrarOAsignar()">
+            <p class="text-custom-muted small mb-2 mt-2 border-top border-secondary pt-3">Acciones Disponibles</p>
+            <div class="d-flex flex-wrap gap-2">
+              <button *ngIf="!conductorDetalle.vehiculoAsignadoId && conductorDetalle.estado === 'ACTIVO'" class="btn btn-outline-info text-nowrap" (click)="abrirAsignacion(conductorDetalle)">
+                <i class="bi bi-link-45deg"></i> Asignar Unidad
+              </button>
+              <button *ngIf="conductorDetalle.vehiculoAsignadoId" class="btn btn-outline-warning text-nowrap" 
+                      [disabled]="procesandoId === conductorDetalle.id"
+                      (click)="revocarAsignacion(conductorDetalle)">
+                <span *ngIf="procesandoId === conductorDetalle.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <i *ngIf="procesandoId !== conductorDetalle.id" class="bi bi-x-circle"></i> Desvincular Unidad
+              </button>
+              <button *ngIf="conductorDetalle.estado === 'ACTIVO'" class="btn btn-outline-danger text-nowrap" 
+                      [disabled]="procesandoId === conductorDetalle.id"
+                      (click)="desactivarUsuario(conductorDetalle.id, conductorDetalle.nombre)">
+                <span *ngIf="procesandoId === conductorDetalle.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <i *ngIf="procesandoId !== conductorDetalle.id" class="bi bi-person-x"></i> Desactivar
+              </button>
+              <button *ngIf="conductorDetalle.estado === 'INACTIVO'" class="btn btn-outline-success text-nowrap" 
+                      [disabled]="procesandoId === conductorDetalle.id"
+                      (click)="activarUsuario(conductorDetalle.id, conductorDetalle.nombre)">
+                <span *ngIf="procesandoId === conductorDetalle.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <i *ngIf="procesandoId !== conductorDetalle.id" class="bi bi-person-check"></i> Activar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ==========================================

@@ -34,54 +34,107 @@
     <p class="text-white-50 mt-2">Cargando directorio...</p>
   </div>
 
-  <div class="table-responsive" *ngIf="!cargando">
+  <div class="table-responsive" *ngIf="!cargando && !empleadoDetalle">
     <table class="table table-dark table-hover border-custom align-middle">
       <thead>
-        <tr class="text-custom-muted">
-          <th>Perfil</th>
-          <th>Nombre y Ficha</th>
-          <th>Cédula</th>
-          <th>Cargo</th>
-          <th>Estado</th>
+        <tr class="text-custom-muted text-center">
+          <th>Empleado</th>
+          <th>Cargo y Estado</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let e of empleadosFiltrados">
+        <tr *ngFor="let e of empleadosFiltrados" class="text-center">
           <td>
-            <img [src]="e.fotoUrl || 'assets/images/default-avatar.png'" alt="Foto" class="rounded-circle" width="40"
-              height="40" style="object-fit: cover;">
+            <div class="d-flex flex-column align-items-center">
+              <div class="position-relative mb-2" style="width: 45px; height: 45px;">
+                <div *ngIf="!e['_imgLoaded']" class="spinner-border spinner-border-sm text-secondary position-absolute top-50 start-50 translate-middle" role="status"></div>
+                <img [src]="e.fotoUrl || 'assets/images/default-avatar.png'"
+                  class="rounded-circle border border-secondary" width="45" height="45" style="object-fit: cover;"
+                  alt="Foto" (load)="e['_imgLoaded']=true" [hidden]="!e['_imgLoaded']">
+              </div>
+              <div class="fw-bold text-white">{{ e.nombre }} {{ e.apellido }}</div>
+              <small class="text-custom-muted">Ficha: {{ e.ficha || 'Sin ficha' }}</small>
+            </div>
           </td>
           <td>
-            <div class="fw-bold">{{ e.nombre }} {{ e.apellido }}</div>
-            <div class="text-secondary small">{{ e.ficha || 'Sin ficha' }}</div>
+            <div class="d-flex flex-column align-items-center gap-1">
+              <span class="badge bg-dark border border-secondary text-info">{{ e.cargo }}</span>
+              <span class="badge" [ngClass]="{'bg-success': e.estado === 'ACTIVO', 'bg-warning text-dark': e.estado === 'INACTIVO'}">
+                {{ e.estado }}
+              </span>
+            </div>
           </td>
-          <td>{{ e.cedula }}</td>
-          <td><span class="badge bg-dark border border-secondary text-info">{{ e.cargo }}</span></td>
           <td>
-            <span class="badge"
-              [ngClass]="{'bg-success': e.estado === 'ACTIVO', 'bg-warning': e.estado === 'INACTIVO'}">{{ e.estado
-              }}</span>
-          </td>
-          <td class="text-center">
-            <button *ngIf="e.estado === 'ACTIVO'" class="btn btn-sm btn-outline-danger" 
-                    [disabled]="procesandoId === e.id"
-                    (click)="desactivarUsuario(e.id, e.nombre + ' ' + e.apellido)">
-              <span *ngIf="procesandoId === e.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-              <i *ngIf="procesandoId !== e.id" class="bi bi-person-x"></i> Desactivar
-            </button>
-            <button *ngIf="e.estado === 'INACTIVO'" class="btn btn-sm btn-outline-success" 
-                    [disabled]="procesandoId === e.id"
-                    (click)="activarUsuario(e.id, e.nombre + ' ' + e.apellido)">
-              <span *ngIf="procesandoId === e.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-              <i *ngIf="procesandoId !== e.id" class="bi bi-person-check"></i> Activar
+            <button class="btn btn-sm btn-outline-info rounded-circle" (click)="verDetalles(e)" title="Información">
+              <i class="bi bi-eye"></i>
             </button>
           </td>
         </tr>
+        <!-- Estado vacío -->
         <tr *ngIf="empleadosFiltrados.length === 0">
-          <td colspan="6" class="text-center text-custom-muted py-4">No se encontraron empleados.</td>
+          <td app-empty-state colspan="3" titulo="No hay empleados registrados" mensaje="El directorio de empleados se encuentra vacío según los filtros actuales."></td>
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <!-- ==========================================
+       VISTA DE DETALLES (MASTER-DETAIL)
+       ========================================== -->
+  <div *ngIf="empleadoDetalle" class="card bg-dark border-custom p-3 p-md-4 animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+      <h5 class="text-white mb-0"><i class="bi bi-info-circle text-info me-2"></i> Información del Empleado</h5>
+      <button class="btn btn-outline-secondary btn-sm" (click)="cerrarDetalles()">
+        <i class="bi bi-arrow-left me-1"></i> Volver
+      </button>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-12 col-md-4 text-center">
+        <div class="position-relative d-inline-block mb-3" style="width: 120px; height: 120px;">
+          <div *ngIf="!empleadoDetalle['_imgLoaded']" class="spinner-border text-secondary position-absolute top-50 start-50 translate-middle" role="status"></div>
+          <img [src]="empleadoDetalle.fotoUrl || 'assets/images/default-avatar.png'"
+            class="rounded-circle border border-secondary shadow-lg" width="120" height="120" style="object-fit: cover;"
+            alt="Foto" (load)="empleadoDetalle['_imgLoaded']=true" [hidden]="!empleadoDetalle['_imgLoaded']">
+        </div>
+        <h4 class="text-white fw-bold mb-1">{{ empleadoDetalle.nombre }} {{ empleadoDetalle.apellido }}</h4>
+        <span class="badge bg-secondary mb-2">Ficha: {{ empleadoDetalle.ficha || 'Sin ficha' }}</span>
+        <div>
+          <span class="badge bg-success" *ngIf="empleadoDetalle.estado === 'ACTIVO'"><i class="bi bi-check-circle me-1"></i> ACTIVO</span>
+          <span class="badge bg-danger" *ngIf="empleadoDetalle.estado === 'INACTIVO'"><i class="bi bi-x-circle me-1"></i> INACTIVO</span>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-8">
+        <div class="row g-3">
+          <div class="col-12 col-sm-6">
+            <p class="text-custom-muted small mb-1">Cédula</p>
+            <h6 class="text-white">{{ empleadoDetalle.cedula }}</h6>
+          </div>
+          <div class="col-12 col-sm-6">
+            <p class="text-custom-muted small mb-1">Cargo</p>
+            <h6 class="text-info">{{ empleadoDetalle.cargo }}</h6>
+          </div>
+          <div class="col-12">
+            <p class="text-custom-muted small mb-2 mt-2 border-top border-secondary pt-3">Acciones Disponibles</p>
+            <div class="d-flex flex-wrap gap-2">
+              <button *ngIf="empleadoDetalle.estado === 'ACTIVO'" class="btn btn-outline-danger text-nowrap" 
+                      [disabled]="procesandoId === empleadoDetalle.id"
+                      (click)="desactivarUsuario(empleadoDetalle.id, empleadoDetalle.nombre + ' ' + empleadoDetalle.apellido)">
+                <span *ngIf="procesandoId === empleadoDetalle.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <i *ngIf="procesandoId !== empleadoDetalle.id" class="bi bi-person-x"></i> Desactivar
+              </button>
+              <button *ngIf="empleadoDetalle.estado === 'INACTIVO'" class="btn btn-outline-success text-nowrap" 
+                      [disabled]="procesandoId === empleadoDetalle.id"
+                      (click)="activarUsuario(empleadoDetalle.id, empleadoDetalle.nombre + ' ' + empleadoDetalle.apellido)">
+                <span *ngIf="procesandoId === empleadoDetalle.id" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <i *ngIf="procesandoId !== empleadoDetalle.id" class="bi bi-person-check"></i> Activar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

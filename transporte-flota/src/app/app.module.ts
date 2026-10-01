@@ -21,6 +21,7 @@ import { ListadoAuditoriasComponent } from './modules/listado-auditorias/listado
 import { ModalComponent } from './shared/components/modal/modal.component';
 import { HistorialInspeccionesComponent } from './modules/historial-inspecciones/historial-inspecciones.component';
 import { FichaPublicaComponent } from './modules/ficha-publica/ficha-publica.component';
+import { EmptyStateComponent } from './shared/components/empty-state/empty-state.component';
 
 @NgModule({
   declarations: [
@@ -40,7 +41,8 @@ import { FichaPublicaComponent } from './modules/ficha-publica/ficha-publica.com
     ListadoAuditoriasComponent,
     ModalComponent,
     HistorialInspeccionesComponent,
-    FichaPublicaComponent
+    FichaPublicaComponent,
+    EmptyStateComponent
   ],
   imports: [
     BrowserModule,

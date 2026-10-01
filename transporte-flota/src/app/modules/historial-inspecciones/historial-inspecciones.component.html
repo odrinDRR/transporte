@@ -36,62 +36,116 @@
     <p class="text-white-50 mt-2">Cargando historial...</p>
   </div>
 
-  <div class="table-responsive" *ngIf="!cargando">
+  <div class="table-responsive" *ngIf="!cargando && !inspeccionDetalle">
     <table class="table table-dark table-hover border-custom align-middle">
       <thead>
-        <tr class="text-custom-muted">
-          <!-- <th>N° Control</th> -->
-          <th>Fecha</th>
-          <th>Conductor</th>
-          <th>Vehículo (Placa)</th>
-          <th>Operación</th>
-          <th>Estado</th>
+        <tr class="text-custom-muted text-center">
+          <th>Registro (Fecha)</th>
+          <th>Operación y Estado</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let i of inspeccionesFiltradas">
-          <!-- <td><span class="text-info fw-bold">{{ i.numeroControl }}</span></td> -->
-          <td>{{ i.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</td>
+        <tr *ngFor="let i of inspeccionesFiltradas" class="text-center">
           <td>
-            <div class="fw-bold">{{ i.usuario?.nombre }}</div>
-            <div class="text-secondary small">V-{{ i.usuario?.cedula }}</div>
+            <div class="fw-bold">{{ i.fechaCreacion | date:'dd/MM/yy HH:mm' }}</div>
+            <div class="text-secondary small">{{ i.numeroControl || 'S/N' }}</div>
           </td>
           <td>
-            <div class="fw-bold">{{ i.vehiculo?.marca }} {{ i.vehiculo?.modelo }}</div>
-            <div class="text-secondary small">{{ i.vehiculo?.placa }}</div>
+            <div class="d-flex flex-column align-items-center gap-1">
+              <span class="badge" [ngClass]="{
+                  'bg-info text-dark': i.operacion === 'GENERAL',
+                  'bg-success text-dark': i.operacion === 'SALIDA',
+                  'bg-warning text-dark': i.operacion === 'LLEGADA'
+                }">
+                {{ i.operacion || 'GENERAL' }}
+              </span>
+              <span class="badge border" [ngClass]="{
+                  'border-success text-success': i.estado === 'ABIERTA',
+                  'border-danger text-danger': i.estado === 'CERRADA'
+                }">
+                {{ i.estado }}
+              </span>
+            </div>
           </td>
           <td>
-            <span class="badge" [ngClass]="{
-                'bg-info text-dark': i.operacion === 'GENERAL',
-                'bg-success text-dark': i.operacion === 'SALIDA',
-                'bg-warning text-dark': i.operacion === 'LLEGADA'
-              }">
-              {{ i.operacion || 'GENERAL' }}
-            </span>
-          </td>
-          <td>
-            <span class="badge border" [ngClass]="{
-                'border-success text-success': i.estado === 'ABIERTA',
-                'border-danger text-danger': i.estado === 'CERRADA'
-              }">
-              <i class="bi"
-                [ngClass]="{'bi-door-open': i.estado === 'ABIERTA', 'bi-door-closed': i.estado === 'CERRADA'}"></i>
-              {{ i.estado }}
-            </span>
-          </td>
-          <td>
-            <button class="btn btn-sm btn-outline-light action-btn" (click)="imprimirInspeccion(i)"
-              title="Imprimir Planilla">
-              <i class="bi bi-printer"></i>
+            <button class="btn btn-sm btn-outline-info rounded-circle" (click)="verDetalles(i)" title="Información">
+              <i class="bi bi-eye"></i>
             </button>
           </td>
         </tr>
+        <!-- Estado vacío -->
         <tr *ngIf="inspeccionesFiltradas.length === 0">
-          <td colspan="7" class="text-center text-custom-muted py-4">No se encontraron inspecciones con los filtros
-            actuales.</td>
+          <td app-empty-state colspan="3" titulo="No hay inspecciones registradas" mensaje="El historial de inspecciones se encuentra vacío según los filtros actuales."></td>
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <!-- ==========================================
+       VISTA DE DETALLES (MASTER-DETAIL)
+       ========================================== -->
+  <div *ngIf="inspeccionDetalle" class="card bg-dark border-custom p-3 p-md-4 animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+      <h5 class="text-white mb-0"><i class="bi bi-info-circle text-info me-2"></i> Detalles de la Inspección</h5>
+      <button class="btn btn-outline-secondary btn-sm" (click)="cerrarDetalles()">
+        <i class="bi bi-arrow-left me-1"></i> Volver
+      </button>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-12 col-md-6">
+        <p class="text-custom-muted small mb-1">N° Control / Fecha</p>
+        <h5 class="text-white fw-bold mb-1">{{ inspeccionDetalle.numeroControl || 'Sin Número' }}</h5>
+        <h6 class="text-secondary">{{ inspeccionDetalle.fechaCreacion | date:'dd/MM/yyyy HH:mm' }}</h6>
+      </div>
+      <div class="col-12 col-md-6">
+        <p class="text-custom-muted small mb-1">Operación y Estado</p>
+        <div>
+          <span class="badge me-2" [ngClass]="{
+              'bg-info text-dark': inspeccionDetalle.operacion === 'GENERAL',
+              'bg-success text-dark': inspeccionDetalle.operacion === 'SALIDA',
+              'bg-warning text-dark': inspeccionDetalle.operacion === 'LLEGADA'
+            }">
+            {{ inspeccionDetalle.operacion || 'GENERAL' }}
+          </span>
+          <span class="badge border" [ngClass]="{
+              'border-success text-success': inspeccionDetalle.estado === 'ABIERTA',
+              'border-danger text-danger': inspeccionDetalle.estado === 'CERRADA'
+            }">
+            <i class="bi" [ngClass]="{'bi-door-open': inspeccionDetalle.estado === 'ABIERTA', 'bi-door-closed': inspeccionDetalle.estado === 'CERRADA'}"></i>
+            {{ inspeccionDetalle.estado }}
+          </span>
+        </div>
+      </div>
+      
+      <div class="col-12 col-sm-6">
+        <p class="text-custom-muted small mb-1">Conductor</p>
+        <div class="d-flex align-items-center bg-black bg-opacity-25 p-2 rounded">
+          <i class="bi bi-person-badge fs-4 text-secondary me-3"></i>
+          <div>
+            <div class="fw-bold text-white">{{ inspeccionDetalle.usuario?.nombre }}</div>
+            <div class="text-secondary small">V-{{ inspeccionDetalle.usuario?.cedula }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-sm-6">
+        <p class="text-custom-muted small mb-1">Vehículo Asignado</p>
+        <div class="d-flex align-items-center bg-black bg-opacity-25 p-2 rounded">
+          <i class="bi bi-car-front fs-4 text-secondary me-3"></i>
+          <div>
+            <div class="fw-bold text-white">{{ inspeccionDetalle.vehiculo?.marca }} {{ inspeccionDetalle.vehiculo?.modelo }}</div>
+            <div class="text-secondary small">{{ inspeccionDetalle.vehiculo?.placa }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 text-center mt-4 border-top border-secondary pt-4">
+        <button class="btn btn-outline-light px-4 py-2 fw-bold" (click)="imprimirInspeccion(inspeccionDetalle)">
+          <i class="bi bi-printer me-2"></i> Imprimir Planilla de Inspección
+        </button>
+      </div>
+    </div>
   </div>
 </div>

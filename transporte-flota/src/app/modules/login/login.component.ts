@@ -170,7 +170,7 @@ export class LoginComponent {
           if (err.status === 0) {
             this.modalService.showAlert('Comunicación fallida por favor comuníquese con su proveedor', 'Error de Conexión', 'error');
           } else {
-            this.modalService.showAlert(err.error || 'Credenciales inválidas o usuario inactivo', 'Error de Login', 'error');
+            this.modalService.showAlert('Credenciales inválidas.', 'Error de Login', 'error');
           }
         }
       });

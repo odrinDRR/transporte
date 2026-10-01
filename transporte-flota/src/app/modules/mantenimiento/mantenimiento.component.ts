@@ -24,6 +24,8 @@ export class MantenimientoComponent implements OnInit {
   cargando = false;
   cargandoDependencias = false;
   
+  vehiculoSeleccionado: Vehiculo | null = null;
+  
   private vehiculosSubject = new BehaviorSubject<Vehiculo[]>([]);
   vehiculos$ = this.vehiculosSubject.asObservable();
   
@@ -81,6 +83,13 @@ export class MantenimientoComponent implements OnInit {
   }
 
   // --- ACCIONES VEHÍCULOS ---
+  verDetallesVehiculo(vehiculo: Vehiculo): void {
+    this.vehiculoSeleccionado = vehiculo;
+  }
+
+  cerrarDetallesVehiculo(): void {
+    this.vehiculoSeleccionado = null;
+  }
   cambiarEstadoVehiculo(vehiculo: Vehiculo, event: any): void {
     const nuevoEstado = event.target.value as EstadoVehiculo;
     const estadoOriginal = vehiculo.estado;

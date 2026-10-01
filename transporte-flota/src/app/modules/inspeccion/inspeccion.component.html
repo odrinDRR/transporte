@@ -180,7 +180,7 @@
 
                 <!-- Stepper Visual -->
                 <div
-                    class="d-flex justify-content-between mb-3 border-bottom border-custom pb-3 overflow-auto text-nowrap">
+                    class="d-flex justify-content-between mb-3 border-bottom border-custom pb-3 overflow-auto text-nowrap w-100" style="scrollbar-width: none;">
                     <span class="badge me-1"
                         [ngClass]="etapaActual >= 1 ? 'bg-primary' : 'bg-dark text-muted border border-secondary'">1.
                         Datos</span>
@@ -234,33 +234,33 @@
 
                         <h6 class="text-warning mt-3 mb-2 small fw-bold">Identidad del Vehículo</h6>
                         <div class="row g-2 mb-3">
-                            <div class="col-6 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-4">
                                 <label class="form-label text-custom-muted small">Placa</label>
                                 <input type="text" class="form-control bg-dark text-white border-custom rounded-3"
                                     [value]="vehiculoActual?.placa" disabled>
                             </div>
-                            <div class="col-12 col-md-8">
+                            <div class="col-12 col-sm-12 col-md-8">
                                 <label class="form-label text-custom-muted small">Marca / Modelo</label>
                                 <input type="text" class="form-control bg-dark text-white border-custom rounded-3"
                                     [value]="vehiculoActual?.marcaModelo ? vehiculoActual?.marcaModelo : (vehiculoActual?.marca ? vehiculoActual?.marca + ' ' + (vehiculoActual?.modelo || '') : 'N/A')"
                                     disabled>
                             </div>
-                            <div class="col-6 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-4">
                                 <label class="form-label text-custom-muted small">Serial Carrocería</label>
                                 <input type="text" class="form-control bg-dark text-white border-custom rounded-3"
                                     [value]="vehiculoActual?.vin || 'N/A'" disabled>
                             </div>
-                            <div class="col-6 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-4">
                                 <label class="form-label text-custom-muted small">Color</label>
                                 <input type="text" class="form-control bg-dark text-white border-custom rounded-3"
                                     [value]="vehiculoActual?.color || 'N/A'" disabled>
                             </div>
-                            <div class="col-6 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-4">
                                 <label class="form-label text-custom-muted small">Año</label>
                                 <input type="text" class="form-control bg-dark text-white border-custom rounded-3"
                                     [value]="vehiculoActual?.anio || 'N/A'" disabled>
                             </div>
-                            <div class="col-6 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-4">
                                 <label class="form-label text-custom-muted small">Tipo</label>
                                 <input type="text" class="form-control bg-dark text-white border-custom rounded-3"
                                     [value]="vehiculoActual?.tipoVehiculo || 'N/A'" disabled>
@@ -269,13 +269,13 @@
 
                         <h6 class="text-warning mt-3 mb-2 small fw-bold">Kilometraje y Transmisión</h6>
                         <div class="row g-2 mb-3">
-                            <div class="col-6">
+                            <div class="col-12 col-sm-6">
                                 <label class="form-label text-custom-muted small">Km Entregado</label>
                                 <input type="number" min="0" max="500000" class="form-control bg-dark text-white rounded-3"
                                     [ngClass]="{'campo-invalido': erroresEtapa.includes('kilometrajeEntregado'), 'border-custom': !erroresEtapa.includes('kilometrajeEntregado')}"
                                     [(ngModel)]="dto.kilometrajeEntregado">
                             </div>
-                            <div class="col-6">
+                            <div class="col-12 col-sm-6">
                                 <label class="form-label text-custom-muted small">Km Recibido</label>
                                 <input type="number" min="0" max="500000" class="form-control bg-dark text-white rounded-3"
                                     [ngClass]="{'campo-invalido': erroresEtapa.includes('kilometrajeRecibido'), 'border-custom': !erroresEtapa.includes('kilometrajeRecibido')}"
@@ -300,7 +300,7 @@
 
                         <h6 class="text-warning mt-3 mb-2 small fw-bold">Fluidos (ALTO / MEDIO / BAJO)</h6>
                         <div class="row g-2 mb-4">
-                            <div class="col-6 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-4">
                                 <label class="form-label text-custom-muted small mb-1">Combustible</label>
                                 <select class="form-select bg-dark text-white rounded-3"
                                     [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelCombustible'), 'border-custom': !erroresEtapa.includes('nivelCombustible')}"
@@ -311,7 +311,7 @@
                                     <option value="BAJO">Bajo</option>
                                 </select>
                             </div>
-                            <div class="col-6 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-4">
                                 <label class="form-label text-custom-muted small mb-1">Aceite Motor</label>
                                 <select class="form-select bg-dark text-white rounded-3"
                                     [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelAceiteMotor'), 'border-custom': !erroresEtapa.includes('nivelAceiteMotor')}"
@@ -322,7 +322,7 @@
                                     <option value="BAJO">Bajo</option>
                                 </select>
                             </div>
-                            <div class="col-6 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-4">
                                 <label class="form-label text-custom-muted small mb-1">Liga de Frenos</label>
                                 <select class="form-select bg-dark text-white rounded-3"
                                     [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelLigaFrenos'), 'border-custom': !erroresEtapa.includes('nivelLigaFrenos')}"
@@ -333,7 +333,7 @@
                                     <option value="BAJO">Bajo</option>
                                 </select>
                             </div>
-                            <div class="col-6 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-4">
                                 <label class="form-label text-custom-muted small mb-1">Aceite Caja</label>
                                 <select class="form-select bg-dark text-white rounded-3"
                                     [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelAceiteCaja'), 'border-custom': !erroresEtapa.includes('nivelAceiteCaja')}"
@@ -344,7 +344,7 @@
                                     <option value="BAJO">Bajo</option>
                                 </select>
                             </div>
-                            <div class="col-6 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-4">
                                 <label class="form-label text-custom-muted small mb-1">Refrigerante</label>
                                 <select class="form-select bg-dark text-white rounded-3"
                                     [ngClass]="{'campo-invalido': erroresEtapa.includes('nivelRefrigerante'), 'border-custom': !erroresEtapa.includes('nivelRefrigerante')}"
@@ -355,7 +355,7 @@
                                     <option value="BAJO">Bajo</option>
                                 </select>
                             </div>
-                            <div class="col-6 col-md-4">
+                            <div class="col-12 col-sm-6 col-md-4">
                                 <label class="form-label text-custom-muted small mb-1">Tipo de Cobertura</label>
                                 <input type="text" class="form-control bg-dark text-white rounded-3" maxlength="17"
                                     [ngClass]="{'campo-invalido': erroresEtapa.includes('tipoCobertura'), 'border-custom': !erroresEtapa.includes('tipoCobertura')}"
@@ -495,7 +495,7 @@
 
                         <h6 class="text-warning mt-3 mb-2 small fw-bold">Sistema de Seguridad</h6>
                         <div class="row g-2 mb-3">
-                            <div class="col-6 col-md-3">
+                            <div class="col-12 col-sm-6 col-md-3">
                                 <div
                                     class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
                                     <input class="form-check-input me-2 ms-0" type="checkbox" role="switch"
@@ -503,7 +503,7 @@
                                     <label class="form-check-label text-white small">Alarma</label>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-12 col-sm-6 col-md-3">
                                 <div
                                     class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
                                     <input class="form-check-input me-2 ms-0" type="checkbox" role="switch"
@@ -511,7 +511,7 @@
                                     <label class="form-check-label text-white small">Bóveda</label>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-12 col-sm-6 col-md-3">
                                 <div
                                     class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
                                     <input class="form-check-input me-2 ms-0" type="checkbox" role="switch"
@@ -519,7 +519,7 @@
                                     <label class="form-check-label text-white small">Extintor</label>
                                 </div>
                             </div>
-                            <div class="col-6 col-md-3">
+                            <div class="col-12 col-sm-6 col-md-3">
                                 <div
                                     class="form-check form-switch bg-dark p-2 rounded-3 border border-custom d-flex align-items-center h-100">
                                     <input class="form-check-input me-2 ms-0" type="checkbox" role="switch"
@@ -531,7 +531,7 @@
 
                         <h6 class="text-warning mt-3 mb-2 small fw-bold">Accesorios</h6>
                         <div class="row g-2 mb-3">
-                            <div class="col-6 col-md-4" *ngFor="let acc of [
+                            <div class="col-12 col-sm-6 col-md-4" *ngFor="let acc of [
                     {key:'accCables', label:'Cables Aux'}, {key:'accCauchoRepuesto', label:'Repuesto'},
                     {key:'accCornetas', label:'Cornetas'}, {key:'accGato', label:'Gato Hidráulico'},
                     {key:'accHerramientas', label:'Herramientas'}, {key:'accLlaveCruz', label:'Llave Cruz'},
@@ -549,7 +549,7 @@
 
                         <h6 class="text-warning mt-3 mb-2 small fw-bold">Estado General de Componentes (B, R, M)</h6>
                         <div class="row g-2 mb-3">
-                            <div class="col-6 col-md-3" *ngFor="let rev of [
+                            <div class="col-12 col-sm-6 col-md-3" *ngFor="let rev of [
                     {key:'revAire', label:'Aire Acond.'}, {key:'revAntena', label:'Antena'},
                     {key:'revCauchos', label:'Cauchos'}, {key:'revFaros', label:'Faros/Luces'},
                     {key:'revFrenos', label:'Frenos'}, {key:'revVidrios', label:'Vidrios'},
@@ -583,19 +583,19 @@
                                     <h6 class="text-warning small fw-bold mb-3"><i class="bi bi-battery-half"></i>
                                         BATERÍA (10)</h6>
                                     <div class="row g-2">
-                                        <div class="col-6"><input type="text" maxlength="10"
+                                        <div class="col-12 col-sm-6"><input type="text" maxlength="10"
                                                 class="form-control bg-dark text-white rounded-3"
                                                 [ngClass]="{'campo-invalido': erroresEtapa.includes('batMarca'), 'border-custom': !erroresEtapa.includes('batMarca')}"
                                                 placeholder="Marca (máx 10)" [(ngModel)]="dto.batMarca"></div>
-                                        <div class="col-6"><input type="text" maxlength="10"
+                                        <div class="col-12 col-sm-6"><input type="text" maxlength="10"
                                                 class="form-control bg-dark text-white rounded-3"
                                                 [ngClass]="{'campo-invalido': erroresEtapa.includes('batModelo'), 'border-custom': !erroresEtapa.includes('batModelo')}"
                                                 placeholder="Modelo (máx 10)" [(ngModel)]="dto.batModelo"></div>
-                                        <div class="col-6"><input type="text" maxlength="8"
+                                        <div class="col-12 col-sm-6"><input type="text" maxlength="8"
                                                 class="form-control bg-dark text-white rounded-3"
                                                 [ngClass]="{'campo-invalido': erroresEtapa.includes('batCodigo'), 'border-custom': !erroresEtapa.includes('batCodigo')}"
                                                 placeholder="Código (8 dig)" [(ngModel)]="dto.batCodigo"></div>
-                                        <div class="col-6">
+                                        <div class="col-12 col-sm-6">
                                             <select class="form-select bg-dark text-white rounded-3"
                                                 [ngClass]="{'campo-invalido': erroresEtapa.includes('batVida'), 'border-custom': !erroresEtapa.includes('batVida')}"
                                                 [(ngModel)]="dto.batVida">
@@ -613,19 +613,19 @@
                                     <h6 class="text-warning small fw-bold mb-3"><i class="bi bi-vinyl-fill"></i> CAUCHOS
                                         (11)</h6>
                                     <div class="row g-2">
-                                        <div class="col-6"><input type="text" maxlength="10"
+                                        <div class="col-12 col-sm-6"><input type="text" maxlength="10"
                                                 class="form-control bg-dark text-white rounded-3"
                                                 [ngClass]="{'campo-invalido': erroresEtapa.includes('cauMarca'), 'border-custom': !erroresEtapa.includes('cauMarca')}"
                                                 placeholder="Marca (máx 10)" [(ngModel)]="dto.cauMarca"></div>
-                                        <div class="col-6"><input type="text" maxlength="10"
+                                        <div class="col-12 col-sm-6"><input type="text" maxlength="10"
                                                 class="form-control bg-dark text-white rounded-3"
                                                 [ngClass]="{'campo-invalido': erroresEtapa.includes('cauModelo'), 'border-custom': !erroresEtapa.includes('cauModelo')}"
                                                 placeholder="Modelo (máx 10)" [(ngModel)]="dto.cauModelo"></div>
-                                        <div class="col-6"><input type="text" maxlength="10"
+                                        <div class="col-12 col-sm-6"><input type="text" maxlength="10"
                                                 class="form-control bg-dark text-white rounded-3"
                                                 [ngClass]="{'campo-invalido': erroresEtapa.includes('cauCodigo'), 'border-custom': !erroresEtapa.includes('cauCodigo')}"
                                                 placeholder="Código (máx 10)" [(ngModel)]="dto.cauCodigo"></div>
-                                        <div class="col-6">
+                                        <div class="col-12 col-sm-6">
                                             <select class="form-select bg-dark text-white rounded-3"
                                                 [ngClass]="{'campo-invalido': erroresEtapa.includes('cauVida'), 'border-custom': !erroresEtapa.includes('cauVida')}"
                                                 [(ngModel)]="dto.cauVida">

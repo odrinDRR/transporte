@@ -23,6 +23,9 @@ export class ConductoresComponent implements OnInit {
   procesandoAsignacion = false;
   vehiculos$!: Observable<Vehiculo[]>;
 
+  // Para el Detail View (Ojo)
+  conductorDetalle: Conductor | null = null;
+
   constructor(
     public flotaService: FlotaService,
     private vehiculoService: VehiculoService,
@@ -103,6 +106,15 @@ export class ConductoresComponent implements OnInit {
     if (!idVehiculo) return 'Ninguno';
     const v = vehiculos.find(veh => veh.id === idVehiculo);
     return v ? `${v.placa} (${v.identificador})` : 'Desconocido';
+  }
+
+  // --- CONTROL DEL DETALLE (MASTER-DETAIL) ---
+  verDetalles(conductor: Conductor): void {
+    this.conductorDetalle = conductor;
+  }
+
+  cerrarDetalles(): void {
+    this.conductorDetalle = null;
   }
 
   // --- CONTROL DEL MODAL DE ASIGNACIÓN ---

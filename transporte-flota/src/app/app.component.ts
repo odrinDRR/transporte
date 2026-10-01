@@ -34,9 +34,7 @@ export class AppComponent implements OnInit {
   onLogin() {
     // Lógica para redirigir según el rol al entrar
     const rol = this.flotaService.rolActual;
-    if (rol === 'EMPLEADO') {
-      this.moduloActivo = 'inspeccion';
-    } else if (rol === 'SUPERVISOR') {
+    if (rol === 'SUPERVISOR') {
       this.moduloActivo = 'auditoria'; // Este será el módulo de validación visual
     } else {
       this.moduloActivo = 'flota';

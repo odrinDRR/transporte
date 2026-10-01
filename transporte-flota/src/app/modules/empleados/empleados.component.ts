@@ -13,6 +13,7 @@ export class EmpleadosComponent implements OnInit {
   procesandoId: number | null = null;
   filtroTexto = '';
   filtroRol: 'TODOS' | 'EMPLEADOS' | 'COORDINADORES' = 'TODOS';
+  empleadoDetalle: any = null;
 
   constructor(private http: HttpClient, private modalService: ModalService) {}
 
@@ -54,6 +55,14 @@ export class EmpleadosComponent implements OnInit {
       );
     }
     return filtrados;
+  }
+
+  verDetalles(empleado: any): void {
+    this.empleadoDetalle = empleado;
+  }
+
+  cerrarDetalles(): void {
+    this.empleadoDetalle = null;
   }
 
   async desactivarUsuario(id: number, nombre: string): Promise<void> {

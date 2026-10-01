@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
+import { UsuarioService } from '../../services/usuario.service';
 import { environment } from '../../../environments/environment';
 import { ModalService } from '../../core/services/modal.service';
 
@@ -11,10 +12,10 @@ import { ModalService } from '../../core/services/modal.service';
 export class AprobacionesComponent implements OnInit {
   solicitudesPendientes: any[] = [];
   solicitudesVisibles: any[] = [];
+  solicitudDetalle: any = null;
   rolActual: string | null = null;
-  apiUrl = `${environment.apiUrl}/usuarios`;
 
-  constructor(private http: HttpClient, public authService: AuthService, private modalService: ModalService) {}
+  constructor(private usuarioService: UsuarioService, public authService: AuthService, private modalService: ModalService) { }
 
   ngOnInit(): void {
     this.authService.usuarioActual$.subscribe(user => {
@@ -23,14 +24,25 @@ export class AprobacionesComponent implements OnInit {
     });
   }
 
+  verDetalles(solicitud: any): void {
+    this.solicitudDetalle = solicitud;
+  }
+
+  cerrarDetalles(): void {
+    this.solicitudDetalle = null;
+  }
+
   cargando = false;
 
   cargarUsuarios(): void {
     this.cargando = true;
-    this.http.get<any[]>(this.apiUrl).subscribe({
+    
+    const cargoFiltro = this.rolActual === 'EMPLEADO' ? 'CONDUCTOR' : undefined;
+
+    this.usuarioService.obtenerPendientes(cargoFiltro).subscribe({
       next: (usuarios) => {
-        // Filtrar los que están PENDIENTES
-        this.solicitudesPendientes = usuarios.filter(u => u.estado === 'PENDIENTE');
+        // Ya vienen filtrados por estado PENDIENTE desde el backend
+        this.solicitudesPendientes = usuarios;
         this.filtrarPorNivelDeAcceso();
         this.cargando = false;
       },
@@ -46,6 +58,8 @@ export class AprobacionesComponent implements OnInit {
       this.solicitudesVisibles = [...this.solicitudesPendientes];
     } else if (this.rolActual === 'SUPERVISOR') {
       this.solicitudesVisibles = this.solicitudesPendientes.filter(s => s.cargo === 'EMPLEADO' || s.cargo === 'CONDUCTOR');
+    } else if (this.rolActual === 'EMPLEADO') {
+      this.solicitudesVisibles = this.solicitudesPendientes.filter(s => s.cargo === 'CONDUCTOR');
     } else {
       this.solicitudesVisibles = [];
     }
@@ -54,10 +68,11 @@ export class AprobacionesComponent implements OnInit {
   async aprobar(id: number, nombre: string): Promise<void> {
     const isConfirmed = await this.modalService.showConfirm(`¿Estás seguro de APROBAR el acceso para ${nombre}?`, 'Confirmar Aprobación', 'info');
     if (isConfirmed) {
-      this.http.put(`${this.apiUrl}/aprobar/${id}`, {}).subscribe({
+      this.usuarioService.aprobarUsuario(id).subscribe({
         next: () => {
+          if (this.solicitudDetalle?.id === id) this.cerrarDetalles();
           this.cargarUsuarios();
-          this.modalService.showAlert('Usuario aprobado y notificado. Ya puede iniciar sesión.', 'Éxito', 'success');
+          this.modalService.showAlert('Usuario aprobado. Ya puede iniciar sesión.', 'Éxito', 'success');
         },
         error: (err) => console.error('Error al aprobar', err)
       });
@@ -67,8 +82,11 @@ export class AprobacionesComponent implements OnInit {
   async rechazar(id: number): Promise<void> {
     const isConfirmed = await this.modalService.showConfirm('¿Deseas RECHAZAR y eliminar esta solicitud?', 'Confirmar Rechazo', 'warning');
     if (isConfirmed) {
-      this.http.delete(`${this.apiUrl}/${id}`).subscribe({
-        next: () => this.cargarUsuarios(),
+      this.usuarioService.rechazarUsuario(id).subscribe({
+        next: () => {
+          if (this.solicitudDetalle?.id === id) this.cerrarDetalles();
+          this.cargarUsuarios();
+        },
         error: (err) => console.error('Error al rechazar', err)
       });
     }

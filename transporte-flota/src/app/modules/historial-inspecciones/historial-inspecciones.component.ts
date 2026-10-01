@@ -14,6 +14,7 @@ export class HistorialInspeccionesComponent implements OnInit {
   cargando: boolean = true;
   filtroTexto: string = '';
   filtroOperacion: string = 'TODAS'; // TODAS, GENERAL, SALIDA, LLEGADA
+  inspeccionDetalle: any = null;
 
   constructor(private http: HttpClient) { }
 
@@ -71,6 +72,14 @@ export class HistorialInspeccionesComponent implements OnInit {
   imprimirInspeccion(inspeccion: any): void {
     const url = `${environment.apiUrl}/reportes/inspeccion/${inspeccion.id}`;
     window.open(url, '_blank');
+  }
+
+  verDetalles(inspeccion: any): void {
+    this.inspeccionDetalle = inspeccion;
+  }
+
+  cerrarDetalles(): void {
+    this.inspeccionDetalle = null;
   }
 
 }

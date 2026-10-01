@@ -11,60 +11,107 @@
     <p class="text-white-50 mt-2">Cargando aprobaciones...</p>
   </div>
 
-  <div class="table-responsive" *ngIf="!cargando && solicitudesVisibles.length > 0">
+  <div class="table-responsive" *ngIf="!cargando && !solicitudDetalle && solicitudesVisibles.length > 0">
     <table class="table table-dark table-hover border-custom align-middle">
       <thead>
-        <tr class="text-custom-muted">
-          <th>Fecha</th>
+        <tr class="text-custom-muted text-center">
           <th>Solicitante</th>
           <th>Cargo Solicitado</th>
-          <th>Documentos</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let s of solicitudesVisibles">
-          <td class="text-custom-muted small">{{ s.fecha }}</td>
+        <tr *ngFor="let s of solicitudesVisibles" class="text-center">
           <td>
-            <div class="fw-bold text-white">{{ s.nombre }} {{ s.apellido }}</div>
-            <small class="text-custom-muted">CI: {{ s.cedula }}</small>
+            <div class="d-flex flex-column align-items-center">
+              <div class="position-relative mb-2" style="width: 45px; height: 45px;">
+                <div *ngIf="!$any(s)['_imgLoaded']" class="spinner-border spinner-border-sm text-secondary position-absolute top-50 start-50 translate-middle" role="status"></div>
+                <img [src]="s.fotoUrl || 'assets/images/default-avatar.png'"
+                  class="rounded-circle border border-secondary" width="45" height="45" style="object-fit: cover;"
+                  alt="Foto" (load)="$any(s)['_imgLoaded']=true" [hidden]="!$any(s)['_imgLoaded']">
+              </div>
+              <div class="fw-bold text-white">{{ s.nombre }} {{ s.apellido }}</div>
+              <small class="text-custom-muted">CI: {{ s.cedula }}</small>
+            </div>
           </td>
           <td>
             <span class="badge bg-dark border border-secondary text-info">{{ s.cargo }}</span>
           </td>
           <td>
-            <div *ngIf="s.cargo === 'CONDUCTOR'">
-              <div *ngIf="s.urlLicencia" class="mb-1">
-                <a [href]="s.urlLicencia" target="_blank" class="badge bg-dark border border-info text-info text-decoration-none p-2" title="Ver Licencia">
-                  <i class="bi bi-person-vcard"></i> Licencia (Vence: {{ s.fechaVencimientoLicencia | date:'dd/MM/yy' }})
-                </a>
-              </div>
-              <div *ngIf="s.urlCertificadoMedico">
-                <a [href]="s.urlCertificadoMedico" target="_blank" class="badge bg-dark border border-primary text-primary text-decoration-none p-2" title="Ver Certificado Médico">
-                  <i class="bi bi-file-medical"></i> C. Médico (Vence: {{ s.fechaVencimientoCertificadoMedico | date:'dd/MM/yy' }})
-                </a>
-              </div>
-            </div>
-            <span *ngIf="s.cargo !== 'CONDUCTOR'" class="text-custom-muted small">N/A</span>
-          </td>
-          <td>
-            <div class="d-flex flex-wrap gap-2">
-              <button class="btn btn-sm btn-success fw-bold text-nowrap" (click)="aprobar(s.id, s.nombre)">
-                <i class="bi bi-check-lg"></i> Aprobar
-              </button>
-              <button class="btn btn-sm btn-outline-danger" (click)="rechazar(s.id)">
-                <i class="bi bi-x-lg"></i>
-              </button>
-            </div>
+            <button class="btn btn-sm btn-outline-info rounded-circle" (click)="verDetalles(s)" title="Información">
+              <i class="bi bi-eye"></i>
+            </button>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <div *ngIf="!cargando && solicitudesVisibles.length === 0" class="text-center p-5 text-custom-muted border border-custom rounded border-dashed">
-    <i class="bi bi-inboxes display-4 mb-3 d-block"></i>
-    <h5>Bandeja limpia</h5>
-    <p>No tienes solicitudes de registro pendientes por aprobar en tu nivel de acceso.</p>
+  <!-- ==========================================
+       VISTA DE DETALLES (MASTER-DETAIL)
+       ========================================== -->
+  <div *ngIf="solicitudDetalle" class="card bg-dark border-custom p-3 p-md-4 animate__animated animate__fadeIn">
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-secondary pb-3">
+      <h5 class="text-white mb-0"><i class="bi bi-info-circle text-info me-2"></i> Detalles de la Solicitud</h5>
+      <button class="btn btn-outline-secondary btn-sm" (click)="cerrarDetalles()">
+        <i class="bi bi-arrow-left me-1"></i> Volver
+      </button>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-12 col-md-4 text-center">
+        <div class="position-relative d-inline-block mb-3" style="width: 120px; height: 120px;">
+          <div *ngIf="!$any(solicitudDetalle)['_imgLoaded']" class="spinner-border text-secondary position-absolute top-50 start-50 translate-middle" role="status"></div>
+          <img [src]="solicitudDetalle.fotoUrl || 'assets/images/default-avatar.png'"
+            class="rounded-circle border border-secondary shadow-lg" width="120" height="120" style="object-fit: cover;"
+            alt="Foto" (load)="$any(solicitudDetalle)['_imgLoaded']=true" [hidden]="!$any(solicitudDetalle)['_imgLoaded']">
+        </div>
+        <h4 class="text-white fw-bold mb-1">{{ solicitudDetalle.nombre }} {{ solicitudDetalle.apellido }}</h4>
+        <span class="badge bg-secondary mb-2">CI: {{ solicitudDetalle.cedula }}</span>
+      </div>
+
+      <div class="col-12 col-md-8">
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <p class="text-custom-muted small mb-1">Cargo y Rol Solicitado</p>
+            <div>
+              <span class="badge border border-info text-info me-2 fs-6">{{ solicitudDetalle.cargo }}</span>
+            </div>
+          </div>
+
+          <div class="col-12" *ngIf="solicitudDetalle.cargo === 'CONDUCTOR'">
+            <p class="text-custom-muted small mb-2">Documentos Adjuntos</p>
+            <div class="d-flex flex-wrap gap-2">
+              <a *ngIf="solicitudDetalle.urlLicencia" [href]="solicitudDetalle.urlLicencia" target="_blank" class="badge bg-dark border border-info text-info text-decoration-none p-2 fs-6" title="Ver Licencia">
+                <i class="bi bi-person-vcard"></i> Licencia (Vence: {{ solicitudDetalle.fechaVencimientoLicencia | date:'dd/MM/yy' }})
+              </a>
+              <a *ngIf="solicitudDetalle.urlCertificadoMedico" [href]="solicitudDetalle.urlCertificadoMedico" target="_blank" class="badge bg-dark border border-primary text-primary text-decoration-none p-2 fs-6" title="Ver Certificado Médico">
+                <i class="bi bi-file-medical"></i> C. Médico (Vence: {{ solicitudDetalle.fechaVencimientoCertificadoMedico | date:'dd/MM/yy' }})
+              </a>
+              <span *ngIf="!solicitudDetalle.urlLicencia && !solicitudDetalle.urlCertificadoMedico" class="text-custom-muted small">Sin documentos</span>
+            </div>
+          </div>
+
+          <div class="col-12 mt-4 pt-3 border-top border-secondary">
+            <p class="text-custom-muted small mb-3">Acciones de Aprobación</p>
+            <div class="d-flex flex-wrap gap-2">
+              <button class="btn btn-outline-success text-nowrap flex-grow-1 flex-md-grow-0 fw-bold" (click)="aprobar(solicitudDetalle.id, solicitudDetalle.nombre)">
+                <i class="bi bi-check-lg me-1"></i> Aprobar Acceso
+              </button>
+              <button class="btn btn-outline-danger text-nowrap flex-grow-1 flex-md-grow-0" (click)="rechazar(solicitudDetalle.id)">
+                <i class="bi bi-x-lg me-1"></i> Rechazar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!cargando && solicitudesVisibles.length === 0" 
+       app-empty-state 
+       titulo="Bandeja limpia" 
+       mensaje="No tienes solicitudes de registro pendientes por aprobar en tu nivel de acceso." 
+       icono="bi-inboxes">
   </div>
 </div>
