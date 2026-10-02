@@ -177,17 +177,15 @@ export class MantenimientoComponent implements OnInit {
     });
   }
 
-  cambiarPaginaVehiculos(incremento: number): void {
-    const nuevaPagina = this.currentPageVehiculos + incremento;
-    if (nuevaPagina >= 0 && nuevaPagina < this.totalPagesVehiculos) {
+  cambiarPaginaVehiculos(nuevaPagina: number): void {
+    if (nuevaPagina >= 0 && nuevaPagina < this.totalPagesVehiculos && nuevaPagina !== this.currentPageVehiculos) {
       this.currentPageVehiculos = nuevaPagina;
       this.cargarDatos(); // Solo vuelve a cargar vehículos
     }
   }
 
-  cambiarPaginaDependencias(incremento: number): void {
-    const nuevaPagina = this.currentPageDependencias + incremento;
-    if (nuevaPagina >= 0 && nuevaPagina < this.totalPagesDependencias) {
+  cambiarPaginaDependencias(nuevaPagina: number): void {
+    if (nuevaPagina >= 0 && nuevaPagina < this.totalPagesDependencias && nuevaPagina !== this.currentPageDependencias) {
       this.currentPageDependencias = nuevaPagina;
       this.cargarDependencias();
     }

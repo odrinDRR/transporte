@@ -22,6 +22,7 @@ import { ModalComponent } from './shared/components/modal/modal.component';
 import { HistorialInspeccionesComponent } from './modules/historial-inspecciones/historial-inspecciones.component';
 import { FichaPublicaComponent } from './modules/ficha-publica/ficha-publica.component';
 import { EmptyStateComponent } from './shared/components/empty-state/empty-state.component';
+import { PaginadorComponent } from './shared/components/paginador/paginador.component';
 
 @NgModule({
   declarations: [
@@ -42,7 +43,8 @@ import { EmptyStateComponent } from './shared/components/empty-state/empty-state
     ModalComponent,
     HistorialInspeccionesComponent,
     FichaPublicaComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    PaginadorComponent
   ],
   imports: [
     BrowserModule,

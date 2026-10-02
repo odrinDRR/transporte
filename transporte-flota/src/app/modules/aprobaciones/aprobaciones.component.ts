@@ -100,9 +100,8 @@ export class AprobacionesComponent implements OnInit {
     }
   }
 
-  cambiarPagina(incremento: number): void {
-    const nuevaPagina = this.currentPage + incremento;
-    if (nuevaPagina >= 0 && nuevaPagina < this.totalPages) {
+  cambiarPagina(nuevaPagina: number): void {
+    if (nuevaPagina >= 0 && nuevaPagina < this.totalPages && nuevaPagina !== this.currentPage) {
       this.currentPage = nuevaPagina;
       this.cargarUsuarios();
     }

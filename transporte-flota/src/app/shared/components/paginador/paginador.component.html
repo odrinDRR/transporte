@@ -1,0 +1,64 @@
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-center mt-4 gap-3 w-100" *ngIf="totalPages > 0">
+  
+  <!-- Info Text -->
+  <div class="text-custom-muted small">
+    Mostrando <span class="text-white fw-bold">{{ totalElements > 0 ? (currentPage * totalElements / totalPages | number:'1.0-0') : 0 }}</span>
+    a <span class="text-white fw-bold">{{ totalElements > 0 ? ((currentPage + 1) * totalElements / totalPages | number:'1.0-0') : 0 }}</span>
+    de <span class="text-white fw-bold">{{ totalElements }}</span> resultados
+  </div>
+
+  <!-- Pagination Controls -->
+  <div class="d-flex align-items-center flex-wrap gap-2 justify-content-center">
+    
+    <!-- Previous Button -->
+    <button class="btn btn-glass-icon" 
+            *ngIf="currentPage > 0"
+            (click)="cambiarPagina(currentPage - 1)" 
+            title="Página anterior">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+
+    <!-- Page Numbers -->
+    <ng-container *ngFor="let page of pages">
+      <!-- Normal Number -->
+      <button *ngIf="page !== '...'" 
+              class="btn page-btn" 
+              [class.active]="page === currentPage"
+              (click)="cambiarPagina(page)">
+        {{ +page + 1 }}
+      </button>
+
+      <!-- Ellipsis -->
+      <span *ngIf="page === '...'" class="text-custom-muted px-2 fw-bold">...</span>
+    </ng-container>
+
+    <!-- Next Button -->
+    <button class="btn btn-glass-icon" 
+            *ngIf="currentPage < totalPages - 1"
+            (click)="cambiarPagina(currentPage + 1)" 
+            title="Página siguiente">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+
+  <!-- Search/Jump to Page -->
+  <div class="d-flex align-items-center ms-md-3 search-page-container">
+    <div class="input-group input-group-sm bg-dark border-custom rounded-pill overflow-hidden shadow-sm">
+      <span class="input-group-text bg-transparent border-0 text-custom-muted ps-3 pe-2">
+        <i class="bi bi-file-earmark-text"></i>
+      </span>
+      <input type="number" 
+             class="form-control bg-transparent border-0 text-white shadow-none" 
+             placeholder="Ir a pág..." 
+             [(ngModel)]="inputPage" 
+             (keyup.enter)="jumpToPage()"
+             min="1" 
+             [max]="totalPages"
+             style="width: 80px;">
+      <button class="btn btn-primary px-3 rounded-pill" type="button" (click)="jumpToPage()">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </div>
+
+</div>
