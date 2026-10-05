@@ -24,6 +24,18 @@ export class LoginComponent {
   mostrarRegistro: boolean = false;
   pasoRegistro: number = 1;
 
+  // Recuperación
+  mostrarRecuperacion: boolean = false;
+  pasoRecuperacion: number = 1; // 1: Pedir Usuario, 2: Responder preguntas y nueva clave
+  usuarioRecuperacion: string = '';
+  preguntasRecuperacion: any[] = [];
+  respuestasRecuperacion: any[] = [];
+  nuevaClaveRecuperacion: string = '';
+  confirmarNuevaClaveRecuperacion: string = '';
+  mostrarNuevaClaveRecuperacion = false;
+  mostrarConfirmarClaveRecuperacion = false;
+  cargandoRecuperacion = false;
+
   archivoLicencia: File | null = null;
   archivoLicenciaNombre: string = '';
   archivoMedico: File | null = null;
@@ -181,6 +193,7 @@ export class LoginComponent {
 
   alternarRegistro(): void {
     this.mostrarRegistro = !this.mostrarRegistro;
+    this.mostrarRecuperacion = false;
     this.pasoRegistro = 1;
     this.volverRoles();
 
@@ -358,5 +371,94 @@ export class LoginComponent {
 
   get tieneEspecial(): boolean {
     return /[^a-zA-Z0-9]/.test(this.nuevoUsuario.password || '');
+  }
+
+  // --- RECUPERACIÓN DE CLAVE ---
+  alternarRecuperacion() {
+    this.mostrarRecuperacion = !this.mostrarRecuperacion;
+    this.mostrarRegistro = false;
+    this.pasoRecuperacion = 1;
+    this.usuarioRecuperacion = '';
+    this.volverRoles();
+  }
+
+  buscarPreguntas() {
+    if (!this.usuarioRecuperacion.trim()) return;
+
+    this.cargandoRecuperacion = true;
+    this.authService.obtenerPreguntasRecuperacion(this.usuarioRecuperacion.trim()).subscribe({
+      next: (preguntas) => {
+        this.preguntasRecuperacion = preguntas;
+        this.respuestasRecuperacion = preguntas.map((p: any) => ({
+          preguntaId: p.id,
+          pregunta: p.pregunta,
+          respuesta: ''
+        }));
+        this.pasoRecuperacion = 2;
+        this.cargandoRecuperacion = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.cargandoRecuperacion = false;
+        this.modalService.showAlert(err.error || 'No se pudo buscar el usuario.', 'Error', 'error');
+      }
+    });
+  }
+
+  toggleRecuperacionVisibility(campo: string) {
+    if (campo === 'nueva') this.mostrarNuevaClaveRecuperacion = !this.mostrarNuevaClaveRecuperacion;
+    if (campo === 'confirmar') this.mostrarConfirmarClaveRecuperacion = !this.mostrarConfirmarClaveRecuperacion;
+  }
+
+  get recTieneLongitudCorrecta(): boolean {
+    const pw = this.nuevaClaveRecuperacion || '';
+    return pw.length >= 8 && pw.length <= 14;
+  }
+
+  get recTieneMayuscula(): boolean {
+    return /[A-Z]/.test(this.nuevaClaveRecuperacion || '');
+  }
+
+  get recTieneNumero(): boolean {
+    return /\d/.test(this.nuevaClaveRecuperacion || '');
+  }
+
+  get recTieneEspecial(): boolean {
+    return /[^a-zA-Z0-9]/.test(this.nuevaClaveRecuperacion || '');
+  }
+
+  get formularioRecuperacionValido() {
+    const respuestasLlenas = this.respuestasRecuperacion.every(r => r.respuesta.trim().length > 0);
+    const claveValida = this.recTieneLongitudCorrecta &&
+                        this.recTieneMayuscula &&
+                        this.recTieneNumero &&
+                        this.recTieneEspecial;
+    const clavesCoinciden = this.nuevaClaveRecuperacion === this.confirmarNuevaClaveRecuperacion;
+
+    return respuestasLlenas && claveValida && clavesCoinciden;
+  }
+
+  restablecerClave() {
+    if (!this.formularioRecuperacionValido) return;
+
+    this.cargandoRecuperacion = true;
+    const payload = {
+      usernameOCedula: this.usuarioRecuperacion.trim(),
+      respuestas: this.respuestasRecuperacion,
+      nuevaClave: this.nuevaClaveRecuperacion
+    };
+
+    this.authService.restablecerClave(payload).subscribe({
+      next: (res) => {
+        this.cargandoRecuperacion = false;
+        this.modalService.showAlert('Contraseña restablecida exitosamente. Ya puede iniciar sesión.', 'Éxito', 'success');
+        this.alternarRecuperacion(); // volver al login
+      },
+      error: (err) => {
+        console.error(err);
+        this.cargandoRecuperacion = false;
+        this.modalService.showAlert(err.error || 'Respuestas incorrectas o hubo un error.', 'Error', 'error');
+      }
+    });
   }
 }

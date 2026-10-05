@@ -7,6 +7,7 @@ import { ModalService } from '../../core/services/modal.service';
 import { FlotaService } from '../../core/services/flota.service';
 import { VehiculoService } from '../../services/vehiculo.service';
 import { UsuarioService } from '../../services/usuario.service';
+import { AuthService } from '../../services/auth.service';
 import { Conductor, Vehiculo } from '../../core/models/fleet.models';
 
 @Component({
@@ -32,7 +33,8 @@ export class ConductoresComponent implements OnInit {
     private vehiculoService: VehiculoService,
     private http: HttpClient,
     private modalService: ModalService,
-    private usuarioService: UsuarioService
+    private usuarioService: UsuarioService,
+    public authService: AuthService
   ) {}
 
   cargando = false;
@@ -231,6 +233,27 @@ export class ConductoresComponent implements OnInit {
         error: (err) => {
           console.error(err);
           this.modalService.showAlert('Ocurrió un error al intentar activar el usuario.', 'Error', 'error');
+          this.procesandoId = null;
+        }
+      });
+    }
+  }
+
+  async restablecerCredenciales(id: number, nombre: string): Promise<void> {
+    const confirmado = await this.modalService.showConfirm(
+      `¿Estás seguro de restablecer las credenciales de ${nombre}? Perderá sus preguntas de seguridad y su clave será su número de cédula.`
+    );
+
+    if (confirmado) {
+      this.procesandoId = id;
+      this.usuarioService.restablecerCredenciales(id).subscribe({
+        next: (res) => {
+          this.modalService.showAlert(res, 'Credenciales Restablecidas', 'success');
+          this.procesandoId = null;
+        },
+        error: (err) => {
+          console.error(err);
+          this.modalService.showAlert('Ocurrió un error al restablecer las credenciales.', 'Error', 'error');
           this.procesandoId = null;
         }
       });

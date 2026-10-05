@@ -23,6 +23,7 @@ import { HistorialInspeccionesComponent } from './modules/historial-inspecciones
 import { FichaPublicaComponent } from './modules/ficha-publica/ficha-publica.component';
 import { EmptyStateComponent } from './shared/components/empty-state/empty-state.component';
 import { PaginadorComponent } from './shared/components/paginador/paginador.component';
+import { ConfigurarSeguridadComponent } from './modules/configurar-seguridad/configurar-seguridad.component';
 
 @NgModule({
   declarations: [
@@ -44,7 +45,8 @@ import { PaginadorComponent } from './shared/components/paginador/paginador.comp
     HistorialInspeccionesComponent,
     FichaPublicaComponent,
     EmptyStateComponent,
-    PaginadorComponent
+    PaginadorComponent,
+    ConfigurarSeguridadComponent
   ],
   imports: [
     BrowserModule,

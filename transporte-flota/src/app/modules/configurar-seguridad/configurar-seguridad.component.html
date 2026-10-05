@@ -1,0 +1,113 @@
+<div class="d-flex justify-content-center align-items-center min-vh-100 mt-n4">
+  <div class="card bg-custom-card border-custom p-4 w-100" style="max-width: 600px;">
+    
+    <!-- PASO 1: PREGUNTAS -->
+    <div *ngIf="pasoActual === 1">
+      <div class="text-center mb-4">
+        <h4 class="text-white fw-bold mb-2"><i class="bi bi-shield-check text-success me-2"></i>Seguridad de Cuenta</h4>
+        <p class="text-secondary fs-sm">Para continuar usando el sistema, por favor configura tus preguntas de seguridad. Esto te ayudará a recuperar tu acceso si olvidas tu contraseña.</p>
+      </div>
+
+      <div class="mb-3">
+        <label class="text-secondary fs-xs fw-semibold mb-1">Pregunta 1</label>
+        <select class="form-select bg-dark text-white border-custom mb-2" [(ngModel)]="pregunta1Id">
+          <option [ngValue]="null" disabled selected>Seleccione una pregunta</option>
+          <option *ngFor="let p of preguntasFijas" [ngValue]="p.id">{{ p.pregunta }}</option>
+        </select>
+        <input type="text" class="form-control bg-dark text-white border-custom" [(ngModel)]="respuesta1" placeholder="Tu respuesta">
+      </div>
+
+      <div class="mb-3">
+        <label class="text-secondary fs-xs fw-semibold mb-1">Pregunta 2</label>
+        <select class="form-select bg-dark text-white border-custom mb-2" [(ngModel)]="pregunta2Id" [disabled]="!pregunta1Id">
+          <option [ngValue]="null" disabled selected>Seleccione otra pregunta</option>
+          <option *ngFor="let p of preguntasFiltradasParaCombo2" [ngValue]="p.id">{{ p.pregunta }}</option>
+        </select>
+        <input type="text" class="form-control bg-dark text-white border-custom" [(ngModel)]="respuesta2" placeholder="Tu respuesta" [disabled]="!pregunta2Id">
+      </div>
+
+      <div class="mb-4">
+        <label class="text-secondary fs-xs fw-semibold mb-1">Pregunta Personalizada</label>
+        <input type="text" class="form-control bg-dark text-white border-custom mb-2" [(ngModel)]="preguntaPersonalizada" placeholder="Escribe tu propia pregunta (ej. Nombre de mi primera mascota)">
+        <input type="text" class="form-control bg-dark text-white border-custom" [(ngModel)]="respuestaPersonalizada" placeholder="Tu respuesta secreta">
+      </div>
+
+      <button class="btn btn-primary w-100 fw-bold" (click)="guardarPreguntas()" [disabled]="guardandoPreguntas || !formularioPreguntasValido">
+        <span *ngIf="guardandoPreguntas" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        Siguiente <i class="bi bi-arrow-right ms-1"></i>
+      </button>
+    </div>
+
+    <!-- PASO 2: CAMBIO DE CLAVE -->
+    <div *ngIf="pasoActual === 2">
+      <div class="text-center mb-4">
+        <h4 class="text-warning fw-bold mb-2"><i class="bi bi-key text-warning me-2"></i>Actualizar Contraseña</h4>
+        <p class="text-secondary fs-sm">Como parte del protocolo de seguridad (o porque el administrador restableció tu acceso), debes cambiar tu contraseña ahora.</p>
+      </div>
+
+      <div class="mb-3">
+        <label class="text-secondary fs-xs fw-semibold mb-1">Contraseña Actual (o Temporal)</label>
+        <div class="input-group">
+          <input [type]="mostrarClaveActual ? 'text' : 'password'"
+            class="form-control bg-dark text-white border-custom border-end-0"
+            [(ngModel)]="claveActual" placeholder="Ingresa tu clave actual">
+          <button class="btn bg-dark border-custom border-start-0 text-secondary" type="button"
+            (click)="toggleVisibility('actual')">
+            <i class="bi" [ngClass]="mostrarClaveActual ? 'bi-eye-slash' : 'bi-eye'"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="text-secondary fs-xs fw-semibold mb-1">Nueva Contraseña</label>
+        <div class="input-group">
+          <input [type]="mostrarNuevaClave ? 'text' : 'password'"
+            class="form-control bg-dark text-white border-custom border-end-0"
+            [(ngModel)]="nuevaClave" placeholder="Ingresa la nueva clave">
+          <button class="btn bg-dark border-custom border-start-0 text-secondary" type="button"
+            (click)="toggleVisibility('nueva')">
+            <i class="bi" [ngClass]="mostrarNuevaClave ? 'bi-eye-slash' : 'bi-eye'"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="text-secondary fs-xs fw-semibold mb-1">Confirmar Nueva Contraseña</label>
+        <div class="input-group">
+          <input [type]="mostrarConfirmarClave ? 'text' : 'password'"
+            class="form-control bg-dark text-white border-custom border-end-0"
+            [(ngModel)]="confirmarNuevaClave" placeholder="Repite la nueva clave">
+          <button class="btn bg-dark border-custom border-start-0 text-secondary" type="button"
+            (click)="toggleVisibility('confirmar')">
+            <i class="bi" [ngClass]="mostrarConfirmarClave ? 'bi-eye-slash' : 'bi-eye'"></i>
+          </button>
+        </div>
+        <small class="text-danger fs-xs" *ngIf="confirmarNuevaClave && nuevaClave !== confirmarNuevaClave">
+          Las contraseñas no coinciden.
+        </small>
+      </div>
+
+      <div class="validation-rules p-3 mb-4 rounded bg-black-50 border border-custom">
+        <small class="d-block fs-xs mb-2" [ngClass]="tieneLongitudCorrecta ? 'text-success' : 'text-secondary'">
+          <i class="bi me-2" [ngClass]="tieneLongitudCorrecta ? 'bi-check-circle-fill' : 'bi-circle'"></i> 8 a 14 caracteres
+        </small>
+        <small class="d-block fs-xs mb-2" [ngClass]="tieneMayuscula ? 'text-success' : 'text-secondary'">
+          <i class="bi me-2" [ngClass]="tieneMayuscula ? 'bi-check-circle-fill' : 'bi-circle'"></i> Al menos 1 Mayúscula
+        </small>
+        <small class="d-block fs-xs mb-2" [ngClass]="tieneNumero ? 'text-success' : 'text-secondary'">
+          <i class="bi me-2" [ngClass]="tieneNumero ? 'bi-check-circle-fill' : 'bi-circle'"></i> Al menos 1 Número
+        </small>
+        <small class="d-block fs-xs" [ngClass]="tieneEspecial ? 'text-success' : 'text-secondary'">
+          <i class="bi me-2" [ngClass]="tieneEspecial ? 'bi-check-circle-fill' : 'bi-circle'"></i> Al menos 1 Carácter Especial (!&#64;#$...)
+        </small>
+      </div>
+
+      <button class="btn btn-warning w-100 fw-bold" (click)="cambiarClave()" [disabled]="guardandoClave || !formularioClaveValido">
+        <span *ngIf="guardandoClave" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+        <i *ngIf="!guardandoClave" class="bi bi-key-fill me-2"></i>
+        {{ guardandoClave ? 'Actualizando...' : 'Actualizar y Entrar' }}
+      </button>
+    </div>
+
+  </div>
+</div>

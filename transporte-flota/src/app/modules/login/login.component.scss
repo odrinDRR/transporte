@@ -213,3 +213,18 @@ select.dealer-control {
 .bg-black-50 {
   background-color: rgba(0, 0, 0, 0.3);
 }
+
+.recovery-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(9, 13, 22, 0.9);
+  backdrop-filter: blur(8px);
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}

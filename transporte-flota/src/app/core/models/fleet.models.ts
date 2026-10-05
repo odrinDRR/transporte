@@ -70,6 +70,7 @@ export interface Conductor {
   activo?: boolean;
   estado?: string;
   inspeccionAbierta?: boolean;
+  username?: string;
 }
 
 export interface RegistroCombustible {

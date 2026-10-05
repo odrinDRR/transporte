@@ -23,6 +23,15 @@ export class PerfilComponent implements OnInit {
   archivoMedico: File | null = null;
   archivoMedicoNombre: string = '';
 
+  // Cambiar Clave
+  claveActual: string = '';
+  nuevaClave: string = '';
+  confirmarNuevaClave: string = '';
+  mostrarClaveActual: boolean = false;
+  mostrarNuevaClave: boolean = false;
+  mostrarConfirmarClave: boolean = false;
+  cambiandoClave: boolean = false;
+
   constructor(
     private authService: AuthService,
     private usuarioService: UsuarioService,
@@ -136,5 +145,68 @@ export class PerfilComponent implements OnInit {
       this.guardando = false;
       this.modalService.showAlert('Error subiendo los nuevos documentos.', 'Error', 'error');
     }
+  }
+
+  // Pestañas
+  activeTab: 'DATOS_PERSONALES' | 'SEGURIDAD' = 'DATOS_PERSONALES';
+
+  // --- LÓGICA DE CAMBIO DE CLAVE ---
+
+  toggleVisibility(campo: string): void {
+    if (campo === 'actual') this.mostrarClaveActual = !this.mostrarClaveActual;
+    else if (campo === 'nueva') this.mostrarNuevaClave = !this.mostrarNuevaClave;
+    else if (campo === 'confirmar') this.mostrarConfirmarClave = !this.mostrarConfirmarClave;
+  }
+
+  get tieneLongitudCorrecta(): boolean {
+    return this.nuevaClave.length >= 8 && this.nuevaClave.length <= 14;
+  }
+
+  get tieneMayuscula(): boolean {
+    return /[A-Z]/.test(this.nuevaClave);
+  }
+
+  get tieneNumero(): boolean {
+    return /[0-9]/.test(this.nuevaClave);
+  }
+
+  get tieneEspecial(): boolean {
+    return /[^a-zA-Z0-9]/.test(this.nuevaClave);
+  }
+
+  get claveValida(): boolean {
+    return this.tieneLongitudCorrecta && this.tieneMayuscula && this.tieneNumero && this.tieneEspecial;
+  }
+
+  get formularioClaveValido(): boolean {
+    return this.claveActual.trim().length > 0 &&
+           this.claveValida &&
+           this.nuevaClave === this.confirmarNuevaClave;
+  }
+
+  cambiarClave(): void {
+    if (!this.formularioClaveValido) return;
+
+    this.cambiandoClave = true;
+    const payload = {
+      claveActual: this.claveActual,
+      nuevaClave: this.nuevaClave
+    };
+
+    this.authService.cambiarClave(payload).subscribe({
+      next: (res) => {
+        this.cambiandoClave = false;
+        this.modalService.showAlert('Contraseña cambiada exitosamente.', 'Éxito', 'success');
+        this.claveActual = '';
+        this.nuevaClave = '';
+        this.confirmarNuevaClave = '';
+      },
+      error: (err) => {
+        console.error(err);
+        this.cambiandoClave = false;
+        const msg = err.error || 'Ocurrió un error al cambiar la contraseña';
+        this.modalService.showAlert(msg, 'Error', 'error');
+      }
+    });
   }
 }

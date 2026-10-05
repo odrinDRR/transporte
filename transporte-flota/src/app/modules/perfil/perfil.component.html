@@ -1,8 +1,28 @@
 <div class="card bg-custom-card border-custom p-4 mb-4">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h5 class="text-white mb-0"><i class="bi bi-person-circle me-2"></i>Mi Perfil y Documentos</h5>
+    <h5 class="text-white mb-0"><i class="bi bi-person-circle me-2"></i>Mi Perfil</h5>
   </div>
 
+  <!-- Pestañas de Navegación -->
+  <ul class="nav nav-pills mb-4 gap-2 border-bottom border-custom pb-3">
+    <li class="nav-item">
+      <a class="nav-link text-white rounded-pill px-4 tab-hover" style="cursor:pointer;"
+        [class.bg-primary]="activeTab === 'DATOS_PERSONALES'"
+        [class.bg-dark]="activeTab !== 'DATOS_PERSONALES'" 
+        (click)="activeTab = 'DATOS_PERSONALES'">
+        <i class="bi bi-person-vcard me-1"></i> Datos y Documentos
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link text-white rounded-pill px-4 tab-hover" style="cursor:pointer;"
+        [class.bg-primary]="activeTab === 'SEGURIDAD'"
+        [class.bg-dark]="activeTab !== 'SEGURIDAD'" 
+        (click)="activeTab = 'SEGURIDAD'">
+        <i class="bi bi-shield-lock me-1"></i> Seguridad y Acceso
+      </a>
+    </li>
+  </ul>
+  <div *ngIf="activeTab === 'DATOS_PERSONALES'">
   <div *ngIf="cargando" class="text-center py-5">
     <div class="spinner-border text-primary" role="status">
       <span class="visually-hidden">Cargando...</span>
@@ -102,4 +122,85 @@
     </button>
   </div>
 
+  </div>
+  <!-- Fin Tab Datos Personales -->
+
+<!-- Tarjeta de Cambio de Contraseña -->
+<div *ngIf="activeTab === 'SEGURIDAD'" class="mt-2">
+  <div class="row g-4">
+    <div class="col-md-6 pe-md-4 border-md-end border-custom">
+      <!-- Clave Actual -->
+      <div class="mb-3">
+        <label class="text-secondary fs-xs fw-semibold mb-1">Contraseña Actual</label>
+        <div class="input-group">
+          <input [type]="mostrarClaveActual ? 'text' : 'password'"
+            class="form-control bg-dark text-white border-custom border-end-0"
+            [(ngModel)]="claveActual" placeholder="Ingresa tu clave actual">
+          <button class="btn bg-dark border-custom border-start-0 text-secondary" type="button"
+            (click)="toggleVisibility('actual')">
+            <i class="bi" [ngClass]="mostrarClaveActual ? 'bi-eye-slash' : 'bi-eye'"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Nueva Clave -->
+      <div class="mb-3">
+        <label class="text-secondary fs-xs fw-semibold mb-1">Nueva Contraseña</label>
+        <div class="input-group">
+          <input [type]="mostrarNuevaClave ? 'text' : 'password'"
+            class="form-control bg-dark text-white border-custom border-end-0"
+            [(ngModel)]="nuevaClave" placeholder="Ingresa la nueva clave">
+          <button class="btn bg-dark border-custom border-start-0 text-secondary" type="button"
+            (click)="toggleVisibility('nueva')">
+            <i class="bi" [ngClass]="mostrarNuevaClave ? 'bi-eye-slash' : 'bi-eye'"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Confirmar Nueva Clave -->
+      <div class="mb-3">
+        <label class="text-secondary fs-xs fw-semibold mb-1">Confirmar Nueva Contraseña</label>
+        <div class="input-group">
+          <input [type]="mostrarConfirmarClave ? 'text' : 'password'"
+            class="form-control bg-dark text-white border-custom border-end-0"
+            [(ngModel)]="confirmarNuevaClave" placeholder="Repite la nueva clave">
+          <button class="btn bg-dark border-custom border-start-0 text-secondary" type="button"
+            (click)="toggleVisibility('confirmar')">
+            <i class="bi" [ngClass]="mostrarConfirmarClave ? 'bi-eye-slash' : 'bi-eye'"></i>
+          </button>
+        </div>
+        <small class="text-danger fs-xs" *ngIf="confirmarNuevaClave && nuevaClave !== confirmarNuevaClave">
+          Las contraseñas no coinciden.
+        </small>
+      </div>
+
+      <div class="d-flex justify-content-end mt-4 pt-3">
+        <button class="btn btn-warning fw-bold px-4" (click)="cambiarClave()" [disabled]="cambiandoClave || !formularioClaveValido">
+          <span *ngIf="cambiandoClave" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          <i *ngIf="!cambiandoClave" class="bi bi-key-fill me-2"></i>
+          {{ cambiandoClave ? 'Cambiando...' : 'Actualizar Contraseña' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Validaciones de la contraseña nueva -->
+    <div class="col-md-6 ps-md-4 d-flex flex-column justify-content-center">
+      <h6 class="text-white fs-sm mb-3">Requisitos de la nueva contraseña:</h6>
+      <div class="validation-rules p-3 rounded bg-black-50 border border-custom">
+        <small class="d-block fs-xs mb-2" [ngClass]="tieneLongitudCorrecta ? 'text-success' : 'text-secondary'">
+          <i class="bi me-2" [ngClass]="tieneLongitudCorrecta ? 'bi-check-circle-fill' : 'bi-circle'"></i> 8 a 14 caracteres
+        </small>
+        <small class="d-block fs-xs mb-2" [ngClass]="tieneMayuscula ? 'text-success' : 'text-secondary'">
+          <i class="bi me-2" [ngClass]="tieneMayuscula ? 'bi-check-circle-fill' : 'bi-circle'"></i> Al menos 1 Mayúscula
+        </small>
+        <small class="d-block fs-xs mb-2" [ngClass]="tieneNumero ? 'text-success' : 'text-secondary'">
+          <i class="bi me-2" [ngClass]="tieneNumero ? 'bi-check-circle-fill' : 'bi-circle'"></i> Al menos 1 Número
+        </small>
+        <small class="d-block fs-xs" [ngClass]="tieneEspecial ? 'text-success' : 'text-secondary'">
+          <i class="bi me-2" [ngClass]="tieneEspecial ? 'bi-check-circle-fill' : 'bi-circle'"></i> Al menos 1 Carácter Especial (!&#64;#$...)
+        </small>
+      </div>
+    </div>
+  </div>
 </div>
+</div> <!-- Cierra el .card inicial -->

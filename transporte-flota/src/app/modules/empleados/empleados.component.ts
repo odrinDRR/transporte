@@ -117,6 +117,27 @@ export class EmpleadosComponent implements OnInit {
     }
   }
 
+  async restablecerCredenciales(id: number, nombre: string): Promise<void> {
+    const confirmado = await this.modalService.showConfirm(
+      `¿Estás seguro de restablecer las credenciales de ${nombre}? Perderá sus preguntas de seguridad y su clave será su número de cédula.`
+    );
+
+    if (confirmado) {
+      this.procesandoId = id;
+      this.usuarioService.restablecerCredenciales(id).subscribe({
+        next: (res) => {
+          this.modalService.showAlert(res, 'Credenciales Restablecidas', 'success');
+          this.procesandoId = null;
+        },
+        error: (err) => {
+          console.error(err);
+          this.modalService.showAlert('Ocurrió un error al restablecer las credenciales.', 'Error', 'error');
+          this.procesandoId = null;
+        }
+      });
+    }
+  }
+
   cambiarPagina(nuevaPagina: number): void {
     if (nuevaPagina >= 0 && nuevaPagina < this.totalPages && nuevaPagina !== this.currentPage) {
       this.currentPage = nuevaPagina;

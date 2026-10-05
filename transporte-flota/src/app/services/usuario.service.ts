@@ -30,7 +30,9 @@ export class UsuarioService {
   actualizarUsuario(id: string | number, usuario: any): Observable<any> { return this.http.put<any>(`${this.apiUrl}/${id}`, usuario); }
   aprobarUsuario(id: string | number): Observable<any> { return this.http.put<any>(`${this.apiUrl}/aprobar/${id}`, {}); }
   rechazarUsuario(id: string | number): Observable<any> { return this.http.delete<any>(`${this.apiUrl}/${id}`); }
-
+  restablecerCredenciales(id: string | number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${id}/restablecer-credenciales`, {}, { responseType: 'text' });
+  }
   // --- MÉTODOS DE ESTADO DE SESIÓN ---
   iniciarSesion(rol: string): void { this.rolActualSubject.next(rol); }
   cerrarSesion(): void { this.rolActualSubject.next(null); }

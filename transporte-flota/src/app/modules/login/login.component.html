@@ -50,6 +50,10 @@
                 </div>
               </div>
 
+              <div class="d-flex justify-content-end mb-4">
+                <a href="javascript:void(0)" class="text-secondary fs-xs text-decoration-none hover-white transition-all" (click)="alternarRecuperacion()">¿Olvidaste tu contraseña?</a>
+              </div>
+
               <button type="submit" class="btn btn-dealer-primary w-100 py-3 fw-bold rounded-3 text-uppercase"
                 [disabled]="cargandoLogin">
                 <span *ngIf="cargandoLogin" class="spinner-border spinner-border-sm me-2" role="status"
@@ -66,6 +70,8 @@
             </button>
           </div>
         </div>
+
+
 
         <!-- REGISTRO CON VALIDACIONES -->
         <div *ngIf="mostrarRegistro" class="register-flow">
@@ -258,5 +264,90 @@
       <p class="text-secondary fs-xs mb-0">&copy; 2026 SMU Logística &bull; Control de Flota Enterprise</p>
     </div>
 
+  </div>
+</div>
+
+<!-- FLUJO DE RECUPERACIÓN (MODAL OVERLAY) OUTSIDE VIEWPORT -->
+<div *ngIf="mostrarRecuperacion" class="recovery-overlay">
+  <div class="card dealer-card border-0 shadow-2xl p-4 p-md-5" style="width: 100%; max-width: 480px; overflow-y: auto; max-height: 90vh;">
+    <div class="register-flow">
+      <div class="d-flex align-items-center justify-content-between mb-3 border-bottom border-dark-subtle pb-2">
+        <button class="btn btn-sm text-secondary p-0" (click)="alternarRecuperacion()">
+          <i class="bi bi-chevron-left me-1"></i>Atrás
+        </button>
+        <span class="text-white fw-bold small mx-auto">Recuperar Acceso</span>
+        <button class="btn-close btn-close-white btn-sm" (click)="alternarRecuperacion()"></button>
+      </div>
+
+      <!-- PASO 1: Pedir Usuario -->
+      <div *ngIf="pasoRecuperacion === 1">
+        <p class="text-secondary fs-sm mb-3 text-center">Ingresa tu usuario o cédula para buscar tus preguntas de seguridad.</p>
+        <div class="mb-3">
+          <input type="text" class="form-control dealer-control" [(ngModel)]="usuarioRecuperacion" placeholder="Usuario o Cédula" (keyup.enter)="(!cargandoRecuperacion && usuarioRecuperacion) ? buscarPreguntas() : null">
+        </div>
+        <button class="btn btn-dealer-primary w-100 py-2 fw-bold rounded-3" (click)="buscarPreguntas()" [disabled]="cargandoRecuperacion || !usuarioRecuperacion">
+          <span *ngIf="cargandoRecuperacion" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Siguiente
+        </button>
+      </div>
+
+      <!-- PASO 2: Responder preguntas y nueva clave -->
+      <div *ngIf="pasoRecuperacion === 2">
+        <h6 class="text-white fw-bold mb-3 fs-sm">Preguntas de Seguridad</h6>
+        
+        <div class="mb-3" *ngFor="let p of respuestasRecuperacion; let i = index">
+          <label class="text-secondary fs-xs fw-semibold mb-1">{{ p.pregunta }}</label>
+          <input type="text" class="form-control dealer-control" [(ngModel)]="p.respuesta" placeholder="Tu respuesta" (keyup.enter)="(!cargandoRecuperacion && formularioRecuperacionValido) ? restablecerClave() : null">
+        </div>
+
+        <h6 class="text-white fw-bold mt-4 mb-3 fs-sm">Nueva Contraseña</h6>
+        <div class="mb-3">
+          <div class="input-group dealer-input-group">
+            <input [type]="mostrarNuevaClaveRecuperacion ? 'text' : 'password'"
+              class="form-control border-end-0 text-white dealer-control"
+              [(ngModel)]="nuevaClaveRecuperacion" placeholder="Nueva Contraseña" (keyup.enter)="(!cargandoRecuperacion && formularioRecuperacionValido) ? restablecerClave() : null">
+            <button class="btn border-start-0 bg-transparent text-secondary" type="button"
+              (click)="toggleRecuperacionVisibility('nueva')">
+              <i class="bi" [ngClass]="mostrarNuevaClaveRecuperacion ? 'bi-eye-slash' : 'bi-eye'"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="input-group dealer-input-group">
+            <input [type]="mostrarConfirmarClaveRecuperacion ? 'text' : 'password'"
+              class="form-control border-end-0 text-white dealer-control"
+              [(ngModel)]="confirmarNuevaClaveRecuperacion" placeholder="Confirmar Contraseña" (keyup.enter)="(!cargandoRecuperacion && formularioRecuperacionValido) ? restablecerClave() : null">
+            <button class="btn border-start-0 bg-transparent text-secondary" type="button"
+              (click)="toggleRecuperacionVisibility('confirmar')">
+              <i class="bi" [ngClass]="mostrarConfirmarClaveRecuperacion ? 'bi-eye-slash' : 'bi-eye'"></i>
+            </button>
+          </div>
+          <small class="text-danger fs-xs" *ngIf="confirmarNuevaClaveRecuperacion && nuevaClaveRecuperacion !== confirmarNuevaClaveRecuperacion">
+            Las contraseñas no coinciden.
+          </small>
+        </div>
+
+        <div class="validation-rules mt-2 p-2 rounded bg-black-50 mb-3">
+          <small class="d-block fs-xs" [ngClass]="recTieneLongitudCorrecta ? 'text-success' : 'text-secondary'">
+            <i class="bi me-1" [ngClass]="recTieneLongitudCorrecta ? 'bi-check-circle-fill' : 'bi-circle'"></i> 8 a 14 caracteres
+          </small>
+          <small class="d-block fs-xs" [ngClass]="recTieneMayuscula ? 'text-success' : 'text-secondary'">
+            <i class="bi me-1" [ngClass]="recTieneMayuscula ? 'bi-check-circle-fill' : 'bi-circle'"></i> Al menos 1 Mayúscula
+          </small>
+          <small class="d-block fs-xs" [ngClass]="recTieneNumero ? 'text-success' : 'text-secondary'">
+            <i class="bi me-1" [ngClass]="recTieneNumero ? 'bi-check-circle-fill' : 'bi-circle'"></i> Al menos 1 Número
+          </small>
+          <small class="d-block fs-xs" [ngClass]="recTieneEspecial ? 'text-success' : 'text-secondary'">
+            <i class="bi me-1" [ngClass]="recTieneEspecial ? 'bi-check-circle-fill' : 'bi-circle'"></i> Al menos 1 Carácter Especial (!&#64;#$...)
+          </small>
+        </div>
+
+        <button class="btn btn-success w-100 py-2 fw-bold rounded-3" (click)="restablecerClave()" [disabled]="cargandoRecuperacion || !formularioRecuperacionValido">
+          <span *ngIf="cargandoRecuperacion" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Restablecer Contraseña
+        </button>
+      </div>
+    </div>
   </div>
 </div>
