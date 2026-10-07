@@ -12,7 +12,8 @@ export class HistorialInspeccionesComponent implements OnInit {
   inspecciones: any[] = [];
   inspeccionesFiltradas: any[] = [];
   cargando: boolean = true;
-  filtroTexto: string = '';
+  filtroFicha: string = '';
+  filtroNombre: string = '';
   filtroOperacion: string = 'TODAS'; // TODAS, GENERAL, SALIDA, LLEGADA
   inspeccionDetalle: any = null;
   
@@ -27,9 +28,21 @@ export class HistorialInspeccionesComponent implements OnInit {
     this.cargarInspecciones();
   }
 
+  buscarInspeccionesManual(): void {
+    this.currentPage = 0;
+    this.cargarInspecciones();
+  }
+
+  limpiarFiltrosInspecciones(): void {
+    this.filtroFicha = '';
+    this.filtroNombre = '';
+    this.filtroOperacion = 'TODAS';
+    this.buscarInspeccionesManual();
+  }
+
   cargarInspecciones(): void {
     this.cargando = true;
-    this.inspeccionService.obtenerInspeccionesLivianos(this.currentPage, this.pageSize).subscribe({
+    this.inspeccionService.obtenerInspeccionesLivianos(this.currentPage, this.pageSize, this.filtroOperacion, this.filtroFicha, this.filtroNombre).subscribe({
       next: (res) => {
         this.totalPages = res.totalPages;
         this.totalElements = res.totalElements;
@@ -54,27 +67,12 @@ export class HistorialInspeccionesComponent implements OnInit {
 
   aplicarFiltros(): void {
     let result = this.inspecciones;
-
-    if (this.filtroOperacion !== 'TODAS') {
-      result = result.filter(i => i.operacion === this.filtroOperacion);
-    }
-
-    if (this.filtroTexto.trim() !== '') {
-      const term = this.filtroTexto.toLowerCase().trim();
-      result = result.filter(i => 
-        (i.numeroControl && i.numeroControl.toLowerCase().includes(term)) ||
-        (i.vehiculo && i.vehiculo.placa && i.vehiculo.placa.toLowerCase().includes(term)) ||
-        (i.usuario && i.usuario.nombre && i.usuario.nombre.toLowerCase().includes(term)) ||
-        (i.usuario && i.usuario.cedula && i.usuario.cedula.toLowerCase().includes(term))
-      );
-    }
-
     this.inspeccionesFiltradas = result;
   }
 
   setFiltroOperacion(op: string): void {
     this.filtroOperacion = op;
-    this.aplicarFiltros();
+    this.buscarInspeccionesManual();
   }
 
   imprimirInspeccion(inspeccion: any): void {

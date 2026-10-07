@@ -47,12 +47,47 @@ export class ConductoresComponent implements OnInit {
   pageSize: number = 10;
   totalElements: number = 0;
 
+  filtroCedula: string = '';
+  filtroFicha: string = '';
+  filtroNombre: string = '';
+
   ngOnInit(): void {
     this.vehiculos$ = this.vehiculoService.obtenerVehiculos();
-    
+    this.cargarConductores();
+
+    // Filtro reactivo local (se mantiene por si acaso)
+    this.conductoresFiltrados$ = combineLatest([
+      this.conductoresSubject.asObservable(),
+      this.filtroBusqueda$
+    ]).pipe(
+      map(([conductores, texto]) => {
+        if (!texto) return conductores;
+        const term = texto.toLowerCase();
+        return conductores.filter(c => 
+          (c.cedula || '').toLowerCase().includes(term) || 
+          (c.fichaNumerica || '').toLowerCase().includes(term) ||
+          (c.nombre || '').toLowerCase().includes(term)
+        );
+      })
+    );
+  }
+
+  buscarConductoresManual(): void {
+    this.currentPage = 0;
+    this.cargarConductores();
+  }
+
+  limpiarFiltrosConductores(): void {
+    this.filtroCedula = '';
+    this.filtroFicha = '';
+    this.filtroNombre = '';
+    this.buscarConductoresManual();
+  }
+
+  cargarConductores(): void {
     this.cargando = true;
     combineLatest([
-      this.usuarioService.obtenerUsuarios(this.currentPage, this.pageSize),
+      this.usuarioService.obtenerUsuarios(this.currentPage, this.pageSize, null, this.filtroCedula, this.filtroFicha, this.filtroNombre),
       this.vehiculos$
     ]).subscribe({
       next: ([usuariosRes, vehiculos]) => {
@@ -95,21 +130,6 @@ export class ConductoresComponent implements OnInit {
       }
     });
 
-    // Filtro reactivo en tiempo real con comprobación de nulidad segura
-    this.conductoresFiltrados$ = combineLatest([
-      this.conductoresSubject.asObservable(),
-      this.filtroBusqueda$
-    ]).pipe(
-      map(([conductores, texto]) => {
-        if (!texto) return conductores;
-        const term = texto.toLowerCase();
-        return conductores.filter(c => 
-          (c.cedula || '').toLowerCase().includes(term) || 
-          (c.fichaNumerica || '').toLowerCase().includes(term) ||
-          (c.nombre || '').toLowerCase().includes(term)
-        );
-      })
-    );
   }
 
   aplicarFiltro(event: Event): void {

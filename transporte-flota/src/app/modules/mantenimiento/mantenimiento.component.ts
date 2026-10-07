@@ -33,6 +33,9 @@ export class MantenimientoComponent implements OnInit {
   totalPagesVehiculos: number = 1;
   pageSizeVehiculos: number = 10;
   totalElementsVehiculos: number = 0;
+
+  filtroPlaca: string = '';
+  filtroConductor: string = '';
   
   // Lista de todas las dependencias
   listaDependencias: Dependencia[] = [];
@@ -54,9 +57,21 @@ export class MantenimientoComponent implements OnInit {
     this.cargarDatos();
   }
 
+  buscarVehiculosManual(): void {
+    this.currentPageVehiculos = 0;
+    this.cargarDatos(); // Llama a obtenerVehiculos pero no volverá a cargar dependencias innecesariamente si separamos, pero cargarDatos las carga de nuevo
+    // Para no cargar dependencias de nuevo, podríamos separar, pero cargarDatos llama a ambas.
+  }
+
+  limpiarFiltrosMantenimiento(): void {
+    this.filtroPlaca = '';
+    this.filtroConductor = '';
+    this.buscarVehiculosManual();
+  }
+
   cargarDatos(): void {
     this.cargando = true;
-    this.vehiculoService.obtenerVehiculos(this.currentPageVehiculos, this.pageSizeVehiculos).subscribe({
+    this.vehiculoService.obtenerVehiculos(this.currentPageVehiculos, this.pageSizeVehiculos, this.filtroPlaca, this.filtroConductor).subscribe({
       next: (res) => {
         this.totalPagesVehiculos = res.totalPages;
         this.totalElementsVehiculos = res.totalElements;

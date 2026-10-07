@@ -20,15 +20,33 @@ export class EmpleadosComponent implements OnInit {
   pageSize: number = 10;
   totalElements: number = 0;
 
+  filtroCedula: string = '';
+  filtroNombre: string = '';
+
   constructor(private usuarioService: UsuarioService, private modalService: ModalService) {}
 
   ngOnInit(): void {
     this.cargarEmpleados();
   }
 
+  buscarEmpleadosManual(): void {
+    this.currentPage = 0;
+    this.cargarEmpleados();
+  }
+
+  limpiarFiltrosEmpleados(): void {
+    this.filtroCedula = '';
+    this.filtroNombre = '';
+    this.buscarEmpleadosManual();
+  }
+
   cargarEmpleados(): void {
     this.cargando = true;
-    this.usuarioService.obtenerUsuarios(this.currentPage, this.pageSize).subscribe({
+    
+    // Al cargar empleados desde el backend, pasamos cargo=null para obtener todos y luego filtrar, 
+    // o podríamos pedir un cargo específico, pero el backend actual sólo acepta un cargo.
+    // Lo dejamos como estaba (trae todos los usuarios) pero enviando los nuevos filtros manuales.
+    this.usuarioService.obtenerUsuarios(this.currentPage, this.pageSize, null, this.filtroCedula, '', this.filtroNombre).subscribe({
       next: (res) => {
         this.totalPages = res.totalPages;
         this.totalElements = res.totalElements;

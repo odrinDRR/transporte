@@ -4,13 +4,20 @@
   </div>
 
   <div class="mb-4 d-flex justify-content-between flex-wrap gap-3">
-    <!-- Buscador -->
-    <div style="max-width: 400px; flex-grow: 1;">
-      <label class="form-label text-custom-muted small">Buscar por N° Control, Placa o Conductor</label>
-      <div class="input-group">
-        <span class="input-group-text bg-dark text-custom-muted border-custom"><i class="bi bi-search"></i></span>
-        <input type="text" class="form-control bg-dark text-white border-custom" placeholder="Ej: INS-2026, 12345678..."
-          [(ngModel)]="filtroTexto" (keyup)="filtrarLista()">
+    <!-- Buscador Manual -->
+    <div class="flex-grow-1">
+      <label class="form-label text-custom-muted small">Búsqueda Manual</label>
+      <div class="d-flex gap-2 flex-wrap">
+        <input type="text" class="form-control bg-dark text-white border-custom" style="max-width: 200px;"
+          placeholder="Ficha..." [(ngModel)]="filtroFicha" (keyup.enter)="buscarInspeccionesManual()">
+        <input type="text" class="form-control bg-dark text-white border-custom" style="max-width: 200px;"
+          placeholder="Nombre conductor..." [(ngModel)]="filtroNombre" (keyup.enter)="buscarInspeccionesManual()">
+        <button class="btn btn-primary" (click)="buscarInspeccionesManual()">
+          <i class="bi bi-search"></i> Buscar
+        </button>
+        <button class="btn btn-outline-secondary" (click)="limpiarFiltrosInspecciones()">
+          <i class="bi bi-eraser"></i> Limpiar
+        </button>
       </div>
     </div>
 
