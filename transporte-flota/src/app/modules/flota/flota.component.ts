@@ -113,7 +113,7 @@ export class FlotaComponent implements OnInit {
   cargarDependencias(): void {
     this.dependenciaService.obtenerDependencias().subscribe({
       next: (data) => {
-        this.listaDependencias = data;
+        this.listaDependencias = data.content || data;
       },
       error: (err) => console.error('Error al cargar dependencias', err)
     });
