@@ -122,10 +122,24 @@ export class FlotaComponent implements OnInit {
   cargandoVehiculos = false;
   cargandoConductores = false;
 
+  filtroPlaca: string = '';
+  filtroConductor: string = '';
+
+  buscarFlotaManual(): void {
+    this.currentPage = 0;
+    this.cargarDatosBackend();
+  }
+
+  limpiarFiltrosFlota(): void {
+    this.filtroPlaca = '';
+    this.filtroConductor = '';
+    this.buscarFlotaManual();
+  }
+
   // --- MÉTODOS HTTP (CONEXIÓN A SPRING BOOT) ---
   cargarDatosBackend(): void {
     this.cargandoVehiculos = true;
-    this.vehiculoService.obtenerVehiculos(this.currentPage, this.pageSize).subscribe({
+    this.vehiculoService.obtenerVehiculos(this.currentPage, this.pageSize, this.filtroPlaca, this.filtroConductor).subscribe({
       next: (res) => {
         this.totalPages = res.totalPages;
         this.totalElements = res.totalElements;

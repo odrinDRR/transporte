@@ -4,13 +4,22 @@
     <h5 class="text-white mb-0"><i class="bi bi-person-badge"></i> Directorio de Conductores</h5>
   </div>
 
-  <!-- Buscador Principal -->
-  <div class="mb-4 w-100" style="max-width: 400px;">
-    <label class="form-label text-custom-muted small">Buscador Inteligente</label>
-    <div class="input-group">
-      <span class="input-group-text bg-dark text-custom-muted border-custom"><i class="bi bi-search"></i></span>
-      <input type="text" class="form-control bg-dark text-white border-custom"
-        placeholder="Buscar por cédula, ficha o nombre..." (keyup)="aplicarFiltro($event)">
+  <!-- Buscador Principal Manual -->
+  <div class="mb-4 w-100">
+    <label class="form-label text-custom-muted small">Búsqueda Manual</label>
+    <div class="d-flex gap-2 flex-wrap">
+      <input type="text" class="form-control bg-dark text-white border-custom" style="max-width: 200px;"
+        placeholder="Cédula..." [(ngModel)]="filtroCedula" (keyup.enter)="buscarConductoresManual()">
+      <input type="text" class="form-control bg-dark text-white border-custom" style="max-width: 200px;"
+        placeholder="Ficha..." [(ngModel)]="filtroFicha" (keyup.enter)="buscarConductoresManual()">
+      <input type="text" class="form-control bg-dark text-white border-custom" style="max-width: 200px;"
+        placeholder="Nombre..." [(ngModel)]="filtroNombre" (keyup.enter)="buscarConductoresManual()">
+      <button class="btn btn-primary" (click)="buscarConductoresManual()">
+        <i class="bi bi-search"></i> Buscar
+      </button>
+      <button class="btn btn-outline-secondary" (click)="limpiarFiltrosConductores()">
+        <i class="bi bi-eraser"></i> Limpiar
+      </button>
     </div>
   </div>
 

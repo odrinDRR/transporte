@@ -7,63 +7,75 @@
 
   <!-- PANTALLA DE LOGIN -->
   <app-login *ngIf="!isLoggedIn" (loginCompletado)="onLogin()"></app-login>
-<div class="d-flex min-vh-100" *ngIf="isLoggedIn">
-  
-  <!-- Overlay para cerrar menú en móvil -->
-  <div class="sidebar-backdrop d-lg-none" *ngIf="sidebarAbierto" (click)="toggleSidebar()"></div>
+  <div class="d-flex min-vh-100" *ngIf="isLoggedIn">
 
-  <!-- Barra Lateral (Sidebar) -->
-  <aside class="app-sidebar d-flex flex-column p-3 bg-custom-sidebar border-end border-custom" [class.show]="sidebarAbierto" *ngIf="moduloActivo !== 'configurar-seguridad'">
-    <div class="d-flex align-items-center justify-content-between gap-2 pb-3 mb-3 border-bottom border-custom">
-      <div class="d-flex align-items-center gap-2">
-        <div class="bg-white p-1 rounded">
-          <img src="assets/images/pequiven_logo.png" width="36" alt="Logo">
+    <!-- Overlay para cerrar menú en móvil -->
+    <div class="sidebar-backdrop d-lg-none" *ngIf="sidebarAbierto" (click)="toggleSidebar()"></div>
+
+    <!-- Barra Lateral (Sidebar) -->
+    <aside class="app-sidebar d-flex flex-column p-3 bg-custom-sidebar border-end border-custom"
+      [class.show]="sidebarAbierto" *ngIf="moduloActivo !== 'configurar-seguridad'">
+      <div class="d-flex align-items-center justify-content-between gap-2 pb-3 mb-3 border-bottom border-custom">
+        <div class="d-flex align-items-center gap-2">
+          <div class="bg-white p-1 rounded">
+            <img src="assets/images/logo.jpg" width="36" alt="Logo">
+          </div>
         </div>
+        <button class="btn btn-sm btn-outline-light d-lg-none border-0" (click)="toggleSidebar()">
+          <i class="bi bi-x-lg"></i>
+        </button>
       </div>
-      <button class="btn btn-sm btn-outline-light d-lg-none border-0" (click)="toggleSidebar()">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </div>
 
-    <!-- Menú Dinámico según Rol (RBAC) -->
-    <!-- Menú Dinámico según Rol (RBAC) -->
-    <ul class="nav nav-pills flex-column gap-2 mb-auto" *ngIf="flotaService.rolActual$ | async as rolActual">
-      
-      <!-- 1. ADMIN Y COORDINADOR: Ven todo el sistema maestro -->
-      <ng-container *ngIf="rolActual === 'ADMIN' || rolActual === 'COORDINADOR'">
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
-            <i class="bi bi-truck"></i> Parque Automotor
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'conductores'" (click)="cambiarModulo('conductores')" href="javascript:void(0)">
-            <i class="bi bi-person-badge"></i> Conductores
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'empleados'" (click)="cambiarModulo('empleados')" href="javascript:void(0)">
-            <i class="bi bi-people"></i> Empleados
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'mantenimiento'" (click)="cambiarModulo('mantenimiento')" href="javascript:void(0)">
-            <i class="bi bi-wrench"></i> Mantenimiento
-          </a>
-        </li>
+      <!-- Menú Dinámico según Rol (RBAC) -->
+      <!-- Menú Dinámico según Rol (RBAC) -->
+      <ul class="nav nav-pills flex-column gap-2 mb-auto" *ngIf="flotaService.rolActual$ | async as rolActual">
+
+        <!-- 1. ADMIN Y COORDINADOR: Ven todo el sistema maestro -->
+        <ng-container *ngIf="rolActual === 'ADMIN' || rolActual === 'COORDINADOR'">
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
+              <i class="bi bi-truck"></i> Parque Automotor
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'conductores'" (click)="cambiarModulo('conductores')"
+              href="javascript:void(0)">
+              <i class="bi bi-person-badge"></i> Conductores
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'empleados'" (click)="cambiarModulo('empleados')"
+              href="javascript:void(0)">
+              <i class="bi bi-people"></i> Empleados
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'mantenimiento'" (click)="cambiarModulo('mantenimiento')"
+              href="javascript:void(0)">
+              <i class="bi bi-wrench"></i> Mantenimiento
+            </a>
+          </li>
 
 
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'inspeccion'" (click)="cambiarModulo('inspeccion')" href="javascript:void(0)">
-            <i class="bi bi-clipboard-check"></i> Inspección Vehicular
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'historial-inspecciones'" (click)="cambiarModulo('historial-inspecciones')" href="javascript:void(0)">
-            <i class="bi bi-journal-text"></i> Historial Inspecciones
-          </a>
-        </li>
-        <!-- Comentado por ahora
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'inspeccion'" (click)="cambiarModulo('inspeccion')"
+              href="javascript:void(0)">
+              <i class="bi bi-clipboard-check"></i> Inspección Vehicular
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'historial-inspecciones'"
+              (click)="cambiarModulo('historial-inspecciones')" href="javascript:void(0)">
+              <i class="bi bi-journal-text"></i> Historial Inspecciones
+            </a>
+          </li>
+          <!-- Comentado por ahora
         <li class="nav-item">
           <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'auditoria'" (click)="cambiarModulo('auditoria')" href="javascript:void(0)">
             <i class="bi bi-layout-split"></i> Realizar Auditoría
@@ -75,123 +87,145 @@
           </a>
         </li>
         -->
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'aprobaciones'" (click)="cambiarModulo('aprobaciones')" href="javascript:void(0)">
-            <i class="bi bi-person-lines-fill"></i> Aprobaciones
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'perfil'" (click)="cambiarModulo('perfil')" href="javascript:void(0)">
-            <i class="bi bi-person-circle"></i> Mi Perfil
-          </a>
-        </li>
-      </ng-container>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'aprobaciones'" (click)="cambiarModulo('aprobaciones')"
+              href="javascript:void(0)">
+              <i class="bi bi-person-lines-fill"></i> Aprobaciones
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'perfil'" (click)="cambiarModulo('perfil')" href="javascript:void(0)">
+              <i class="bi bi-person-circle"></i> Mi Perfil
+            </a>
+          </li>
+        </ng-container>
 
-      <!-- 2. EMPLEADO: Solo ve la Flota (Lectura) y envía Inspecciones -->
-      <ng-container *ngIf="rolActual === 'EMPLEADO'">
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
-            <i class="bi bi-truck"></i> Consulta de Flota
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'inspeccion'" (click)="cambiarModulo('inspeccion')" href="javascript:void(0)">
-            <i class="bi bi-clipboard-check"></i> Enviar Inspección
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'aprobaciones'" (click)="cambiarModulo('aprobaciones')" href="javascript:void(0)">
-            <i class="bi bi-person-check"></i> Aprobar Conductores
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'perfil'" (click)="cambiarModulo('perfil')" href="javascript:void(0)">
-            <i class="bi bi-person-circle"></i> Mi Perfil y Documentos
-          </a>
-        </li>
-      </ng-container>
+        <!-- 2. EMPLEADO: Solo ve la Flota (Lectura) y envía Inspecciones -->
+        <ng-container *ngIf="rolActual === 'EMPLEADO'">
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
+              <i class="bi bi-truck"></i> Consulta de Flota
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'inspeccion'" (click)="cambiarModulo('inspeccion')"
+              href="javascript:void(0)">
+              <i class="bi bi-clipboard-check"></i> Enviar Inspección
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'aprobaciones'" (click)="cambiarModulo('aprobaciones')"
+              href="javascript:void(0)">
+              <i class="bi bi-person-check"></i> Aprobar Conductores
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'perfil'" (click)="cambiarModulo('perfil')" href="javascript:void(0)">
+              <i class="bi bi-person-circle"></i> Mi Perfil y Documentos
+            </a>
+          </li>
+        </ng-container>
 
-      <!-- 3. CONDUCTOR: Consulta de flota y Perfil (Documentos) -->
-      <ng-container *ngIf="rolActual === 'CONDUCTOR'">
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
-            <i class="bi bi-truck"></i> Consulta de Flota
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'perfil'" (click)="cambiarModulo('perfil')" href="javascript:void(0)">
-            <i class="bi bi-person-circle"></i> Mi Perfil y Documentos
-          </a>
-        </li>
-      </ng-container>
+        <!-- 3. CONDUCTOR: Consulta de flota y Perfil (Documentos) -->
+        <ng-container *ngIf="rolActual === 'CONDUCTOR'">
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
+              <i class="bi bi-truck"></i> Consulta de Flota
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'perfil'" (click)="cambiarModulo('perfil')" href="javascript:void(0)">
+              <i class="bi bi-person-circle"></i> Mi Perfil y Documentos
+            </a>
+          </li>
+        </ng-container>
 
-      <!-- 3. SUPERVISOR: Solo evalúa las comparativas y aprueba -->
-      <ng-container *ngIf="rolActual === 'SUPERVISOR'">
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
-            <i class="bi bi-truck"></i> Consulta de Flota
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'auditoria'" (click)="cambiarModulo('auditoria')" href="javascript:void(0)">
-            <i class="bi bi-layout-split"></i> Comparativa Inicio/Cierre
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'listado-auditorias'" (click)="cambiarModulo('listado-auditorias')" href="javascript:void(0)">
-            <i class="bi bi-card-checklist"></i> Listado de Auditorías
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'aprobaciones'" (click)="cambiarModulo('aprobaciones')" href="javascript:void(0)">
-            <i class="bi bi-person-check"></i> Aprobar Empleados
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-custom-muted d-flex align-items-center gap-2" [class.active]="moduloActivo === 'perfil'" (click)="cambiarModulo('perfil')" href="javascript:void(0)">
-            <i class="bi bi-person-circle"></i> Mi Perfil
-          </a>
-        </li>
-      </ng-container>
+        <!-- 3. SUPERVISOR: Solo evalúa las comparativas y aprueba -->
+        <ng-container *ngIf="rolActual === 'SUPERVISOR'">
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'flota'" (click)="cambiarModulo('flota')" href="javascript:void(0)">
+              <i class="bi bi-truck"></i> Consulta de Flota
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'auditoria'" (click)="cambiarModulo('auditoria')"
+              href="javascript:void(0)">
+              <i class="bi bi-layout-split"></i> Comparativa Inicio/Cierre
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'listado-auditorias'" (click)="cambiarModulo('listado-auditorias')"
+              href="javascript:void(0)">
+              <i class="bi bi-card-checklist"></i> Listado de Auditorías
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'aprobaciones'" (click)="cambiarModulo('aprobaciones')"
+              href="javascript:void(0)">
+              <i class="bi bi-person-check"></i> Aprobar Empleados
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link text-custom-muted d-flex align-items-center gap-2"
+              [class.active]="moduloActivo === 'perfil'" (click)="cambiarModulo('perfil')" href="javascript:void(0)">
+              <i class="bi bi-person-circle"></i> Mi Perfil
+            </a>
+          </li>
+        </ng-container>
 
-    </ul>
-  </aside>
+      </ul>
+    </aside>
 
-  <!-- Área de Contenido -->
-  <main class="flex-grow-1 p-3 p-md-4">
-    <!-- Header -->
-    <header class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-4 border-bottom border-custom gap-3">
-      <div class="d-flex align-items-center gap-3">
-        <button class="btn btn-outline-light d-lg-none bg-dark" (click)="toggleSidebar()" *ngIf="moduloActivo !== 'configurar-seguridad'">
-          <i class="bi bi-list fs-5"></i>
-        </button>
-        <div>
-          <h4 class="text-white fw-bold mb-0 text-uppercase">{{ moduloActivo }}</h4>
-          <small class="text-custom-muted d-none d-sm-block">Sistema Integral de Gestión de Flotas</small>
+    <!-- Área de Contenido -->
+    <main class="flex-grow-1 p-3 p-md-4">
+      <!-- Header -->
+      <header
+        class="d-flex flex-wrap justify-content-between align-items-center pb-3 mb-4 border-bottom border-custom gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <button class="btn btn-outline-light d-lg-none bg-dark" (click)="toggleSidebar()"
+            *ngIf="moduloActivo !== 'configurar-seguridad'">
+            <i class="bi bi-list fs-5"></i>
+          </button>
+          <div>
+            <h4 class="text-white fw-bold mb-0 text-uppercase">{{ moduloActivo }}</h4>
+            <small class="text-custom-muted d-none d-sm-block">Sistema Integral de Gestión de Flotas</small>
+          </div>
         </div>
+
+        <button class="btn btn-sm btn-outline-danger" (click)="cerrarSesion()">
+          <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Salir</span>
+        </button>
+      </header>
+
+      <!-- Contenido Dinámico -->
+      <div [ngSwitch]="moduloActivo">
+        <app-flota *ngSwitchCase="'flota'"></app-flota>
+        <app-conductores *ngSwitchCase="'conductores'"></app-conductores>
+        <app-empleados *ngSwitchCase="'empleados'"></app-empleados>
+        <app-mantenimiento *ngSwitchCase="'mantenimiento'"></app-mantenimiento>
+
+
+        <app-inspeccion *ngSwitchCase="'inspeccion'"></app-inspeccion>
+        <app-historial-inspecciones *ngSwitchCase="'historial-inspecciones'"></app-historial-inspecciones>
+        <app-auditoria *ngSwitchCase="'auditoria'"></app-auditoria>
+        <app-listado-auditorias *ngSwitchCase="'listado-auditorias'"></app-listado-auditorias>
+        <app-aprobaciones *ngSwitchCase="'aprobaciones'"></app-aprobaciones>
+        <app-perfil *ngSwitchCase="'perfil'"></app-perfil>
+        <app-configurar-seguridad *ngSwitchCase="'configurar-seguridad'"
+          (configuracionCompletada)="onSeguridadCompletada()"></app-configurar-seguridad>
       </div>
-
-      <button class="btn btn-sm btn-outline-danger" (click)="cerrarSesion()">
-        <i class="bi bi-box-arrow-right"></i> <span class="d-none d-sm-inline">Salir</span>
-      </button>
-    </header>
-
-    <!-- Contenido Dinámico -->
-    <div [ngSwitch]="moduloActivo">
-      <app-flota *ngSwitchCase="'flota'"></app-flota>
-      <app-conductores *ngSwitchCase="'conductores'"></app-conductores>
-      <app-empleados *ngSwitchCase="'empleados'"></app-empleados>
-      <app-mantenimiento *ngSwitchCase="'mantenimiento'"></app-mantenimiento>
-
-
-      <app-inspeccion *ngSwitchCase="'inspeccion'"></app-inspeccion>
-      <app-historial-inspecciones *ngSwitchCase="'historial-inspecciones'"></app-historial-inspecciones>
-      <app-auditoria *ngSwitchCase="'auditoria'"></app-auditoria>
-      <app-listado-auditorias *ngSwitchCase="'listado-auditorias'"></app-listado-auditorias>
-      <app-aprobaciones *ngSwitchCase="'aprobaciones'"></app-aprobaciones>
-      <app-perfil *ngSwitchCase="'perfil'"></app-perfil>
-      <app-configurar-seguridad *ngSwitchCase="'configurar-seguridad'" (configuracionCompletada)="onSeguridadCompletada()"></app-configurar-seguridad>
-    </div>
-  </main>
-</div>
+    </main>
+  </div>
 </ng-container>

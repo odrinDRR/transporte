@@ -59,6 +59,23 @@
       <p class="text-white-50 mt-2">Cargando flota...</p>
     </div>
 
+    <!-- Buscador Manual -->
+    <div class="mb-4" *ngIf="!cargando && !vehiculoSeleccionado">
+      <label class="form-label text-custom-muted small">Búsqueda Manual</label>
+      <div class="d-flex gap-2 flex-wrap">
+        <input type="text" class="form-control bg-dark text-white border-custom" style="max-width: 200px;"
+          placeholder="Placa..." [(ngModel)]="filtroPlaca" (keyup.enter)="buscarVehiculosManual()">
+        <input type="text" class="form-control bg-dark text-white border-custom" style="max-width: 200px;"
+          placeholder="Nombre conductor..." [(ngModel)]="filtroConductor" (keyup.enter)="buscarVehiculosManual()">
+        <button class="btn btn-primary" (click)="buscarVehiculosManual()">
+          <i class="bi bi-search"></i> Buscar
+        </button>
+        <button class="btn btn-outline-secondary" (click)="limpiarFiltrosMantenimiento()">
+          <i class="bi bi-eraser"></i> Limpiar
+        </button>
+      </div>
+    </div>
+    
     <div class="table-responsive" *ngIf="!cargando && !vehiculoSeleccionado">
       <table class="table table-dark table-hover border-custom align-middle">
         <thead>

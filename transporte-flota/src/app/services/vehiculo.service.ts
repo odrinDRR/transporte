@@ -15,9 +15,12 @@ export class VehiculoService {
 
   constructor(private http: HttpClient) { }
 
-  // GET: Obtener todos los vehículos
-  obtenerVehiculos(page: number = 0, size: number = 10): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}?page=${page}&size=${size}`);
+  // GET: Obtener todos los vehículos con filtros
+  obtenerVehiculos(page: number = 0, size: number = 10, placa: string = '', conductorNombre: string = ''): Observable<any> {
+    let url = `${this.apiUrl}?page=${page}&size=${size}`;
+    if (placa) url += `&placa=${encodeURIComponent(placa)}`;
+    if (conductorNombre) url += `&conductorNombre=${encodeURIComponent(conductorNombre)}`;
+    return this.http.get<any>(url);
   }
 
   // GET: Obtener un vehículo por su ID (Opcional, pero muy útil para editar)

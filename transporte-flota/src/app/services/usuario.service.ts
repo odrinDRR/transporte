@@ -15,8 +15,13 @@ export class UsuarioService {
 
   constructor(private http: HttpClient) { }
 
-  obtenerUsuarios(page: number = 0, size: number = 10): Observable<any> { 
-    return this.http.get<any>(`${this.apiUrl}?page=${page}&size=${size}`); 
+  obtenerUsuarios(page: number = 0, size: number = 10, cargo: string | null = null, cedula: string = '', ficha: string = '', nombre: string = ''): Observable<any> { 
+    let url = `${this.apiUrl}?page=${page}&size=${size}`;
+    if (cargo) url += `&cargo=${encodeURIComponent(cargo)}`;
+    if (cedula) url += `&cedula=${encodeURIComponent(cedula)}`;
+    if (ficha) url += `&ficha=${encodeURIComponent(ficha)}`;
+    if (nombre) url += `&nombre=${encodeURIComponent(nombre)}`;
+    return this.http.get<any>(url); 
   }
   obtenerPendientes(cargo?: string, page: number = 0, size: number = 10): Observable<any> { 
     let url = `${this.apiUrl}/pendientes?page=${page}&size=${size}`;

@@ -18,12 +18,29 @@
       white-space: normal !important;
     }
 
-    .custom-print-table .p-0 { padding: 0 !important; }
-    .custom-print-table .p-1 { padding: 0.25rem !important; }
-    .custom-print-table .p-2 { padding: 0.5rem !important; }
-    .custom-print-table .text-center { text-align: center !important; }
-    .custom-print-table .align-middle { vertical-align: middle !important; }
-    .custom-print-table .border-top { border-top: 2px solid #000 !important; }
+    .custom-print-table .p-0 {
+      padding: 0 !important;
+    }
+
+    .custom-print-table .p-1 {
+      padding: 0.25rem !important;
+    }
+
+    .custom-print-table .p-2 {
+      padding: 0.5rem !important;
+    }
+
+    .custom-print-table .text-center {
+      text-align: center !important;
+    }
+
+    .custom-print-table .align-middle {
+      vertical-align: middle !important;
+    }
+
+    .custom-print-table .border-top {
+      border-top: 2px solid #000 !important;
+    }
   </style>
 
   <div class="table-responsive">
@@ -31,7 +48,7 @@
       <tr>
         <td colspan="4" class="align-middle">
           <div class="d-flex align-items-center">
-            <img src="assets/images/Pequiven.png" alt="Pequiven" height="30" class="ms-2">
+            <img src="assets/images/logo.jpg" alt="SMU" height="30" class="ms-2">
           </div>
         </td>
         <td colspan="2" class="p-0">
@@ -63,34 +80,42 @@
       </tr>
       <tr>
         <td colspan="3" class="text-center p-1" style="height: 100px; width: 50%;">
-          <img [src]="vehiculo.fotosEstructuradas?.vistaFrontal || vehiculo.fotos?.[0] || ''" style="max-height: 75px; max-width: 100%;">
+          <img [src]="vehiculo.fotosEstructuradas?.vistaFrontal || vehiculo.fotos?.[0] || ''"
+            style="max-height: 75px; max-width: 100%;">
           <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 1<br>VISTA FRONTAL DEL VEHÍCULO</div>
         </td>
         <td colspan="3" class="text-center p-1" style="height: 100px; width: 50%;">
-          <img [src]="vehiculo.fotosEstructuradas?.vistaTrasera || vehiculo.fotos?.[1] || ''" style="max-height: 75px; max-width: 100%;">
+          <img [src]="vehiculo.fotosEstructuradas?.vistaTrasera || vehiculo.fotos?.[1] || ''"
+            style="max-height: 75px; max-width: 100%;">
           <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 2<br>VISTA TRASERA DEL VEHÍCULO</div>
         </td>
       </tr>
       <tr>
         <td colspan="3" class="text-center p-1" style="height: 100px; width: 50%;">
-          <img [src]="vehiculo.fotosEstructuradas?.vistaLateralDerecha || vehiculo.fotos?.[2] || ''" style="max-height: 75px; max-width: 100%;">
+          <img [src]="vehiculo.fotosEstructuradas?.vistaLateralDerecha || vehiculo.fotos?.[2] || ''"
+            style="max-height: 75px; max-width: 100%;">
           <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 3<br>VISTA LATERAL DERECHA DEL VEHÍCULO</div>
         </td>
         <td colspan="3" class="text-center p-1" style="height: 100px; width: 50%;">
-          <img [src]="vehiculo.fotosEstructuradas?.vistaLateralIzquierda || vehiculo.fotos?.[3] || ''" style="max-height: 75px; max-width: 100%;">
+          <img [src]="vehiculo.fotosEstructuradas?.vistaLateralIzquierda || vehiculo.fotos?.[3] || ''"
+            style="max-height: 75px; max-width: 100%;">
           <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 4<br>VISTA LATERAL IZQUIERDO DEL VEHÍCULO</div>
         </td>
       </tr>
       <tr>
         <td colspan="6" class="text-center p-1" style="height: 100px;">
-          <img [src]="vehiculo.fotosEstructuradas?.vistaSerialCarroceria || vehiculo.fotos?.[4] || ''" style="max-height: 75px; max-width: 100%;">
-          <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 5<br>VISTA DEL SERIAL DE CARROCERIA DEL VEHÍCULO</div>
+          <img [src]="vehiculo.fotosEstructuradas?.vistaSerialCarroceria || vehiculo.fotos?.[4] || ''"
+            style="max-height: 75px; max-width: 100%;">
+          <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 5<br>VISTA DEL SERIAL DE CARROCERIA DEL VEHÍCULO
+          </div>
         </td>
       </tr>
       <tr>
         <td colspan="6" class="text-center p-1" style="height: 100px;">
-          <img [src]="vehiculo.fotosEstructuradas?.vistaNumeroBien || vehiculo.fotos?.[5] || ''" style="max-height: 75px; max-width: 100%;">
-          <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 6<br>VISTA DEL NUMERO DE BIEN NACIONAL DEL VEHÍCULO</div>
+          <img [src]="vehiculo.fotosEstructuradas?.vistaNumeroBien || vehiculo.fotos?.[5] || ''"
+            style="max-height: 75px; max-width: 100%;">
+          <div class="mt-1 fw-bold" style="font-size: 9px;">FOTO N° 6<br>VISTA DEL NUMERO DE BIEN NACIONAL DEL VEHÍCULO
+          </div>
         </td>
       </tr>
       <tr>
